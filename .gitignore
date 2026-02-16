@@ -1,0 +1,39 @@
+# --- [ SECCIÓN C# / .NET ] ---
+# Archivos de compilación y binarios
+[Bb]in/
+[Oo]bj/
+# Configuración local de Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+# Archivos de publicación
+publish/
+*.pfx
+*.publishsettings
+
+# --- [ SECCIÓN REACT / NODE.JS ] ---
+# Dependencias (NUNCA subirlas)
+node_modules/
+# Carpeta de producción (React/Vite/Next)
+build/
+dist/
+out/
+# Logs de error
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Entorno local (Configuraciones de Firebase, APIs, etc)
+.env
+.env.local
+.env.development.local
+
+# --- [ SECCIÓN IDEs Y SISTEMA ] ---
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+# JetBrains (Rider, WebStorm)
+.idea/
+# Archivos del sistema
+.DS_Store
+Thumbs.db
