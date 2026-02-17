@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SistemaApuestas.Domain.Entities.Financial
 {
     public class SolicitudRecarga
     {
-        public int recargaId { get; set; }
-        public int usuarioId { get; set; }
-        public int administradorId { get; set; }
-        public decimal monto { get; set; }
-        public string plataforma { get; set; }
-        public string? cuentaDestino { get; set; }
-        public string estado { get; set; } = "PENDIENTE";
-        public DateTime fechaEmision { get; set; } = DateTime.Now;
-        public DateTime fechaAprobacion { get; set; }
+        public int RecargaId { get; set; }
+        public int UsuarioId { get; set; }
+        public decimal Monto { get; set; }
+        public string? Metodo { get; set; }
+        public string? CodigoOperacion { get; set; }
+        public string? FotoVoucherUrl { get; set; }
+        public string Estado { get; set; } = "PENDIENTE";
+        public int? AdminAtendiendoId { get; set; }
+        public DateTime FechaEmision { get; set; } = DateTime.Now;
+        public DateTime? FechaCierre { get; set; }
     }
 }
