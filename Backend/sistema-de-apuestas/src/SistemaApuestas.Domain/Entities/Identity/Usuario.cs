@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SistemaApuestas.Domain.Entities.Identity
 {
     public class Usuario
-    {        
-        public int usuarioId { get; set; } //
-        public string username { get; set; } //
-        public string email{ get; set; } //
-        public decimal saldo { get; set; } = 0 //
-        public string passwordHash { get; set; } //
-
-        // Relaciones para navegación profesional
+    {
+        public int UsuarioId { get; set; }
+        public int? ClanId { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string PassHash { get; set; }
+        public decimal SaldoReal { get; set; } = 0;
+        public decimal SaldoBono { get; set; } = 0;
+        public string Rol { get; set; } = "USER";
+        public int PartidasJugadas { get; set; } = 0;
+        public DateTime FechaRegistro { get; set; } = DateTime.Now;
     }
 }

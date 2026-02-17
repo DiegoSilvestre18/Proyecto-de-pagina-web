@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SistemaApuestas.Domain.Entities.Gaming
 {
     public class UsuarioStat
     {
-        public int usuarioStatId { get; set; }
-        public int usuarioId { get; set; }
-        public string? juego { get; set; }
-        public int eloMmr { get; set; } = 0;
-        public int wins { get; set; } = 0;
-        public int loses { get; set; } = 0;
-        public string? rangoMedalla { get; set; }
+        public int UserStatId { get; set; }
+        public int UsuarioId { get; set; }
+        public string? Juego { get; set; }
+        public int EloMmr { get; set; } = 0;
+        public int Wins { get; set; } = 0;
+        public int Loses { get; set; } = 0;
+        public string? RangoMedalla { get; set; }
     }
 }
