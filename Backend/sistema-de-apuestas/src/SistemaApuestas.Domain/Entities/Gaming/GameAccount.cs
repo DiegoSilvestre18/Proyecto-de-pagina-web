@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Gaming
 {
@@ -12,5 +13,9 @@ namespace SistemaApuestas.Domain.Entities.Gaming
 		public string? RangoActual { get; set; }
 		public bool EsRangoManual { get; set; } = false;
 		public DateTime FechaVinculacion { get; set; } = DateTime.Now;
+
+		// Navegación
+		public Identity.Usuario Usuario { get; set; } = null!;
+		public ICollection<Betting.ParticipanteSala> Participaciones { get; set; } = [];
 	}
 }

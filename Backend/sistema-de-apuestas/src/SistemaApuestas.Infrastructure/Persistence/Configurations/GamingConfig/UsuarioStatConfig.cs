@@ -37,6 +37,12 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
             builder.Property(u => u.RangoMedalla)
                 .HasColumnName("RANGO_MEDALLA")
                 .HasMaxLength(50);
+
+            // RELACIÓN: Stats pertenecen a un Usuario
+            builder.HasOne(u => u.Usuario)
+                .WithMany(usr => usr.UsuarioStats)
+                .HasForeignKey(u => u.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

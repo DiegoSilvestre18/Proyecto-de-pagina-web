@@ -70,6 +70,24 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
             builder.Property(s => s.FechaCreacion)
                 .HasColumnName("FECHA_CREACION")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // RELACIÓN: Creador de la sala
+            builder.HasOne(s => s.Creador)
+                .WithMany(u => u.SalasCreadas)
+                .HasForeignKey(s => s.CreadorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Torneo (opcional)
+            builder.HasOne(s => s.Torneo)
+                .WithMany(t => t.Salas)
+                .HasForeignKey(s => s.TorneoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // RELACIÓN: Mapa elegido (opcional)
+            builder.HasOne(s => s.MapaElegido)
+                .WithMany(m => m.Salas)
+                .HasForeignKey(s => s.MapaElegidoId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

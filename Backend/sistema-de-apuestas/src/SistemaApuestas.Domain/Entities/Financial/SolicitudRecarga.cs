@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Financial
 {
@@ -14,5 +15,10 @@ namespace SistemaApuestas.Domain.Entities.Financial
         public int? AdminAtendiendoId { get; set; }
         public DateTime FechaEmision { get; set; } = DateTime.Now;
         public DateTime? FechaCierre { get; set; }
+
+        // Navegación
+        public Identity.Usuario Usuario { get; set; } = null!;
+        public Identity.Usuario? AdminAtendiendo { get; set; }
+        public ICollection<Audit.Movimiento> Movimientos { get; set; } = [];
     }
 }

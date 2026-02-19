@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Betting
 {
@@ -18,5 +19,12 @@ namespace SistemaApuestas.Domain.Entities.Betting
         public string? VetoLog { get; set; }
         public string? ResultadoGanador { get; set; }
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
+        // Navegación
+        public Identity.Usuario Creador { get; set; } = null!;
+        public Torneo? Torneo { get; set; }
+        public Gaming.Mapa? MapaElegido { get; set; }
+        public ICollection<ParticipanteSala> Participantes { get; set; } = [];
+        public ICollection<Audit.Movimiento> Movimientos { get; set; } = [];
     }
 }

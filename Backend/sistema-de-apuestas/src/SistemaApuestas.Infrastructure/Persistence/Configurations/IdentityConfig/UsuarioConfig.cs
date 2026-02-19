@@ -58,6 +58,12 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.IdentityConf
 
             builder.HasIndex(u => u.Username).IsUnique();
             builder.HasIndex(u => u.Email).IsUnique();
+
+            // RELACIÓN: Usuario pertenece a un Clan (opcional)
+            builder.HasOne(u => u.Clan)
+                .WithMany(c => c.Usuarios)
+                .HasForeignKey(u => u.ClanId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

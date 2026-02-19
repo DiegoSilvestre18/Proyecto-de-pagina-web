@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Gaming
 {
@@ -8,5 +9,8 @@ namespace SistemaApuestas.Domain.Entities.Gaming
 		public string Nombre { get; set; }
 		public string? Descripcion { get; set; }
 		public string? ImageUrl { get; set; }
+
+		// Navegación: Un clan tiene muchos usuarios
+		public ICollection<Identity.Usuario> Usuarios { get; set; } = [];
 	}
 }

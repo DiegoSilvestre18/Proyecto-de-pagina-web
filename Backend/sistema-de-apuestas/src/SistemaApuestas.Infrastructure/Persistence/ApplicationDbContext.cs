@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SistemaApuestas.Infrastructure.Persistence
 {
-    internal class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        // 1. Declaración de DbSets (Las tablas que C# va a manejar)
+        // Declaración de DbSets (Las tablas que C# va a manejar)
         public DbSet<Usuario> Usuarios => Set<Usuario>();
         public DbSet<Clan> Clanes => Set<Clan>();
         public DbSet<GameAccount> GameAccounts => Set<GameAccount>();
@@ -27,7 +27,7 @@ namespace SistemaApuestas.Infrastructure.Persistence
         public DbSet<Baneo> Baneos => Set<Baneo>();
         public DbSet<LogAccion> LogAcciones => Set<LogAccion>();
 
-        // 2. Configuración con Fluent API (delegada a las clases IEntityTypeConfiguration)
+        // Configuración para que lea las configuraciones de las entidades desde la carpeta "Configurations"
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

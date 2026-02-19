@@ -60,6 +60,30 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
                 "(RECARGA_ID IS NOT NULL AND SALA_ID IS NULL AND RETIRO_ID IS NULL) OR " +
                 "(RECARGA_ID IS NULL AND SALA_ID IS NOT NULL AND RETIRO_ID IS NULL) OR " +
                 "(RECARGA_ID IS NULL AND SALA_ID IS NULL AND RETIRO_ID IS NOT NULL)");
+
+            // RELACIÓN: Usuario que genera el movimiento
+            builder.HasOne(m => m.Usuario)
+                .WithMany(u => u.Movimientos)
+                .HasForeignKey(m => m.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Origen Recarga (opcional)
+            builder.HasOne(m => m.Recarga)
+                .WithMany(r => r.Movimientos)
+                .HasForeignKey(m => m.RecargaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // RELACIÓN: Origen Retiro (opcional)
+            builder.HasOne(m => m.Retiro)
+                .WithMany(r => r.Movimientos)
+                .HasForeignKey(m => m.RetiroId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // RELACIÓN: Origen Sala (opcional)
+            builder.HasOne(m => m.Sala)
+                .WithMany(s => s.Movimientos)
+                .HasForeignKey(m => m.SalaId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

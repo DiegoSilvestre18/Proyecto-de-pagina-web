@@ -11,5 +11,9 @@ namespace SistemaApuestas.Domain.Entities.Gaming
 		public int MmrNuevo { get; set; }
 		public string Motivo { get; set; }
 		public DateTime FechaCambio { get; set; } = DateTime.Now;
+
+		// Navegación
+		public Identity.Usuario Admin { get; set; } = null!;
+		public UsuarioStat UsuarioStat { get; set; } = null!;
 	}
 }

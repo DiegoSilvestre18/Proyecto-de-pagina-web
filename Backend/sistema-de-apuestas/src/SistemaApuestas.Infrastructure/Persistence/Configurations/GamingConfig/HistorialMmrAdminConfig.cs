@@ -39,6 +39,18 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
             builder.Property(h => h.FechaCambio)
                 .HasColumnName("FECHA_CAMBIO")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // RELACIÓN: Admin que aplicó el cambio
+            builder.HasOne(h => h.Admin)
+                .WithMany()
+                .HasForeignKey(h => h.AdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Stat afectada
+            builder.HasOne(h => h.UsuarioStat)
+                .WithMany(s => s.HistorialCambios)
+                .HasForeignKey(h => h.UserStatId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

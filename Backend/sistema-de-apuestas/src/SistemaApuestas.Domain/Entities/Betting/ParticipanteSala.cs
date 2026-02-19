@@ -13,5 +13,10 @@ namespace SistemaApuestas.Domain.Entities.Betting
         public int? SlotIndex { get; set; }
         public decimal PagoConBono { get; set; } = 0;
         public decimal PagoConReal { get; set; } = 0;
+
+        // Navegación
+        public Sala Sala { get; set; } = null!;
+        public Identity.Usuario Usuario { get; set; } = null!;
+        public Gaming.GameAccount GameAccount { get; set; } = null!;
     }
 }
