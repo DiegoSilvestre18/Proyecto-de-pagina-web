@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Betting
 {
@@ -11,5 +12,8 @@ namespace SistemaApuestas.Domain.Entities.Betting
         public string Estado { get; set; } = "REGISTRO";
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
+
+        // Navegación
+        public ICollection<Sala> Salas { get; set; } = [];
     }
 }

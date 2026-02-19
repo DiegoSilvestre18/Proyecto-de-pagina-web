@@ -47,6 +47,18 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
 
             builder.Property(r => r.FechaPago)
                 .HasColumnName("FECHA_PAGO");
+
+            // RELACIÓN: Usuario que solicita
+            builder.HasOne(r => r.Usuario)
+                .WithMany(u => u.SolicitudesRetiro)
+                .HasForeignKey(r => r.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Admin que atiende (opcional)
+            builder.HasOne(r => r.AdminAtendiendo)
+                .WithMany()
+                .HasForeignKey(r => r.AdminAtendiendoId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

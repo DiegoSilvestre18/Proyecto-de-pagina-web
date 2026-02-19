@@ -14,5 +14,11 @@ namespace SistemaApuestas.Domain.Entities.Audit
         public decimal MontoBono { get; set; } = 0;
         public string Concepto { get; set; }
         public DateTime Fecha { get; set; } = DateTime.Now;
+
+        // Navegación
+        public Identity.Usuario Usuario { get; set; } = null!;
+        public Financial.SolicitudRecarga? Recarga { get; set; }
+        public Financial.SolicitudRetiro? Retiro { get; set; }
+        public Betting.Sala? Sala { get; set; }
     }
 }

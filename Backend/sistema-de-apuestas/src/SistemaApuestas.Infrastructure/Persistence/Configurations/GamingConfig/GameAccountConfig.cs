@@ -47,6 +47,12 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
             builder.HasIndex(g => new { g.UsuarioId, g.Juego })
                 .IsUnique()
                 .HasDatabaseName("UQ_USUARIO_JUEGO");
+
+            // RELACIÓN: Cuenta pertenece a un Usuario
+            builder.HasOne(g => g.Usuario)
+                .WithMany(u => u.GameAccounts)
+                .HasForeignKey(g => g.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SistemaApuestas.Domain.Entities.Gaming
 {
@@ -11,5 +12,9 @@ namespace SistemaApuestas.Domain.Entities.Gaming
         public int Wins { get; set; } = 0;
         public int Loses { get; set; } = 0;
         public string? RangoMedalla { get; set; }
+
+        // Navegación
+        public Identity.Usuario Usuario { get; set; } = null!;
+        public ICollection<HistorialMmrAdmin> HistorialCambios { get; set; } = [];
     }
 }

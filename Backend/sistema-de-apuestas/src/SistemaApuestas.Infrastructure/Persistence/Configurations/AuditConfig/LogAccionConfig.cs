@@ -29,6 +29,12 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
             builder.Property(l => l.Fecha)
                 .HasColumnName("FECHA")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // RELACIÓN: Usuario que realizó la acción
+            builder.HasOne(l => l.Usuario)
+                .WithMany(u => u.LogAcciones)
+                .HasForeignKey(l => l.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

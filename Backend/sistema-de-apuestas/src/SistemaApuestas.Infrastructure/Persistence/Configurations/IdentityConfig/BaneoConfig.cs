@@ -35,6 +35,18 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.IdentityConf
             builder.Property(b => b.FechaBaneo)
                 .HasColumnName("FECHA_BANEO")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // RELACIÓN: Usuario castigado
+            builder.HasOne(b => b.Usuario)
+                .WithMany(u => u.BaneosRecibidos)
+                .HasForeignKey(b => b.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Admin que castiga (misma tabla USUARIO, distinta FK)
+            builder.HasOne(b => b.Admin)
+                .WithMany(u => u.BaneosAplicados)
+                .HasForeignKey(b => b.AdminId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

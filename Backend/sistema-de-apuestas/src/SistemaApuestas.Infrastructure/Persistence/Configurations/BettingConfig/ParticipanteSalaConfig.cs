@@ -52,6 +52,24 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
             builder.HasIndex(p => new { p.SalaId, p.SlotIndex })
                 .IsUnique()
                 .HasDatabaseName("UQ_SALA_SLOT");
+
+            // RELACIÓN: Participante en una Sala
+            builder.HasOne(p => p.Sala)
+                .WithMany(s => s.Participantes)
+                .HasForeignKey(p => p.SalaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // RELACIÓN: Usuario que participa
+            builder.HasOne(p => p.Usuario)
+                .WithMany(u => u.Participaciones)
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // RELACIÓN: Cuenta de juego usada
+            builder.HasOne(p => p.GameAccount)
+                .WithMany(g => g.Participaciones)
+                .HasForeignKey(p => p.GameAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

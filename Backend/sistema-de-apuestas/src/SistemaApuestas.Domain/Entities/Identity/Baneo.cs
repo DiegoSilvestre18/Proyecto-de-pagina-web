@@ -10,5 +10,9 @@ namespace SistemaApuestas.Domain.Entities.Identity
 		public string Motivo { get; set; }
 		public int Tiempo { get; set; }
 		public DateTime FechaBaneo { get; set; } = DateTime.Now;
+
+		// Navegación: Dos FKs apuntando a USUARIO
+		public Usuario Usuario { get; set; } = null!;
+		public Usuario Admin { get; set; } = null!;
 	}
 }

@@ -9,5 +9,8 @@ namespace SistemaApuestas.Domain.Entities.Audit
         public string? Accion { get; set; }
         public string? Detalle { get; set; }
         public DateTime Fecha { get; set; } = DateTime.Now;
+
+        // Navegación
+        public Identity.Usuario Usuario { get; set; } = null!;
     }
 }
