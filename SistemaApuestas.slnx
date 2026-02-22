@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/SistemaApuestas.Api/SistemaApuestas.Api.csproj" />
-    <Project Path="src/SistemaApuestas.Application/SistemaApuestas.Application.csproj" />
-    <Project Path="src/SistemaApuestas.Domain/SistemaApuestas.Domain.csproj" />
-    <Project Path="src/SistemaApuestas.Infrastructure/SistemaApuestas.Infrastructure.csproj" />
-  </Folder>
-</Solution>
