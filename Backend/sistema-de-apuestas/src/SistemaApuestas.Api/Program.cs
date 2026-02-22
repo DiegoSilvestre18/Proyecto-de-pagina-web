@@ -33,6 +33,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
 app.UseCors("ReactFrontend"); // Aplica la política de CORS
 app.MapControllers(); // Mapea los controladores de la API
 app.Run(); // Inicia la aplicación
