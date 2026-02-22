@@ -1,9 +1,9 @@
 import React from 'react';
 import { User, Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRegister } from '../../hooks/useRegister';
-import { apiFetch } from '../../Global/Api';
-import FormInput from '../common/FormInput';
+import { useRegister } from '../../../../hooks/useRegister';
+import { postUser } from '../Services/Register';
+import FormInput from '../../../common/FormInput';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -12,15 +12,12 @@ const Register: React.FC = () => {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { error, payload } = handleSubmit();
-    if (error) {
+    if (error || !payload) {
       alert(error);
       return;
     }
     console.log('payload a enviar', payload);
-    await apiFetch('/api/Usuario', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }); // Example API endpoint
+    await postUser(payload);
   };
 
   return (
