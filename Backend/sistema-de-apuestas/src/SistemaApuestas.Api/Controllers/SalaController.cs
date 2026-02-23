@@ -5,8 +5,7 @@ using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
 using SistemaApuestas.Infrastructure.Persistence;
 using System.Security.Claims;
-// Agrega aquí los using de tus Entidades (ParticipanteSala, Movimiento, etc) si te salen en rojo
-
+// Agrega aquí los using de tus Entidades
 namespace SistemaApuestas.Api.Controllers
 {
     [Route("api/[controller]")]
