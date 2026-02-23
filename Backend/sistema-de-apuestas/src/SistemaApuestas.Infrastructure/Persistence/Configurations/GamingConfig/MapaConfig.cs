@@ -8,24 +8,24 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
     {
         public void Configure(EntityTypeBuilder<Mapa> builder)
         {
-            builder.ToTable("MAPA");
+            builder.ToTable("mapa");
             builder.HasKey(m => m.MapaId);
 
             builder.Property(m => m.MapaId)
-                .HasColumnName("MAPA_ID")
+                .HasColumnName("mapa_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(m => m.Nombre)
-                .HasColumnName("NOMBRE")
+                .HasColumnName("nombre")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(m => m.ImagenUrl)
-                .HasColumnName("IMAGEN_URL")
+                .HasColumnName("imagen_url")
                 .HasColumnType("text");
 
             builder.Property(m => m.Activo)
-                .HasColumnName("ACTIVO")
+                .HasColumnName("activo")
                 .HasDefaultValue(true);
         }
     }

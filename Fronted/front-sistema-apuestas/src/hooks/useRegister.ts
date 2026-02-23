@@ -7,9 +7,6 @@ export interface baseForm {
   password: string;
   confirmPassword: string;
   rol: string;
-  saldoReal: number;
-  saldoBono: number;
-  partidasJugadas: number;
 }
 
 export const useRegister = (rol: string) => {
@@ -20,9 +17,6 @@ export const useRegister = (rol: string) => {
     password: '',
     confirmPassword: '',
     rol: rol,
-    saldoReal: 0,
-    saldoBono: 0,
-    partidasJugadas: 0,
   });
 
   // Maneja los cambios en el formulario
@@ -51,9 +45,6 @@ export const useRegister = (rol: string) => {
       email: form.email,
       password: form.password,
       rol: form.rol,
-      saldoReal: form.saldoReal,
-      saldoBono: form.saldoBono,
-      partidasJugadas: form.partidasJugadas,
     };
     console.log('nuevo usuario', payload);
     return payload;
@@ -75,9 +66,6 @@ export const useRegister = (rol: string) => {
       password: '',
       confirmPassword: '',
       rol: rol,
-      saldoReal: 0,
-      saldoBono: 0,
-      partidasJugadas: 0,
     });
   };
 

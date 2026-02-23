@@ -8,52 +8,52 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.IdentityConf
     {
         public void Configure(EntityTypeBuilder<Usuario> builder)
         {
-            builder.ToTable("USUARIO");
+            builder.ToTable("usuario");
             builder.HasKey(u => u.UsuarioId);
 
             builder.Property(u => u.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(u => u.ClanId)
-                .HasColumnName("CLAN_ID");
+                .HasColumnName("clan_id");
 
             builder.Property(u => u.Username)
-                .HasColumnName("USERNAME")
+                .HasColumnName("username")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(u => u.Email)
-                .HasColumnName("EMAIL")
+                .HasColumnName("email")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(u => u.PassHash)
-                .HasColumnName("PASS_HASH")
+                .HasColumnName("pass_hash")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(u => u.SaldoReal)
-                .HasColumnName("SALDO_REAL")
+                .HasColumnName("saldo_real")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0.00m);
 
             builder.Property(u => u.SaldoBono)
-                .HasColumnName("SALDO_BONO")
+                .HasColumnName("saldo_bono")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0.00m);
 
             builder.Property(u => u.Rol)
-                .HasColumnName("ROL")
+                .HasColumnName("rol")
                 .HasMaxLength(20)
                 .HasDefaultValue("USER");
 
             builder.Property(u => u.PartidasJugadas)
-                .HasColumnName("PARTIDAS_JUGADAS")
+                .HasColumnName("partidas_jugadas")
                 .HasDefaultValue(0);
 
             builder.Property(u => u.FechaRegistro)
-                .HasColumnName("FECHA_REGISTRO")
+                .HasColumnName("fecha_registro")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.HasIndex(u => u.Username).IsUnique();

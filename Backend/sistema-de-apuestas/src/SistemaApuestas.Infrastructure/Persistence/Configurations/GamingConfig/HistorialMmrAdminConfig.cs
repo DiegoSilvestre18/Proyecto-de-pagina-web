@@ -8,36 +8,36 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
     {
         public void Configure(EntityTypeBuilder<HistorialMmrAdmin> builder)
         {
-            builder.ToTable("HISTORIAL_MMR_ADMIN");
+            builder.ToTable("historial_mmr_admin");
             builder.HasKey(h => h.HistorialId);
 
             builder.Property(h => h.HistorialId)
-                .HasColumnName("HISTORIAL_ID")
+                .HasColumnName("historial_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(h => h.AdminId)
-                .HasColumnName("ADMIN_ID")
+                .HasColumnName("admin_id")
                 .IsRequired();
 
             builder.Property(h => h.UserStatId)
-                .HasColumnName("USER_STAT_ID")
+                .HasColumnName("user_stat_id")
                 .IsRequired();
 
             builder.Property(h => h.MmrAnterior)
-                .HasColumnName("MMR_ANTERIOR")
+                .HasColumnName("mmr_anterior")
                 .IsRequired();
 
             builder.Property(h => h.MmrNuevo)
-                .HasColumnName("MMR_NUEVO")
+                .HasColumnName("mmr_nuevo")
                 .IsRequired();
 
             builder.Property(h => h.Motivo)
-                .HasColumnName("MOTIVO")
+                .HasColumnName("motivo")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(h => h.FechaCambio)
-                .HasColumnName("FECHA_CAMBIO")
+                .HasColumnName("fecha_cambio")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // RELACIÓN: Admin que aplicó el cambio

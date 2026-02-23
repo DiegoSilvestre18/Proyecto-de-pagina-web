@@ -8,45 +8,45 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
     {
         public void Configure(EntityTypeBuilder<SolicitudRetiro> builder)
         {
-            builder.ToTable("SOLICITUD_RETIRO");
+            builder.ToTable("solicitud_retiro");
             builder.HasKey(r => r.RetiroId);
 
             builder.Property(r => r.RetiroId)
-                .HasColumnName("RETIRO_ID")
+                .HasColumnName("retiro_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(r => r.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .IsRequired();
 
             builder.Property(r => r.Monto)
-                .HasColumnName("MONTO")
+                .HasColumnName("monto")
                 .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(r => r.CuentaDestino)
-                .HasColumnName("CUENTA_DESTINO")
+                .HasColumnName("cuenta_destino")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(r => r.Estado)
-                .HasColumnName("ESTADO")
+                .HasColumnName("estado")
                 .HasMaxLength(20)
                 .HasDefaultValue("PENDIENTE");
 
             builder.Property(r => r.AdminAtendiendoId)
-                .HasColumnName("ADMIN_ATENDIENDO_ID");
+                .HasColumnName("admin_atendiendo_id");
 
             builder.Property(r => r.FotoConstanciaPago)
-                .HasColumnName("FOTO_CONSTANCIA_PAGO")
+                .HasColumnName("foto_constancia_pago")
                 .HasColumnType("text");
 
             builder.Property(r => r.FechaEmision)
-                .HasColumnName("FECHA_EMISION")
+                .HasColumnName("fecha_emision")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Property(r => r.FechaPago)
-                .HasColumnName("FECHA_PAGO");
+                .HasColumnName("fecha_pago");
 
             // RELACIÓN: Usuario que solicita
             builder.HasOne(r => r.Usuario)

@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import FormInput from '../common/FormInput';
+import FormInput from '../../../common/FormInput';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', password: '' });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 max-w-md w-full">
@@ -27,12 +32,18 @@ const Login: React.FC = () => {
           type="email"
           label="Correo Electrónico"
           placeholder="tu@email.com"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
         />
         <FormInput
           icon={Lock}
           type="password"
           label="Contraseña"
           placeholder="••••••••"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
         />
 
         <div className="flex justify-between items-center mb-6">

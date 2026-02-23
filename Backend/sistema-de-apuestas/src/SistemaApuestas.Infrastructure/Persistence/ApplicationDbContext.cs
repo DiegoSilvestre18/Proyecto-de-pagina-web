@@ -1,9 +1,10 @@
-﻿using SistemaApuestas.Domain.Entities.Audit;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
 using SistemaApuestas.Domain.Entities.Financial;
 using SistemaApuestas.Domain.Entities.Gaming;
 using SistemaApuestas.Domain.Entities.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace SistemaApuestas.Infrastructure.Persistence
 {
@@ -31,6 +32,22 @@ namespace SistemaApuestas.Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            var utcConverter = new ValueConverter<DateTime, DateTime>(
+                toDb => toDb.Kind == DateTimeKind.Utc ? toDb : toDb.ToUniversalTime(),
+                fromDb => DateTime.SpecifyKind(fromDb, DateTimeKind.Utc)
+            );
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                    {
+                        property.SetValueConverter(utcConverter);
+                    }
+                }
+            }
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }

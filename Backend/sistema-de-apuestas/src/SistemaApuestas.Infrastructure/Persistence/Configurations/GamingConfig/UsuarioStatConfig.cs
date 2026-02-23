@@ -8,34 +8,34 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
     {
         public void Configure(EntityTypeBuilder<UsuarioStat> builder)
         {
-            builder.ToTable("USUARIO_STATS");
+            builder.ToTable("usuario_stats");
             builder.HasKey(u => u.UserStatId);
 
             builder.Property(u => u.UserStatId)
-                .HasColumnName("USER_STAT_ID")
+                .HasColumnName("user_stat_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(u => u.UsuarioId)
-                .HasColumnName("USUARIO_ID");
+                .HasColumnName("usuario_id");
 
             builder.Property(u => u.Juego)
-                .HasColumnName("JUEGO")
+                .HasColumnName("juego")
                 .HasMaxLength(50);
 
             builder.Property(u => u.EloMmr)
-                .HasColumnName("ELO_MMR")
+                .HasColumnName("elo_mmr")
                 .HasDefaultValue(0);
 
             builder.Property(u => u.Wins)
-                .HasColumnName("WINS")
+                .HasColumnName("wins")
                 .HasDefaultValue(0);
 
             builder.Property(u => u.Loses)
-                .HasColumnName("LOSES")
+                .HasColumnName("loses")
                 .HasDefaultValue(0);
 
             builder.Property(u => u.RangoMedalla)
-                .HasColumnName("RANGO_MEDALLA")
+                .HasColumnName("rango_medalla")
                 .HasMaxLength(50);
 
             // RELACIÓN: Stats pertenecen a un Usuario

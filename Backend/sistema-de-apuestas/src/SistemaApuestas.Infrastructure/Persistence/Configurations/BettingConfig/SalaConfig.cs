@@ -8,67 +8,67 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
     {
         public void Configure(EntityTypeBuilder<Sala> builder)
         {
-            builder.ToTable("SALA");
+            builder.ToTable("sala");
             builder.HasKey(s => s.SalaId);
 
             builder.Property(s => s.SalaId)
-                .HasColumnName("SALA_ID")
+                .HasColumnName("sala_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(s => s.CreadorId)
-                .HasColumnName("CREADOR_ID")
+                .HasColumnName("creador_id")
                 .IsRequired();
 
             builder.Property(s => s.TorneoId)
-                .HasColumnName("TORNEO_ID");
+                .HasColumnName("torneo_id");
 
             builder.Property(s => s.Nombre)
-                .HasColumnName("NOMBRE")
+                .HasColumnName("nombre")
                 .HasMaxLength(100);
 
             builder.Property(s => s.TipoSala)
-                .HasColumnName("TIPO_SALA")
+                .HasColumnName("tipo_sala")
                 .HasMaxLength(50)
                 .HasDefaultValue("BASICA");
 
             builder.Property(s => s.Juego)
-                .HasColumnName("JUEGO")
+                .HasColumnName("juego")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(s => s.CostoEntrada)
-                .HasColumnName("COSTO_ENTRADA")
+                .HasColumnName("costo_entrada")
                 .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(s => s.PremioARepartir)
-                .HasColumnName("PREMIO_A_REPARTIR")
+                .HasColumnName("premio_a_repartir")
                 .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(s => s.GananciaPlataforma)
-                .HasColumnName("GANANCIA_PLATAFORMA")
+                .HasColumnName("ganancia_plataforma")
                 .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(s => s.Estado)
-                .HasColumnName("ESTADO")
+                .HasColumnName("estado")
                 .HasMaxLength(20)
                 .HasDefaultValue("ESPERANDO");
 
             builder.Property(s => s.MapaElegidoId)
-                .HasColumnName("MAPA_ELEGIDO_ID");
+                .HasColumnName("mapa_elegido_id");
 
             builder.Property(s => s.VetoLog)
-                .HasColumnName("VETO_LOG")
+                .HasColumnName("veto_log")
                 .HasColumnType("jsonb");
 
             builder.Property(s => s.ResultadoGanador)
-                .HasColumnName("RESULTADO_GANADOR")
+                .HasColumnName("resultado_ganador")
                 .HasMaxLength(20);
 
             builder.Property(s => s.FechaCreacion)
-                .HasColumnName("FECHA_CREACION")
+                .HasColumnName("fecha_creacion")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // RELACIÓN: Creador de la sala

@@ -9,57 +9,56 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
         public void Configure(EntityTypeBuilder<Movimiento> builder)
         {
             // Configuración de la tabla y las columnas
-            builder.ToTable("MOVIMIENTOS");
+            builder.ToTable("movimientos");
             builder.HasKey(m => m.MovimientoId);
 
             builder.Property(m => m.MovimientoId)
-                .HasColumnName("MOVIMIENTO_ID")
+                .HasColumnName("movimiento_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(m => m.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .IsRequired();
 
             builder.Property(m => m.RecargaId)
-                .HasColumnName("RECARGA_ID");
+                .HasColumnName("recarga_id");
 
             builder.Property(m => m.RetiroId)
-                .HasColumnName("RETIRO_ID");
+                .HasColumnName("retiro_id");
 
             builder.Property(m => m.SalaId)
-                .HasColumnName("SALA_ID");
+                .HasColumnName("sala_id");
 
             builder.Property(m => m.Tipo)
-                .HasColumnName("TIPO")
+                .HasColumnName("tipo")
                 .HasMaxLength(20)
                 .IsRequired();
 
             builder.Property(m => m.MontoReal)
-                .HasColumnName("MONTO_REAL")
+                .HasColumnName("monto_real")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0.00m)
                 .IsRequired();
 
             builder.Property(m => m.MontoBono)
-                .HasColumnName("MONTO_BONO")
+                .HasColumnName("monto_bono")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0.00m)
                 .IsRequired();
 
             builder.Property(m => m.Concepto)
-                .HasColumnName("CONCEPTO")
+                .HasColumnName("concepto")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(m => m.Fecha)
-                .HasColumnName("FECHA")
+                .HasColumnName("fecha")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            // Agregar restricción para asegurar que solo una de las columnas de origen tenga valor
-            builder.HasCheckConstraint("CHK_MOVIMIENTO_ORIGEN",
-                "(RECARGA_ID IS NOT NULL AND SALA_ID IS NULL AND RETIRO_ID IS NULL) OR " +
-                "(RECARGA_ID IS NULL AND SALA_ID IS NOT NULL AND RETIRO_ID IS NULL) OR " +
-                "(RECARGA_ID IS NULL AND SALA_ID IS NULL AND RETIRO_ID IS NOT NULL)");
+            builder.HasCheckConstraint("chk_movimiento_origen",
+                "(recarga_id IS NOT NULL AND sala_id IS NULL AND retiro_id IS NULL) OR " +
+                "(recarga_id IS NULL AND sala_id IS NOT NULL AND retiro_id IS NULL) OR " +
+                "(recarga_id IS NULL AND sala_id IS NULL AND retiro_id IS NOT NULL)");
 
             // RELACIÓN: Usuario que genera el movimiento
             builder.HasOne(m => m.Usuario)

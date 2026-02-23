@@ -8,32 +8,32 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.IdentityConf
     {
         public void Configure(EntityTypeBuilder<Baneo> builder)
         {
-            builder.ToTable("BANEO");
+            builder.ToTable("baneo");
             builder.HasKey(b => b.BaneoId);
 
             builder.Property(b => b.BaneoId)
-                .HasColumnName("BANEO_ID")
+                .HasColumnName("baneo_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(b => b.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .IsRequired();
 
             builder.Property(b => b.AdminId)
-                .HasColumnName("ADMIN_ID")
+                .HasColumnName("admin_id")
                 .IsRequired();
 
             builder.Property(b => b.Motivo)
-                .HasColumnName("MOTIVO")
+                .HasColumnName("motivo")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(b => b.Tiempo)
-                .HasColumnName("TIEMPO")
+                .HasColumnName("tiempo")
                 .IsRequired();
 
             builder.Property(b => b.FechaBaneo)
-                .HasColumnName("FECHA_BANEO")
+                .HasColumnName("fecha_baneo")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // RELACIÓN: Usuario castigado

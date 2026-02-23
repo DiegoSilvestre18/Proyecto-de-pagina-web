@@ -8,24 +8,24 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
     {
         public void Configure(EntityTypeBuilder<Clan> builder)
         {
-            builder.ToTable("CLAN");
+            builder.ToTable("clan");
             builder.HasKey(c => c.ClanId);
 
             builder.Property(c => c.ClanId)
-                .HasColumnName("CLAN_ID")
+                .HasColumnName("clan_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(c => c.Nombre)
-                .HasColumnName("NOMBRE")
+                .HasColumnName("nombre")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(c => c.Descripcion)
-                .HasColumnName("DESCRIPCION")
+                .HasColumnName("descripcion")
                 .HasColumnType("text");
 
             builder.Property(c => c.ImageUrl)
-                .HasColumnName("IMAGE_URL")
+                .HasColumnName("image_url")
                 .HasMaxLength(255);
         }
     }

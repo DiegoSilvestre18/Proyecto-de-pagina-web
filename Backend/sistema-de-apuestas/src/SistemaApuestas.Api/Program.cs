@@ -1,7 +1,18 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using SistemaApuestas.Application.Interfaces;
+using SistemaApuestas.Application.Interfaces.Auth;
+using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
+using SistemaApuestas.Infrastructure.Repositories;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// INYECCIÓN DE DEPENDENCIAS (El puente entre capas)
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Registro de Controllers
 builder.Services.AddControllers();
@@ -14,12 +25,28 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CONFIGURACIÓN DE JWT (Para generar y leer los tokens)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
 // Configuración de CORS para permitir solicitudes desde el frontend React
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // El puerto de tu React
+        policy.WithOrigins("http://localhost:5173") // El puerto de React
               .AllowAnyHeader()  // Permite enviar JSON y tokens de autorización
               .AllowAnyMethod(); // Permite GET, POST, PUT, DELETE
     });
@@ -33,8 +60,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
 app.UseCors("ReactFrontend"); // Aplica la política de CORS
+
+// ACTIVAR LA SEGURIDAD EN EL PIPELINE
+app.UseAuthentication(); // Primero identifica quién es el usuario (Lee el Token)
+app.UseAuthorization();  // Luego verifica si tiene permiso de entrar a la ruta
+
 app.MapControllers(); // Mapea los controladores de la API
 app.Run(); // Inicia la aplicación

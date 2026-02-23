@@ -2,7 +2,7 @@ import React from 'react';
 import { User, Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRegister } from '../../../../hooks/useRegister';
-import { postUser } from '../Services/Register';
+import { postUser } from '../Services/ServiceRegister';
 import FormInput from '../../../common/FormInput';
 
 const Register: React.FC = () => {
@@ -18,6 +18,7 @@ const Register: React.FC = () => {
     }
     console.log('payload a enviar', payload);
     await postUser(payload);
+    navigate('/');
   };
 
   return (
