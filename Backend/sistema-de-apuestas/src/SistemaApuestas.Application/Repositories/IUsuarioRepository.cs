@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SistemaApuestas.Application.Interfaces
+namespace SistemaApuestas.Application.Repositories
 {
     public interface IUsuarioRepository
     {

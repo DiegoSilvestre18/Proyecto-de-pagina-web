@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SistemaApuestas.Application.DTOs.Auth;
+using SistemaApuestas.Application.DTOs.Auth.LogIn;
+using SistemaApuestas.Application.DTOs.Auth.Regiser;
 using SistemaApuestas.Application.Interfaces.Auth;
 
 namespace SistemaApuestas.Api.Controllers
@@ -34,8 +35,8 @@ namespace SistemaApuestas.Api.Controllers
         {
             try
             {
-                var token = await _authService.LoginAsync(request);
-                return Ok(new { token });
+                var response = await _authService.LoginAsync(request);
+                return Ok(new { response });
             }
             catch (Exception ex)
             {

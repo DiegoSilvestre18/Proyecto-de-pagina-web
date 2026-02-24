@@ -1,9 +1,9 @@
 import React from 'react';
 import { User, Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRegister } from '../../../../hooks/useRegister';
+import { useRegister } from '../../../../Hooks/useRegister';
 import { postUser } from '../Services/ServiceRegister';
-import FormInput from '../../../common/FormInput';
+import FormInput from '../../../Common/FormInput';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();

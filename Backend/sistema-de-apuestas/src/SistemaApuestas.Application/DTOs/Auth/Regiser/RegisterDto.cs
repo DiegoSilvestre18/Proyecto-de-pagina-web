@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SistemaApuestas.Application.DTOs.Auth
+namespace SistemaApuestas.Application.DTOs.Auth.Regiser
 {
     public class RegisterDto
     {

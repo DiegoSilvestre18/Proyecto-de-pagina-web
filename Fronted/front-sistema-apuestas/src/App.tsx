@@ -1,4 +1,4 @@
-import { ClienteRoutes } from './routes/ClientRoutes';
+import { ClienteRoutes } from './Routes/ClientRoutes';
 
 function App() {
   return <ClienteRoutes />;
