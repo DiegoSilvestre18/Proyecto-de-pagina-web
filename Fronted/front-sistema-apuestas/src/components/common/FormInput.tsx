@@ -10,6 +10,7 @@ interface FormInputProps {
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  autoComplete?: string; 
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -20,6 +21,7 @@ const FormInput: React.FC<FormInputProps> = ({
   name,
   value,
   onChange: handleFormUsuario,
+  autoComplete,
 }) => {
   return (
     <div className="flex flex-col gap-2 mb-5">
@@ -32,11 +34,17 @@ const FormInput: React.FC<FormInputProps> = ({
         </div>
         <input
           type={type}
-          className="w-full bg-black/40 border border-white/10 rounded px-4 py-3 pl-12 text-sm text-white focus:outline-none focus:border-orange-500 focus:bg-black/60 transition-all placeholder-gray-600 backdrop-blur-sm"
-          placeholder={placeholder}
           name={name}
           value={value}
           onChange={handleFormUsuario}
+          placeholder={placeholder}
+          className="w-full bg-black/40 border border-white/10 rounded px-4 py-3 pl-12 text-sm text-white focus:outline-none focus:border-orange-500 focus:bg-black/60 transition-all placeholder-gray-600 backdrop-blur-sm"
+          
+          autoComplete={autoComplete || (type === 'password' ? 'new-password' : 'off')}
+          
+          readOnly
+          
+          onFocus={(e) => e.target.removeAttribute('readonly')}
         />
       </div>
     </div>

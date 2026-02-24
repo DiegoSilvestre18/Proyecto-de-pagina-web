@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using SistemaApuestas.Application.DTOs.GameAccount;
-using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.GameAccount;
-using SistemaApuestas.Domain.Entities.Gaming; // O la ruta exacta a tu GameAccount
+using SistemaApuestas.Domain.Entities.Gaming;
+using SistemaApuestas.Application.Repositories; // O la ruta exacta a tu GameAccount
 
 namespace SistemaApuestas.Application.Services
 {

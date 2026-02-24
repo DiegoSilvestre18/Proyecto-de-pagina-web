@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SistemaApuestas.Application.Interfaces;
+using SistemaApuestas.Application.Repositories;
 using SistemaApuestas.Domain.Entities;
 using SistemaApuestas.Domain.Entities.Gaming;
 using SistemaApuestas.Infrastructure.Persistence;

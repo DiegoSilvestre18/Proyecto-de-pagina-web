@@ -1,9 +1,10 @@
 ﻿// ¡Mira! Ya no hay using a Infrastructure ni a Entity Framework
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SistemaApuestas.Application.DTOs.Auth;
-using SistemaApuestas.Application.Interfaces;
+using SistemaApuestas.Application.DTOs.Auth.LogIn;
+using SistemaApuestas.Application.DTOs.Auth.Regiser;
 using SistemaApuestas.Application.Interfaces.Auth;
+using SistemaApuestas.Application.Repositories;
 using SistemaApuestas.Domain.Entities.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -45,8 +46,9 @@ namespace SistemaApuestas.Application.Services
             return "Usuario registrado exitosamente.";
         }
 
-        public async Task<string> LoginAsync(LoginDto request)
+        public async Task<AuthResponseDto> LoginAsync(LoginDto request)
         {
+            // Se obtiene el usuario para comparar la contrasenia y comparar con el hash.
             var user = await _usuarioRepository.ObtenerPorUsernameAsync(request.Username);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PassHash))
@@ -54,14 +56,31 @@ namespace SistemaApuestas.Application.Services
                 throw new Exception("Usuario o contraseña incorrectos.");
             }
 
-            return GenerarJwt(user);
+            var jwtInfo = GenerarJwt(user);
+
+            return new AuthResponseDto
+            {
+                Token = jwtInfo.Token,
+                Expiracion = jwtInfo.TiempoExpira,
+                Usuario = new UsuarioDto
+                {
+                    Id = user.UsuarioId,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Rol = user.Rol,
+                    SaldoReal = user.SaldoReal,
+                    SaldoBono = user.SaldoBono
+                }
+            };
         }
 
-        private string GenerarJwt(Usuario user)
+        private (string Token, DateTime TiempoExpira) GenerarJwt(Usuario user)
         {
             // OJO: Esto asume que tienes estas variables configuradas en tu appsettings.json
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var expirationDate = DateTime.UtcNow.AddHours(4);
 
             var claims = new[]
             {
@@ -77,7 +96,7 @@ namespace SistemaApuestas.Application.Services
                 expires: DateTime.Now.AddHours(4),
                 signingCredentials: credentials);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return (new JwtSecurityTokenHandler().WriteToken(token), expirationDate);
         }
     }
 }

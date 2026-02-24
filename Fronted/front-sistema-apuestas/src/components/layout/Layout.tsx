@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import type { Game } from '../features/types';
+import type { Game } from '../Features/types';
 
 const GamesData: Game[] = [
   {

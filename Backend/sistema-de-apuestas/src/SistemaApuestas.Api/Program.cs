@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.GameAccount;
+using SistemaApuestas.Application.Repositories;
 using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
 using SistemaApuestas.Infrastructure.Repositories;
