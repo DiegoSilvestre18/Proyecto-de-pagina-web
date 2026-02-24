@@ -5,6 +5,7 @@ using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.Finanzas;
 using SistemaApuestas.Application.Interfaces.GameAccount;
+using SistemaApuestas.Application.Interfaces.Salas;
 using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
 using SistemaApuestas.Infrastructure.Repositories;
@@ -22,6 +23,12 @@ builder.Services.AddHttpClient<IGameAccountService, GameAccountService>();
 
 builder.Services.AddScoped<IFinanzasRepository, FinanzasRepository>();
 builder.Services.AddScoped<IFinanzasService, FinanzasService>();
+
+// Conectamos el repositorio de salas a la base de datos
+builder.Services.AddScoped<ISalaRepository, SalaRepository>();
+
+// Conectamos el servicio de salas a su interfaz
+builder.Services.AddScoped<ISalaService, SalaService>();
 
 // Registro de Controllers
 builder.Services.AddControllers();
