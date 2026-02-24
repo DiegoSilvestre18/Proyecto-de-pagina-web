@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Auth;
+using SistemaApuestas.Application.Interfaces.Finanzas;
 using SistemaApuestas.Application.Interfaces.GameAccount;
 using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
@@ -18,6 +19,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IGameAccountRepository, GameAccountRepository>();
 builder.Services.AddHttpClient<IGameAccountService, GameAccountService>();
+
+builder.Services.AddScoped<IFinanzasRepository, FinanzasRepository>();
+builder.Services.AddScoped<IFinanzasService, FinanzasService>();
 
 // Registro de Controllers
 builder.Services.AddControllers();
