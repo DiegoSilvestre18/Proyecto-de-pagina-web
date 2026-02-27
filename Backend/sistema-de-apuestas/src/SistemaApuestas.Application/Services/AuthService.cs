@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.DTOs.Auth.LogIn;
 using SistemaApuestas.Application.DTOs.Auth.Regiser;
 using SistemaApuestas.Application.Interfaces.Auth;
-using SistemaApuestas.Application.Repositories;
+using SistemaApuestas.Application.Repositories.Auth;
 using SistemaApuestas.Domain.Entities.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -88,7 +88,7 @@ namespace SistemaApuestas.Application.Services
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Rol ?? "USER")
             };
-
+            
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],

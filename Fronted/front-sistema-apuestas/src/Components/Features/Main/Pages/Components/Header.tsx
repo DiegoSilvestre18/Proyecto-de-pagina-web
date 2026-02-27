@@ -11,12 +11,12 @@ import {
   ChevronDown,
   LogOut,
 } from 'lucide-react';
+import { type UserDto } from '../../../../../Context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../Context/AuthContext';
-import type { User } from '../../types';
 
 interface HeaderProps {
-  user: User;
+  user: UserDto | null;
   showBalance: boolean;
   onToggleBalance: () => void;
   onOpenMobileMenu: () => void;
@@ -79,13 +79,13 @@ const Header: React.FC<HeaderProps> = ({
           <div className="px-3 py-1.5 flex items-center gap-2 border-r border-white/10">
             <Gift size={14} className="text-yellow-500" />
             <span className="text-sm font-bold text-yellow-500">
-              {showBalance ? `${user.saldoBono.toFixed(2)} PEN` : '***.** PEN'}
+              {showBalance ? `${user?.saldoBono} PEN` : '***.** PEN'}
             </span>
           </div>
           <div className="px-3 py-1.5 flex items-center gap-2">
             <Wallet size={14} className="text-green-500" />
             <span className="text-sm font-bold text-green-500">
-              {showBalance ? `${user.saldoReal.toFixed(2)} PEN` : '***.** PEN'}
+              {showBalance ? `${user?.saldoReal.toFixed(2)} PEN` : '***.** PEN'}
             </span>
             <button
               onClick={onToggleBalance}
@@ -106,20 +106,20 @@ const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Perfil */}
-        <div 
+        <div
           className="relative flex items-center gap-3 pl-2 lg:pl-4 border-l border-white/5 cursor-pointer group"
           onClick={() => setShowDropdown(!showDropdown)}
           ref={dropdownRef}
         >
           <img
-            src={user.avatar}
+            src={'link'}
             alt="Avatar"
             className="w-10 h-10 rounded-lg object-cover border border-white/10 group-hover:border-orange-500/50 transition-colors"
           />
           <div className="hidden lg:block text-left">
-            <p className="text-sm font-bold leading-tight">{user.username}</p>
+            <p className="text-sm font-bold leading-tight">{user?.username}</p>
             <p className="text-[10px] text-gray-400 font-semibold tracking-widest">
-              MMR <span className="text-white">{user.mmr}</span>
+              MMR <span className="text-white">{'mmr'}</span>
             </p>
           </div>
           <ChevronDown
@@ -131,8 +131,10 @@ const Header: React.FC<HeaderProps> = ({
           {showDropdown && (
             <div className="absolute right-0 top-full mt-4 w-48 bg-[#1a1b2e] border border-white/10 rounded-lg shadow-xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
               <div className="px-4 py-2 border-b border-white/5 mb-2 lg:hidden">
-                <p className="text-sm font-bold text-white">{user.username}</p>
-                <p className="text-xs text-gray-400">MMR: {user.mmr}</p>
+                <p className="text-sm font-bold text-white">
+                  {'user?.username'}
+                </p>
+                <p className="text-xs text-gray-400">MMR: {'user?.mmr'}</p>
               </div>
               <button
                 onClick={handleLogout}

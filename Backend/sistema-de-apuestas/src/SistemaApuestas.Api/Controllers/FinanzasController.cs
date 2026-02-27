@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SistemaApuestas.Application.DTOs.Finanzas;
-using SistemaApuestas.Application.Interfaces.Finanzas;
+using SistemaApuestas.Application.DTOs.Financial.Request;
+using SistemaApuestas.Application.Interfaces.Financial;
 using System.Security.Claims;
 
 namespace SistemaApuestas.Api.Controllers
@@ -11,60 +11,87 @@ namespace SistemaApuestas.Api.Controllers
     [Authorize]
     public class FinanzasController : ControllerBase
     {
-        private readonly IFinanzasService _finanzasService;
+        private readonly IFinancialService _financialService;
 
-        public FinanzasController(IFinanzasService finanzasService)
+        public FinanzasController(IFinancialService financialService)
         {
-            _finanzasService = finanzasService;
+            _financialService = financialService;
         }
 
-        private int ObtenerUsuarioId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        // ====================================================================
+        // ACCIONES DEL USUARIO
+        // ====================================================================
 
-        [HttpPost("admin/recargar")]
-        [Authorize(Roles = "SUPERADMIN")]
-        public async Task<IActionResult> RecargarSaldoFisico([FromBody] RecargaAdminDto request)
+        [HttpPost("recargas/solicitar")]
+        public async Task<IActionResult> SolicitarRecarga([FromBody] SolicitudRecargaDto request)
         {
-            try
-            {
-                var mensaje = await _finanzasService.RecargarSaldoFisicoAsync(ObtenerUsuarioId(), request);
-                return Ok(new { mensaje });
-            }
-            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.SolicitarRecargaAsync(usuarioId, request);
+            return Ok(resultado);
         }
 
         [HttpPost("retiros/solicitar")]
-        public async Task<IActionResult> SolicitarRetiro([FromBody] RetiroSolicitudDto request)
+        public async Task<IActionResult> SolicitarRetiro([FromBody] SolicitudRetiroDto request)
         {
-            try
-            {
-                var mensaje = await _finanzasService.SolicitarRetiroAsync(ObtenerUsuarioId(), request);
-                return Ok(new { mensaje });
-            }
-            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.SolicitarRetiroAsync(usuarioId, request);
+            return Ok(resultado);
         }
 
-        [HttpPut("admin/retiros/{retiroId}/tomar")]
+        // ====================================================================
+        // ACCIONES DEL ADMIN
+        // ====================================================================
+
+        [HttpGet("admin/solicitudes-pendientes")]
         [Authorize(Roles = "SUPERADMIN")]
-        public async Task<IActionResult> TomarRetiro(int retiroId)
+        public async Task<IActionResult> ObtenerPendientes()
         {
-            try
-            {
-                var mensaje = await _finanzasService.TomarRetiroAsync(ObtenerUsuarioId(), retiroId);
-                return Ok(new { mensaje });
-            }
-            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+            var solicitudes = await _financialService.ObtenerSolicitudesPendientesAsync();
+            return Ok(solicitudes);
         }
 
-        [HttpPut("admin/retiros/{retiroId}/completar")]
+        /// <summary>
+        /// TOMAR SOLICITUD — Operación atómica anti-concurrencia.
+        /// Si otro admin ya la tomó, retorna 409 Conflict.
+        /// </summary>
+        [HttpPut("admin/solicitudes/tomar")]
         [Authorize(Roles = "SUPERADMIN")]
-        public async Task<IActionResult> CompletarRetiro(int retiroId)
+        public async Task<IActionResult> TomarSolicitud([FromBody] TomarSolicitudDto request)
         {
-            try
-            {
-                var mensaje = await _finanzasService.CompletarRetiroAsync(ObtenerUsuarioId(), retiroId);
-                return Ok(new { mensaje });
-            }
-            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.TomarSolicitudAsync(adminId, request.SolicitudId, request.Tipo);
+
+            if (resultado.Estado == "CONFLICTO")
+                return Conflict(resultado);
+
+            return Ok(resultado);
+        }
+
+        [HttpPut("admin/solicitudes/liberar")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> LiberarSolicitud([FromBody] TomarSolicitudDto request)
+        {
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.LiberarSolicitudAsync(adminId, request.SolicitudId, request.Tipo);
+            return Ok(resultado);
+        }
+
+        [HttpPut("admin/recargas/procesar")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> ProcesarRecarga([FromBody] ProcesarSolicitudDto request)
+        {
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.ProcesarRecargaAsync(adminId, request);
+            return Ok(resultado);
+        }
+
+        [HttpPut("admin/retiros/procesar")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> ProcesarRetiro([FromBody] ProcesarSolicitudDto request)
+        {
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.ProcesarRetiroAsync(adminId, request);
+            return Ok(resultado);
         }
     }
 }

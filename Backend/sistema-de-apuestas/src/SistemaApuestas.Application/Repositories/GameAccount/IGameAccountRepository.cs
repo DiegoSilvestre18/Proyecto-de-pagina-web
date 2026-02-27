@@ -1,4 +1,4 @@
-﻿namespace SistemaApuestas.Application.Repositories
+﻿namespace SistemaApuestas.Application.Repositories.GameAccount
 {
     public interface IGameAccountRepository
     {

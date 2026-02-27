@@ -24,10 +24,24 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
                 .HasPrecision(10, 2)
                 .IsRequired();
 
+            builder.Property(r => r.Moneda)
+                .HasColumnName("moneda")
+                .HasMaxLength(10)
+                .HasDefaultValue("PEN");
+
+            builder.Property(r => r.Metodo)
+                .HasColumnName("metodo")
+                .HasMaxLength(50)
+                .IsRequired();
+
             builder.Property(r => r.CuentaDestino)
                 .HasColumnName("cuenta_destino")
                 .HasColumnType("text")
                 .IsRequired();
+
+            builder.Property(r => r.NroOperacion)
+                .HasColumnName("nro_operacion")
+                .HasMaxLength(100);
 
             builder.Property(r => r.Estado)
                 .HasColumnName("estado")
@@ -36,10 +50,6 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
 
             builder.Property(r => r.AdminAtendiendoId)
                 .HasColumnName("admin_atendiendo_id");
-
-            builder.Property(r => r.FotoConstanciaPago)
-                .HasColumnName("foto_constancia_pago")
-                .HasColumnType("text");
 
             builder.Property(r => r.FechaEmision)
                 .HasColumnName("fecha_emision")

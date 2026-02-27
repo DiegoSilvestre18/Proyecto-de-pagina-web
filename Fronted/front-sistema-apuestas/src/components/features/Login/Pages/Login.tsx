@@ -86,8 +86,8 @@ const Login: React.FC = () => {
         <FormInput
           icon={Mail}
           type="text"
-          label="Correo Electrónico"
-          placeholder="tu@email.com"
+          label="Nombre de usuario"
+          placeholder="Tu nombre de usuario"
           name="username"
           value={form.username}
           onChange={handleChange}
