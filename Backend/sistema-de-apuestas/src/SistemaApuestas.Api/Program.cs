@@ -3,12 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.GameAccount;
+using SistemaApuestas.Application.Interfaces.Financial;
 using SistemaApuestas.Application.Repositories.Auth;
 using SistemaApuestas.Application.Repositories.GameAccount;
+using SistemaApuestas.Application.Repositories.Financial;
 using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
 using SistemaApuestas.Infrastructure.Repositories;
 using System.Text;
+using SistemaApuestas.Application.Services.Financial;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-
 builder.Services.AddScoped<IGameAccountRepository, GameAccountRepository>();
 builder.Services.AddHttpClient<IGameAccountService, GameAccountService>();
+
+builder.Services.AddScoped<ISolicitudRecargaRepository, SolicitudRecargaRepository>();
+builder.Services.AddScoped<ISolicitudRetiroRepository, SolicitudRetiroRepository>();
+builder.Services.AddScoped<IFinancialService, FinancialService>();
 
 // Registro de Controllers
 builder.Services.AddControllers();

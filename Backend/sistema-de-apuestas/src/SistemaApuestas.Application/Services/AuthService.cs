@@ -37,7 +37,7 @@ namespace SistemaApuestas.Application.Services
                 Username = request.Username,
                 Email = request.Email,
                 PassHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                Rol = "USER",
+                Rol = request.Rol,
                 // ... (los demás campos en 0)
             };
 
