@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../../../Context/AuthContext';
 import Sidebar from './Components/Sidebar';
 import Header from './Components/Header';
 import Dashboard from './Dashboard';
 import Salas from './Salas';
-import { mockUser, mockClubs, mockSalas, filtrosModos } from '../Data/mockData';
+import { mockClubs, mockSalas, filtrosModos } from '../Data/mockData';
 
 const MainPage: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
@@ -12,7 +13,7 @@ const MainPage: React.FC = () => {
     'dashboard',
   );
 
-  const user = mockUser;
+  const { user } = useAuth();
   const clubs = mockClubs;
   const salas = mockSalas;
 

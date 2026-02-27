@@ -24,17 +24,22 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
                 .HasPrecision(10, 2)
                 .IsRequired();
 
+            builder.Property(r => r.Moneda)
+                .HasColumnName("moneda")
+                .HasMaxLength(10)
+                .HasDefaultValue("PEN");
+
             builder.Property(r => r.Metodo)
                 .HasColumnName("metodo")
                 .HasMaxLength(50);
 
-            builder.Property(r => r.CodigoOperacion)
-                .HasColumnName("codigo_operacion")
+            builder.Property(r => r.CuentaDestino)
+                .HasColumnName("cuenta_destino")
                 .HasMaxLength(100);
 
-            builder.Property(r => r.FotoVoucherUrl)
-                .HasColumnName("foto_voucher_url")
-                .HasColumnType("text");
+            builder.Property(r => r.NroOperacion)
+                .HasColumnName("nro_operacion")
+                .HasMaxLength(100);
 
             builder.Property(r => r.Estado)
                 .HasColumnName("estado")

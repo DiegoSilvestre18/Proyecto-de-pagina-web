@@ -58,7 +58,8 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
             builder.HasCheckConstraint("chk_movimiento_origen",
                 "(recarga_id IS NOT NULL AND sala_id IS NULL AND retiro_id IS NULL) OR " +
                 "(recarga_id IS NULL AND sala_id IS NOT NULL AND retiro_id IS NULL) OR " +
-                "(recarga_id IS NULL AND sala_id IS NULL AND retiro_id IS NOT NULL)");
+                "(recarga_id IS NULL AND sala_id IS NULL AND retiro_id IS NOT NULL) OR " +
+                "(recarga_id IS NULL AND sala_id IS NULL AND retiro_id IS NULL)");
 
             // RELACIÓN: Usuario que genera el movimiento
             builder.HasOne(m => m.Usuario)
