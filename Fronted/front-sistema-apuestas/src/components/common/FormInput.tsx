@@ -1,4 +1,3 @@
-// components/FormInput.tsx
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -10,7 +9,7 @@ interface FormInputProps {
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  autoComplete?: string; 
+  autoComplete?: string;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -24,7 +23,8 @@ const FormInput: React.FC<FormInputProps> = ({
   autoComplete,
 }) => {
   return (
-    <div className="flex flex-col gap-2 mb-5">
+    // Se eliminó mb-5 y se cambió gap-2 a gap-1 para hacerlo más compacto
+    <div className="flex flex-col gap-1 w-full">
       <label className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
         {label}
       </label>
@@ -39,11 +39,10 @@ const FormInput: React.FC<FormInputProps> = ({
           onChange={handleFormUsuario}
           placeholder={placeholder}
           className="w-full bg-black/40 border border-white/10 rounded px-4 py-3 pl-12 text-sm text-white focus:outline-none focus:border-orange-500 focus:bg-black/60 transition-all placeholder-gray-600 backdrop-blur-sm"
-          
-          autoComplete={autoComplete || (type === 'password' ? 'new-password' : 'off')}
-          
+          autoComplete={
+            autoComplete || (type === 'password' ? 'new-password' : 'off')
+          }
           readOnly
-          
           onFocus={(e) => e.target.removeAttribute('readonly')}
         />
       </div>
