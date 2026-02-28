@@ -42,3 +42,4 @@ namespace SistemaApuestas.Infrastructure.Repositories.Audit
                                  .ToListAsync();
         }
     }
+}

@@ -47,7 +47,6 @@ namespace SistemaApuestas.Infrastructure.Repositories
                         Monto = r.Monto,
                         Moneda = r.Moneda ?? "PEN",
                         Metodo = r.Metodo,
-                        CuentaDestino = r.CuentaDestino,
                         FechaEmision = r.FechaEmision,
                         UsuarioId = u.UsuarioId,
                         Username = u.Username,
