@@ -4,37 +4,37 @@ using SistemaApuestas.Application.Repositories.Financial;
 using SistemaApuestas.Domain.Entities.Financial;
 using SistemaApuestas.Infrastructure.Persistence;
 
-namespace SistemaApuestas.Infrastructure.Repositories
+namespace SistemaApuestas.Infrastructure.Repositories.Financial
 {
-    public class SolicitudRetiroRepository : ISolicitudRetiroRepository
+    public class SolicitudRecargaRepository : ISolicitudRecargaRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public SolicitudRetiroRepository(ApplicationDbContext context)
+        public SolicitudRecargaRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task AgregarAsync(SolicitudRetiro retiro)
+        public async Task AgregarAsync(SolicitudRecarga recarga)
         {
-            _context.SolicitudesRetiro.Add(retiro);
+            _context.SolicitudesRecarga.Add(recarga);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<SolicitudRetiro?> ObtenerPorIdAsync(int id)
+        public async Task<SolicitudRecarga?> ObtenerPorIdAsync(int id)
         {
-            return await _context.SolicitudesRetiro.FindAsync(id);
+            return await _context.SolicitudesRecarga.FindAsync(id);
         }
 
-        public async Task ActualizarAsync(SolicitudRetiro retiro)
+        public async Task ActualizarAsync(SolicitudRecarga recarga)
         {
-            _context.SolicitudesRetiro.Update(retiro);
+            _context.SolicitudesRecarga.Update(recarga);
             await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerPendientesConUsuarioAsync()
         {
-            return await _context.SolicitudesRetiro
+            return await _context.SolicitudesRecarga
                 .Where(r => r.Estado == "PENDIENTE" && r.AdminAtendiendoId == null)
                 .Join(
                     _context.Usuarios,
@@ -42,14 +42,16 @@ namespace SistemaApuestas.Infrastructure.Repositories
                     u => u.UsuarioId,
                     (r, u) => new SolicitudPendienteAdminDto
                     {
-                        SolicitudId = r.RetiroId,
-                        Tipo = "RETIRO",
+                        SolicitudId = r.RecargaId,
+                        Tipo = "RECARGA",
                         Monto = r.Monto,
                         Moneda = r.Moneda ?? "PEN",
-                        Metodo = r.Metodo,
+                        Metodo = r.Metodo ?? "",
+                        CuentaDestino = "",
                         FechaEmision = r.FechaEmision,
                         UsuarioId = u.UsuarioId,
                         Username = u.Username,
+                        Telefono = u.Telefono,
                         Email = u.Email
                     })
                 .OrderBy(r => r.FechaEmision)
@@ -58,8 +60,9 @@ namespace SistemaApuestas.Infrastructure.Repositories
 
         public async Task<bool> TomarSolicitudAsync(int solicitudId, int adminId)
         {
-            var filasAfectadas = await _context.SolicitudesRetiro
-                .Where(r => r.RetiroId == solicitudId
+            // UPDATE atómico: solo cambia si admin_atendiendo_id sigue siendo NULL
+            var filasAfectadas = await _context.SolicitudesRecarga
+                .Where(r => r.RecargaId == solicitudId
                          && r.AdminAtendiendoId == null
                          && r.Estado == "PENDIENTE")
                 .ExecuteUpdateAsync(setters => setters
@@ -71,8 +74,9 @@ namespace SistemaApuestas.Infrastructure.Repositories
 
         public async Task<bool> LiberarSolicitudAsync(int solicitudId, int adminId)
         {
-            var filasAfectadas = await _context.SolicitudesRetiro
-                .Where(r => r.RetiroId == solicitudId
+            // Solo el admin que la tomó puede liberarla
+            var filasAfectadas = await _context.SolicitudesRecarga
+                .Where(r => r.RecargaId == solicitudId
                          && r.AdminAtendiendoId == adminId
                          && r.Estado == "EN_PROCESO")
                 .ExecuteUpdateAsync(setters => setters

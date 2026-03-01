@@ -12,15 +12,14 @@ namespace SistemaApuestas.Application.Repositories.Financial
         Task ActualizarAsync(SolicitudRetiro retiro);
         Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerPendientesConUsuarioAsync();
 
-        /// <summary>
         /// Intenta asignar atómicamente una solicitud a un admin.
         /// Retorna true si la solicitud fue tomada, false si otro admin ya la tomó.
-        /// </summary>
         Task<bool> TomarSolicitudAsync(int solicitudId, int adminId);
 
-        /// <summary>
         /// Libera una solicitud que un admin tenía tomada (la devuelve a PENDIENTE).
-        /// </summary>
         Task<bool> LiberarSolicitudAsync(int solicitudId, int adminId);
+
+        /// Verifica si el usuario ya tiene un retiro PENDIENTE o EN_PROCESO.
+        Task<bool> TieneRetiroActivoAsync(int usuarioId);
     }
 }

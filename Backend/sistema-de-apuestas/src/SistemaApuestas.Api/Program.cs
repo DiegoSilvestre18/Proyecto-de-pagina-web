@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Auth;
-using SistemaApuestas.Application.Interfaces.Finanzas;
 using SistemaApuestas.Application.Interfaces.GameAccount;
 using SistemaApuestas.Application.Interfaces.Financial;
 using SistemaApuestas.Application.Interfaces.Audit;
@@ -19,6 +17,7 @@ using System.Text;
 using SistemaApuestas.Application.Services.Financial;
 using SistemaApuestas.Application.Repositories.Audit;
 using SistemaApuestas.Infrastructure.Repositories.Audit;
+using SistemaApuestas.Infrastructure.Repositories.Financial;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -12,6 +12,7 @@ namespace SistemaApuestas.Application.DTOs.Financial.Response
         public decimal Monto { get; set; }
         public string Moneda { get; set; } = string.Empty;
         public string Metodo { get; set; } = string.Empty;
+        public string CuentaDestino { get; set; } = string.Empty; // En retiro: a dónde enviar el dinero
         public DateTime FechaEmision { get; set; }
 
         // Datos del jugador (Obtenidos con JOIN en la base de datos)

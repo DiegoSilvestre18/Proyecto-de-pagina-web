@@ -56,6 +56,21 @@ namespace SistemaApuestas.Application.Services.Financial
 
         public async Task<SolicitudResponseDto> SolicitarRetiroAsync(int usuarioId, SolicitudRetiroDto request)
         {
+            if (request.Monto < 20)
+                throw new Exception("El retiro mínimo es de S/ 20.00");
+
+            var usuario = await _usuarioRepo.ObtenerPorIdAsync(usuarioId);
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado.");
+
+            if (usuario.SaldoReal < request.Monto)
+                throw new Exception("No tienes saldo suficiente para este retiro.");
+
+            // Solo un retiro activo a la vez
+            var tieneRetiroActivo = await _retiroRepo.TieneRetiroActivoAsync(usuarioId);
+            if (tieneRetiroActivo)
+                throw new Exception("Ya tienes un retiro pendiente o en proceso. Espera a que se resuelva antes de solicitar otro.");
+
             var retiro = new Domain.Entities.Financial.SolicitudRetiro
             {
                 UsuarioId = usuarioId,
@@ -182,7 +197,10 @@ namespace SistemaApuestas.Application.Services.Financial
             else
             {
                 recarga.Estado = "RECHAZADA";
+                recarga.FechaCierre = DateTime.UtcNow;
             }
+
+            await _recargaRepo.ActualizarAsync(recarga);
 
             return new SolicitudResponseDto
             {
@@ -204,9 +222,40 @@ namespace SistemaApuestas.Application.Services.Financial
             if (retiro.Estado != "EN_PROCESO")
                 throw new Exception("La solicitud no está en proceso.");
 
-            retiro.Estado = request.Aprobar ? "APROBADA" : "RECHAZADA";
-            retiro.NroOperacion = request.NroOperacion;
-            retiro.FechaPago = DateTime.UtcNow;
+            var usuario = await _usuarioRepo.ObtenerPorIdAsync(retiro.UsuarioId);
+
+            if (request.Aprobar)
+            {
+                // Validación extra: verificar que el usuario siga teniendo saldo
+                if (usuario!.SaldoReal < retiro.Monto)
+                    throw new Exception("El usuario ya no tiene saldo suficiente para este retiro.");
+
+                // Actualizamos la solicitud con los datos del Admin
+                retiro.Estado = "APROBADA";
+                retiro.NroOperacion = request.NroOperacion;
+
+                // LE RESTAMOS EL DINERO AL JUGADOR
+                usuario.SaldoReal -= retiro.Monto;
+                await _usuarioRepo.ActualizarAsync(usuario);
+                retiro.FechaPago = DateTime.UtcNow;
+
+                // Registrar en el Libro Mayor (MOVIMIENTOS) como EGRESO
+                var movimiento = new MovimientoDto
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    RetiroId = retiro.RetiroId,
+                    Tipo = "EGRESO",
+                    MontoReal = retiro.Monto,
+                    Concepto = $"Retiro {retiro.Metodo} - Enviado a: {retiro.CuentaDestino}",
+                    Fecha = DateTime.UtcNow
+                };
+                await _auditRepo.RegistrarMovimientoAsync(movimiento);
+            }
+            else
+            {
+                retiro.Estado = "RECHAZADA";
+                retiro.FechaPago = DateTime.UtcNow;
+            }
 
             await _retiroRepo.ActualizarAsync(retiro);
 
