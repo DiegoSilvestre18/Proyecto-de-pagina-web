@@ -6,14 +6,19 @@ using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.Finanzas;
 using SistemaApuestas.Application.Interfaces.GameAccount;
 using SistemaApuestas.Application.Interfaces.Financial;
-using SistemaApuestas.Application.Repositories.Auth;
+using SistemaApuestas.Application.Interfaces.Audit;
+using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Application.Repositories.GameAccount;
 using SistemaApuestas.Application.Repositories.Financial;
+using SistemaApuestas.Application.Services.Audit;
 using SistemaApuestas.Application.Services;
 using SistemaApuestas.Infrastructure.Persistence;
 using SistemaApuestas.Infrastructure.Repositories;
+using SistemaApuestas.Infrastructure.Repositories.Identity;
 using System.Text;
 using SistemaApuestas.Application.Services.Financial;
+using SistemaApuestas.Application.Repositories.Audit;
+using SistemaApuestas.Infrastructure.Repositories.Audit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +28,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IGameAccountRepository, GameAccountRepository>();
 builder.Services.AddHttpClient<IGameAccountService, GameAccountService>();
+
+builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 builder.Services.AddScoped<ISolicitudRecargaRepository, SolicitudRecargaRepository>();
 builder.Services.AddScoped<ISolicitudRetiroRepository, SolicitudRetiroRepository>();
