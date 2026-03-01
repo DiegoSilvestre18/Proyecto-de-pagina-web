@@ -18,26 +18,6 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.IdentityConf
             builder.Property(u => u.ClanId)
                 .HasColumnName("clan_id");
 
-            builder.Property(u => u.Nombre)
-                .HasColumnName("nombre")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            builder.Property(u => u.ApellidoPaterno)
-                .HasColumnName("ap_paterno")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            builder.Property(u => u.ApellidoMaterno)
-                .HasColumnName("ap_materno")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            builder.Property(u => u.Telefono)
-                .HasColumnName("telefono")
-                .HasMaxLength(20)
-                .IsRequired();
-
             builder.Property(u => u.Username)
                 .HasColumnName("username")
                 .HasMaxLength(50)

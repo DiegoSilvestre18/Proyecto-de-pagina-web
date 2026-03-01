@@ -3,7 +3,7 @@ import { useAuth } from '../../../../Context/AuthContext';
 import Sidebar from './Components/Sidebar';
 import Header from './Components/Header';
 import Dashboard from './Dashboard';
-import Salas from '../../Salas/Salas';
+import Salas from './Salas';
 import { mockClubs, mockSalas, filtrosModos } from '../Data/mockData';
 
 const MainPage: React.FC = () => {
