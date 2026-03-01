@@ -52,14 +52,10 @@ const Login: React.FC = () => {
 
       // Actualizar el estado global usando el contexto
       login(token, expiracion, usuario, form.rememberMe || false);
-      switch (usuario.rol) {
-        case 'admin':
-          navigate('/main-admin');
-          break;
-        case 'user':
-          navigate('/main');
-          break;
-      }
+
+      // Navegar explícitamente a /main tras el login exitoso
+      navigate('/main');
+      console.log(data);
     } catch (error) {
       console.error('Error al iniciar sesión', error);
       setErrorMsg('Credenciales incorrectas o error en el servidor.');

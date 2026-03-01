@@ -1,10 +1,7 @@
 ﻿using SistemaApuestas.Application.DTOs.Financial.Request;
 using SistemaApuestas.Application.DTOs.Financial.Response;
-using SistemaApuestas.Application.DTOs.Audit;
-using SistemaApuestas.Application.Interfaces.Audit;
 using SistemaApuestas.Application.Interfaces.Financial;
 using SistemaApuestas.Application.Repositories.Financial;
-using SistemaApuestas.Application.Repositories.Identity;
 
 namespace SistemaApuestas.Application.Services.Financial
 {
@@ -12,19 +9,13 @@ namespace SistemaApuestas.Application.Services.Financial
     {
         private readonly ISolicitudRecargaRepository _recargaRepo;
         private readonly ISolicitudRetiroRepository _retiroRepo;
-        private readonly IUsuarioRepository _usuarioRepo;
-        private readonly IAuditService _auditRepo;
 
         public FinancialService(
             ISolicitudRecargaRepository recargaRepo,
-            ISolicitudRetiroRepository retiroRepo,
-            IUsuarioRepository usuarioRepo,
-            IAuditService auditRepo)
+            ISolicitudRetiroRepository retiroRepo)
         {
             _recargaRepo = recargaRepo;
             _retiroRepo = retiroRepo;
-            _usuarioRepo = usuarioRepo;
-            _auditRepo = auditRepo;
         }
 
         // =========================================
@@ -39,8 +30,8 @@ namespace SistemaApuestas.Application.Services.Financial
                 Monto = request.Monto,
                 Moneda = request.Moneda,
                 Metodo = request.Metodo,
-                CuentaDestino = null,
-                Estado = "PENDIENTE",
+                CuentaDestino = request.CuentaDestino,
+                NroOperacion = request.NroOperacion,
                 FechaEmision = DateTime.UtcNow
             };
 
@@ -154,35 +145,11 @@ namespace SistemaApuestas.Application.Services.Financial
             if (recarga.Estado != "EN_PROCESO")
                 throw new Exception("La solicitud no está en proceso.");
 
-            var usuario = await _usuarioRepo.ObtenerPorIdAsync(recarga.UsuarioId);
+            recarga.Estado = request.Aprobar ? "APROBADA" : "RECHAZADA";
+            recarga.NroOperacion = request.NroOperacion;
+            recarga.FechaCierre = DateTime.UtcNow;
 
-            if (request.Aprobar)
-            {
-                //Actualizamos la solicitud con los datos del Admin
-                recarga.Estado = "APROBADA";
-                recarga.NroOperacion = request.NroOperacion;
-                recarga.CuentaDestino = request.CuentaDestino; // EL ADMIN DEJA SU MARCA AQUÍ
-
-                // LE SUMAMOS EL DINERO AL JUGADOR
-                usuario.SaldoReal += recarga.Monto;
-                await _usuarioRepo.ActualizarAsync(usuario);
-                recarga.FechaCierre = DateTime.UtcNow;
-
-                var movimiento = new MovimientoDto
-                {
-                    UsuarioId = usuario.UsuarioId,
-                    RecargaId = recarga.RecargaId,
-                    Tipo = "INGRESO",
-                    MontoReal = recarga.Monto,
-                    Concepto = $"Recarga {recarga.Metodo} - Recibido en: {recarga.CuentaDestino}",
-                    Fecha = DateTime.UtcNow
-                };
-                await _auditRepo.RegistrarMovimientoAsync(movimiento);
-            }
-            else
-            {
-                recarga.Estado = "RECHAZADA";
-            }
+            await _recargaRepo.ActualizarAsync(recarga);
 
             return new SolicitudResponseDto
             {

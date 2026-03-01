@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.DTOs.Auth.LogIn;
 using SistemaApuestas.Application.DTOs.Auth.Regiser;
 using SistemaApuestas.Application.Interfaces.Auth;
-using SistemaApuestas.Application.Repositories.Identity;
+using SistemaApuestas.Application.Repositories.Auth;
 using SistemaApuestas.Domain.Entities.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -34,10 +34,6 @@ namespace SistemaApuestas.Application.Services
 
             var nuevoUsuario = new Usuario
             {
-                Nombre = request.Nombre,
-                ApellidoPaterno = request.ApellidoPaterno,
-                ApellidoMaterno = request.ApellidoMaterno,
-                Telefono = request.Telefono,
                 Username = request.Username,
                 Email = request.Email,
                 PassHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
@@ -70,10 +66,6 @@ namespace SistemaApuestas.Application.Services
                 {
                     Id = user.UsuarioId,
                     Username = user.Username,
-                    Nombre = user.Nombre,
-                    ApellidoPaterno = user.ApellidoPaterno,
-                    ApellidoMaterno = user.ApellidoMaterno,
-                    Telefono = user.Telefono,
                     Email = user.Email,
                     Rol = user.Rol,
                     SaldoReal = user.SaldoReal,
