@@ -1,9 +1,18 @@
 export const BASE_URL = 'https://localhost:7137';
 
-// Obtiene el token del localStorage si existe
+// Obtiene el token del almacenamiento (guardado dentro del objeto "auth")
 function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  let raw = localStorage.getItem('auth');
+  if (!raw) {
+    raw = sessionStorage.getItem('auth');
+  }
+  if (!raw) return {};
+  try {
+    const data = JSON.parse(raw);
+    return data?.token ? { Authorization: `Bearer ${data.token}` } : {};
+  } catch {
+    return {};
+  }
 }
 
 interface FetchOptions extends RequestInit {
@@ -16,7 +25,7 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
     ...getAuthHeader(),
     ...(options.headers || {}),
   };
-
+  console.log(getAuthHeader());
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers,

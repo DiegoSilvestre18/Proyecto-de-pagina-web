@@ -17,5 +17,8 @@ namespace SistemaApuestas.Application.Repositories.Financial
 
         /// Libera una solicitud que un admin tenía tomada (la devuelve a PENDIENTE).
         Task<bool> LiberarSolicitudAsync(int solicitudId, int adminId);
+
+        /// Obtiene las solicitudes EN_PROCESO asignadas a un admin específico.
+        Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerEnProcesoPorAdminAsync(int adminId);
     }
 }

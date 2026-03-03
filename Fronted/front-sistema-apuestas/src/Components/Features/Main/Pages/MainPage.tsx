@@ -4,14 +4,15 @@ import Sidebar from './Components/Sidebar';
 import Header from './Components/Header';
 import Dashboard from './Dashboard';
 import Salas from '../../Salas/Salas';
+import SolicitudRecarga from '../../SolicitudDinero/pages/SolicitudRecarga';
 import { mockClubs, mockSalas, filtrosModos } from '../Data/mockData';
 
 const MainPage: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeView, setActiveView] = useState<'dashboard' | 'salas'>(
-    'dashboard',
-  );
+  const [activeView, setActiveView] = useState<
+    'dashboard' | 'salas' | 'recarga'
+  >('dashboard');
 
   const { user } = useAuth();
   const clubs = mockClubs;
@@ -22,7 +23,9 @@ const MainPage: React.FC = () => {
       <Sidebar
         activeView={activeView}
         isMobileMenuOpen={isMobileMenuOpen}
-        onChangeView={(view) => setActiveView(view as 'dashboard' | 'salas')}
+        onChangeView={(view) =>
+          setActiveView(view as 'dashboard' | 'salas' | 'recarga')
+        }
         onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       />
 
@@ -32,6 +35,7 @@ const MainPage: React.FC = () => {
           showBalance={showBalance}
           onToggleBalance={() => setShowBalance(!showBalance)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          onNavigateRecarga={() => setActiveView('recarga')}
         />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar relative">
@@ -45,6 +49,8 @@ const MainPage: React.FC = () => {
           {activeView === 'salas' && (
             <Salas salas={salas} filtrosModos={filtrosModos} />
           )}
+
+          {activeView === 'recarga' && <SolicitudRecarga />}
         </div>
       </main>
 

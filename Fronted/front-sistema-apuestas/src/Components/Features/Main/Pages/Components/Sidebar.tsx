@@ -6,6 +6,7 @@ import {
   Trophy,
   Gamepad2,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 
@@ -81,6 +82,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <Crosshair size={18} /> Salas de Apuestas
+        </button>
+        <button
+          onClick={() => onChangeView('recarga')}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+            activeView === 'recarga'
+              ? 'bg-orange-600/10 text-orange-500'
+              : 'text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          <Wallet size={18} /> Solicitar Recarga
         </button>
         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold">
           <Trophy size={18} /> Torneos

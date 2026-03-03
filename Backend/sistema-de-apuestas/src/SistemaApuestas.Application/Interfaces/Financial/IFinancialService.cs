@@ -11,6 +11,7 @@ namespace SistemaApuestas.Application.Interfaces.Financial
 
         // Acciones del Admin
         Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerSolicitudesPendientesAsync();
+        Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerMisSolicitudesEnProcesoAsync(int adminId);
         Task<SolicitudResponseDto> TomarSolicitudAsync(int adminId, int solicitudId, string tipo);
         Task<SolicitudResponseDto> LiberarSolicitudAsync(int adminId, int solicitudId, string tipo);
         Task<SolicitudResponseDto> ProcesarRetiroAsync(int adminId, ProcesarSolicitudDto request);

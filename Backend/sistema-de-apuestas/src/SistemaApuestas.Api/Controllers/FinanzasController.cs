@@ -50,6 +50,15 @@ namespace SistemaApuestas.Api.Controllers
             return Ok(solicitudes);
         }
 
+        [HttpGet("admin/mis-solicitudes")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> ObtenerMisSolicitudes()
+        {
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var solicitudes = await _financialService.ObtenerMisSolicitudesEnProcesoAsync(adminId);
+            return Ok(solicitudes);
+        }
+
         /// <summary>
         /// TOMAR SOLICITUD — Operación atómica anti-concurrencia.
         /// Si otro admin ya la tomó, retorna 409 Conflict.

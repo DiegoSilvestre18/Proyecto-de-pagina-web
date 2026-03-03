@@ -85,5 +85,31 @@ namespace SistemaApuestas.Infrastructure.Repositories.Financial
 
             return filasAfectadas > 0;
         }
+
+        public async Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerEnProcesoPorAdminAsync(int adminId)
+        {
+            return await _context.SolicitudesRecarga
+                .Where(r => r.AdminAtendiendoId == adminId && r.Estado == "EN_PROCESO")
+                .Join(
+                    _context.Usuarios,
+                    r => r.UsuarioId,
+                    u => u.UsuarioId,
+                    (r, u) => new SolicitudPendienteAdminDto
+                    {
+                        SolicitudId = r.RecargaId,
+                        Tipo = "RECARGA",
+                        Monto = r.Monto,
+                        Moneda = r.Moneda ?? "PEN",
+                        Metodo = r.Metodo ?? "",
+                        CuentaDestino = "",
+                        FechaEmision = r.FechaEmision,
+                        UsuarioId = u.UsuarioId,
+                        Username = u.Username,
+                        Telefono = u.Telefono,
+                        Email = u.Email
+                    })
+                .OrderBy(r => r.FechaEmision)
+                .ToListAsync();
+        }
     }
 }

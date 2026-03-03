@@ -90,5 +90,31 @@ namespace SistemaApuestas.Infrastructure.Repositories.Financial
                 .AnyAsync(r => r.UsuarioId == usuarioId
                             && (r.Estado == "PENDIENTE" || r.Estado == "EN_PROCESO"));
         }
+
+        public async Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerEnProcesoPorAdminAsync(int adminId)
+        {
+            return await _context.SolicitudesRetiro
+                .Where(r => r.AdminAtendiendoId == adminId && r.Estado == "EN_PROCESO")
+                .Join(
+                    _context.Usuarios,
+                    r => r.UsuarioId,
+                    u => u.UsuarioId,
+                    (r, u) => new SolicitudPendienteAdminDto
+                    {
+                        SolicitudId = r.RetiroId,
+                        Tipo = "RETIRO",
+                        Monto = r.Monto,
+                        Moneda = r.Moneda ?? "PEN",
+                        Metodo = r.Metodo,
+                        CuentaDestino = r.CuentaDestino,
+                        FechaEmision = r.FechaEmision,
+                        UsuarioId = u.UsuarioId,
+                        Username = u.Username,
+                        Telefono = u.Telefono,
+                        Email = u.Email
+                    })
+                .OrderBy(r => r.FechaEmision)
+                .ToListAsync();
+        }
     }
 }

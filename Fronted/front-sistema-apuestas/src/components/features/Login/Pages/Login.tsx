@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../Context/AuthContext';
 import { postLogin } from '../Services/PostLogin';
 import FormInput from '../../../Common/FormInput';
@@ -27,7 +27,14 @@ const Login: React.FC = () => {
 
   // Si ya está autenticado, redirigir a /main
   if (user) {
-    return <Navigate to="/main" replace />;
+    switch (user.rol.toLowerCase()) {
+      case 'superadmin':
+        navigate('/main-admin');
+        break;
+      case 'user':
+        navigate('/main');
+        break;
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,8 +59,9 @@ const Login: React.FC = () => {
 
       // Actualizar el estado global usando el contexto
       login(token, expiracion, usuario, form.rememberMe || false);
-      switch (usuario.rol) {
-        case 'admin':
+      console.log('Usuario autenticado:', usuario);
+      switch (usuario.rol.toLowerCase()) {
+        case 'superadmin':
           navigate('/main-admin');
           break;
         case 'user':

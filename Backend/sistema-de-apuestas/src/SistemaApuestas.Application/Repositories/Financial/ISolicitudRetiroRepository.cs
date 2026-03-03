@@ -21,5 +21,8 @@ namespace SistemaApuestas.Application.Repositories.Financial
 
         /// Verifica si el usuario ya tiene un retiro PENDIENTE o EN_PROCESO.
         Task<bool> TieneRetiroActivoAsync(int usuarioId);
+
+        /// Obtiene las solicitudes EN_PROCESO asignadas a un admin específico.
+        Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerEnProcesoPorAdminAsync(int adminId);
     }
 }

@@ -1,7 +1,5 @@
 export interface RecargaForm {
   monto: number;
-  modena: string;
+  moneda: string;
   metodo: string;
-  cuentaDestino: string;
-  nroOperacion: string;
 }

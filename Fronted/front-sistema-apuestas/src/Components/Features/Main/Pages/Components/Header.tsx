@@ -12,7 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { type UserDto } from '../../../../../Context/AuthContext';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../Context/AuthContext';
 
 interface HeaderProps {
@@ -20,6 +20,7 @@ interface HeaderProps {
   showBalance: boolean;
   onToggleBalance: () => void;
   onOpenMobileMenu: () => void;
+  onNavigateRecarga: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -27,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({
   showBalance,
   onToggleBalance,
   onOpenMobileMenu,
+  onNavigateRecarga,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -96,12 +98,12 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        <NavLink
+        <button
           className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-lg shadow-orange-600/20 hover:scale-105"
-          to="/solicitud-recarga"
+          onClick={onNavigateRecarga}
         >
           Recargar <Plus size={16} />
-        </NavLink>
+        </button>
 
         <button className="text-gray-400 hover:text-white relative transition-colors">
           <Bell size={20} />

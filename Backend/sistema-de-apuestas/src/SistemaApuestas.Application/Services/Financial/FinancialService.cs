@@ -103,6 +103,14 @@ namespace SistemaApuestas.Application.Services.Financial
             return recargas.Concat(retiros).OrderBy(s => s.FechaEmision);
         }
 
+        public async Task<IEnumerable<SolicitudPendienteAdminDto>> ObtenerMisSolicitudesEnProcesoAsync(int adminId)
+        {
+            var recargas = await _recargaRepo.ObtenerEnProcesoPorAdminAsync(adminId);
+            var retiros = await _retiroRepo.ObtenerEnProcesoPorAdminAsync(adminId);
+
+            return recargas.Concat(retiros).OrderBy(s => s.FechaEmision);
+        }
+
         public async Task<SolicitudResponseDto> TomarSolicitudAsync(int adminId, int solicitudId, string tipo)
         {
             bool tomada = tipo.ToUpper() switch

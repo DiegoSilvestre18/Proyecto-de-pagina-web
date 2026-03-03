@@ -4,8 +4,8 @@ import Home from '../Components/Features/Home';
 import Login from '../Components/Features/Login/Pages/Login';
 import Register from '../Components/Features/Register/Pages/Register';
 import MainPage from '../Components/Features/Main/Pages/MainPage';
+import MainAdmin from '../Components/Features/MainAdmin/Pages/MainAdmin';
 // import MainAdmin from '../Components/Features/MainAdmin/Pages/MainAdmin';
-import SolicitudRecarga from '../Components/Features/SolicitudDinero/pages/SolicitudRecarga';
 import { ProtectedRoute } from './ProtectedRoutes';
 
 export const ClienteRoutes = () => {
@@ -25,10 +25,10 @@ export const ClienteRoutes = () => {
         }
       />
       <Route
-        path="/solicitud-recarga"
+        path="/main-admin"
         element={
           <ProtectedRoute>
-            <SolicitudRecarga />
+            <MainAdmin />
           </ProtectedRoute>
         }
       />
