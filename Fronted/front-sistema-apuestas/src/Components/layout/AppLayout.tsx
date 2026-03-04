@@ -1,31 +1,58 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../../../Context/AuthContext';
-import Sidebar from '../../../Common/Sidebar';
-import Header from '../../../Common/Header';
-import Dashboard from './Dashboard';
-import Salas from '../../Salas/Salas';
-import SolicitudRecarga from '../../SolicitudDinero/pages/SolicitudRecarga';
-import { mockClubs, mockSalas, filtrosModos } from '../Data/mockData';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
+import Sidebar from '../Common/Sidebar';
+import Header from '../Common/Header';
 
-const MainPage: React.FC = () => {
+/**
+ * Layout principal para páginas autenticadas.
+ * Contiene el Sidebar + Header y renderiza la vista central con <Outlet />.
+ */
+const AppLayout: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeView, setActiveView] = useState<
-    'dashboard' | 'salas' | 'recarga'
-  >('dashboard');
 
   const { user } = useAuth();
-  const clubs = mockClubs;
-  const salas = mockSalas;
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Derivar la vista activa a partir de la ruta actual
+  const getActiveView = (): string => {
+    const path = location.pathname;
+    if (path.startsWith('/main/salas')) return 'salas';
+    if (path.startsWith('/main/recarga')) return 'recarga';
+    if (path.startsWith('/main/settings')) return 'settings';
+    return 'dashboard';
+  };
+
+  const activeView = getActiveView();
+
+  const handleChangeView = (view: string) => {
+    setIsMobileMenuOpen(false);
+    switch (view) {
+      case 'dashboard':
+        navigate('/main');
+        break;
+      case 'salas':
+        navigate('/main/salas');
+        break;
+      case 'recarga':
+        navigate('/main/recarga');
+        break;
+      case 'settings':
+        navigate('/main/settings');
+        break;
+      default:
+        navigate('/main');
+    }
+  };
 
   return (
     <div className="flex h-screen w-full bg-[#0b0c1b] text-white font-sans overflow-hidden">
       <Sidebar
         activeView={activeView}
         isMobileMenuOpen={isMobileMenuOpen}
-        onChangeView={(view) =>
-          setActiveView(view as 'dashboard' | 'salas' | 'recarga')
-        }
+        onChangeView={handleChangeView}
         onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       />
 
@@ -35,22 +62,11 @@ const MainPage: React.FC = () => {
           showBalance={showBalance}
           onToggleBalance={() => setShowBalance(!showBalance)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-          onNavigateRecarga={() => setActiveView('recarga')}
+          onNavigateRecarga={() => navigate('/main/recarga')}
         />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-          {activeView === 'dashboard' && (
-            <Dashboard
-              clubs={clubs}
-              onNavigateToSalas={() => setActiveView('salas')}
-            />
-          )}
-
-          {activeView === 'salas' && (
-            <Salas salas={salas} filtrosModos={filtrosModos} />
-          )}
-
-          {activeView === 'recarga' && <SolicitudRecarga />}
+          <Outlet />
         </div>
       </main>
 
@@ -75,4 +91,4 @@ const MainPage: React.FC = () => {
   );
 };
 
-export default MainPage;
+export default AppLayout;

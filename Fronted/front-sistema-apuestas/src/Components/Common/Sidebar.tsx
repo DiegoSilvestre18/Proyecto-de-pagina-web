@@ -7,6 +7,7 @@ import {
   Gamepad2,
   Users,
   Wallet,
+  Settings,
   X,
 } from 'lucide-react';
 
@@ -107,6 +108,22 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold">
           <Users size={18} /> Clubes y Clanes
+        </button>
+
+        <div className="pt-6 pb-2">
+          <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">
+            Cuenta
+          </p>
+        </div>
+        <button
+          onClick={() => onChangeView('settings')}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+            activeView === 'settings'
+              ? 'bg-orange-600/10 text-orange-500'
+              : 'text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          <Settings size={18} /> Configuración
         </button>
       </nav>
     </aside>

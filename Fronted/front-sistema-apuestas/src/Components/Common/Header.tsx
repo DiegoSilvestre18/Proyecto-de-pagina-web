@@ -10,10 +10,11 @@ import {
   Bell,
   ChevronDown,
   LogOut,
+  Settings,
 } from 'lucide-react';
-import { type UserDto } from '../../../../../Context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../../../Context/AuthContext';
+import { type UserDto } from '../../Context/AuthContext';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 interface HeaderProps {
   user: UserDto | null;
@@ -141,6 +142,13 @@ const Header: React.FC<HeaderProps> = ({
                 </p>
                 <p className="text-xs text-gray-400">MMR: {'user?.mmr'}</p>
               </div>
+              <NavLink
+                to="/main/settings"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:bg-white/5 hover:text-white transition-colors text-left"
+              >
+                <Settings size={16} />
+                Configuracion
+              </NavLink>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-white/5 transition-colors text-left"

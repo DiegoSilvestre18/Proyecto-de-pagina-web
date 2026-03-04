@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Crosshair, Plus, Filter, Coins, Users } from 'lucide-react';
-import type { Sala } from '../types';
+import { type Sala } from '../Salas/types/type';
 
 interface SalasProps {
   salas: Sala[];
