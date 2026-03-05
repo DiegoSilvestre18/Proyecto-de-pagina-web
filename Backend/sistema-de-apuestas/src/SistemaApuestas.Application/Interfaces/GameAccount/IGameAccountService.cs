@@ -8,5 +8,7 @@ namespace SistemaApuestas.Application.Interfaces.GameAccount
 
         // ¡Aquí pegamos la línea mágica que el controlador estaba buscando!
         Task<string> SincronizarRangoAsync(int usuarioId, SincronizarCuentaDto request);
+
+        Task<IEnumerable<object>> ObtenerCuentasUsuarioAsync(int usuarioId);
     }
 }

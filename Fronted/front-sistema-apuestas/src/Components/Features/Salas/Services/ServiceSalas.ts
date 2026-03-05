@@ -47,7 +47,7 @@ export const solicitarSala = async (data: CrearSalaRequest) => {
 // La estructura que C# espera recibir (InscripcionSalaDto)
 export interface UnirseSalaRequest {
   salaId: number;
-  gameAccountId: number;
+  gameAccountId?: number;
 }
 
 export const unirseASala = async (data: UnirseSalaRequest) => {
@@ -61,4 +61,8 @@ export const unirseASala = async (data: UnirseSalaRequest) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const getMisCuentasJuego = async () => {
+  return await apiFetch('/api/GameAccount/mis-cuentas');
 };

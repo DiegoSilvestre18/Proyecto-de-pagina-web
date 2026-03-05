@@ -39,5 +39,13 @@ namespace SistemaApuestas.Infrastructure.Repositories
             _context.GameAccounts.Update(gameAccount);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Domain.Entities.Gaming.GameAccount>> ObtenerCuentasPorUsuarioAsync(int usuarioId)
+        {
+            // Busca en la tabla todas las cuentas que te pertenecen
+            return await _context.GameAccounts
+                .Where(ga => ga.UsuarioId == usuarioId)
+                .ToListAsync();
+        }
     }
 }

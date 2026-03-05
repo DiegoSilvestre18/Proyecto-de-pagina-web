@@ -9,12 +9,14 @@ import {
   Swords,
   UserPlus,
 } from 'lucide-react';
-import type { Sala } from '../Salas/types/types';
+
+import type { CuentaJuego, Sala } from './types/types';
 import {
   getSalas,
   solicitarSala,
   unirseASala,
-} from '../Salas/Services/ServiceSalas';
+  getMisCuentasJuego,
+} from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
 interface SalasProps {
@@ -44,7 +46,9 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
 
   const [isJoining, setIsJoining] = useState(false);
 
-  const [gameAccountId, setGameAccountId] = useState<number | ''>('');
+  const [cuentasJuego, setCuentasJuego] = useState<CuentaJuego[]>([]);
+
+  const [selectedAccountId, setSelectedAccountId] = useState<number | ''>('');
 
   // Función que se ejecuta al darle a "Enviar"
   const handleSubmitSala = async (e: React.FormEvent) => {
@@ -103,6 +107,22 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
     fetchSalasBD();
   }, []);
 
+  useEffect(() => {
+    const fetchCuentas = async () => {
+      try {
+        const cuentas = await getMisCuentasJuego();
+        if (Array.isArray(cuentas)) {
+          setCuentasJuego(cuentas);
+          // Si tienes cuentas, seleccionamos la primera por defecto
+          if (cuentas.length > 0) setSelectedAccountId(cuentas[0].id);
+        }
+      } catch (error) {
+        console.error('Error al traer las cuentas de juego', error);
+      }
+    };
+    fetchCuentas();
+  }, []);
+
   // 3. Estrategia de respaldo: Si el backend está vacío o falla, mostramos los mocks
   // LÓGICA DE FILTRADO INTELIGENTE
   const salasFiltradas = salasReales.filter((sala) => {
@@ -110,8 +130,13 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
       // En Navegar SOLO mostramos las salas públicas aprobadas ("ESPERANDO")
       return sala.estado === 'ESPERANDO';
     } else if (activeTab === 'MIS SALAS') {
-      // En Mis Salas SOLO mostramos las salas donde el usuario logueado es el creador
-      return sala.creador === user?.username;
+      // Muéstrame las salas donde SOY CREADOR... ¡O donde SOY PARTICIPANTE!
+      const soyCreador = sala.creador === user?.username;
+      const soyParticipante = sala.participantes?.some(
+        (p) => p.username === user?.username,
+      );
+
+      return soyCreador || soyParticipante;
     }
     return true;
   });
@@ -127,16 +152,11 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
   const handleUnirseSala = async () => {
     if (!salaSeleccionada) return;
 
-    if (!gameAccountId) {
-      alert('Por favor, ingresa el ID de tu cuenta de juego para inscribirte.');
-      return;
-    }
-
     setIsJoining(true);
     try {
       const response = await unirseASala({
         salaId: salaSeleccionada.id,
-        gameAccountId: Number(gameAccountId),
+        gameAccountId: Number(selectedAccountId),
       });
 
       // Si C# devuelve un mensaje de éxito, lo mostramos (ej. "Inscripción exitosa. Se cobraron S/...")
@@ -481,31 +501,41 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
                 {/* EQUIPO 1 (Azul/Verde) */}
                 <div className="flex-1 space-y-2">
                   <h3 className="text-center font-black text-blue-400 tracking-widest uppercase mb-4 text-sm border-b border-blue-500/20 pb-2">
-                    Equipo 1
+                    Radiant / Atacantes
                   </h3>
-                  {[0, 1, 2, 3, 4].map((slot) => (
-                    <div
-                      key={`eq1-${slot}`}
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${slot === 0 ? 'bg-blue-900/20 border-blue-500/30' : 'bg-[#0b0c1b] border-white/5 border-dashed'}`}
-                    >
-                      <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        {slot === 0 ? (
-                          <Users size={16} />
-                        ) : (
-                          <UserPlus size={16} className="opacity-30" />
-                        )}
+                  {/* Creamos un array de 5 espacios. Si hay un jugador en esa posición, lo mostramos, si no, mostramos "Esperando" */}
+                  {[0, 1, 2, 3, 4].map((index) => {
+                    const jugador = salaSeleccionada.participantes?.[index]; // Buscamos si existe un jugador en este índice
+
+                    return (
+                      <div
+                        key={`eq1-${index}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg border ${jugador ? 'bg-blue-900/20 border-blue-500/30' : 'bg-[#0b0c1b] border-white/5 border-dashed'}`}
+                      >
+                        <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
+                          {jugador ? (
+                            <Users size={16} />
+                          ) : (
+                            <UserPlus size={16} className="opacity-30" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm font-bold ${jugador ? 'text-white' : 'text-gray-600'}`}
+                          >
+                            {jugador
+                              ? jugador.steamName
+                              : 'Esperando jugador...'}
+                          </p>
+                          {jugador && (
+                            <p className="text-[10px] text-gray-400">
+                              Usuario: {jugador.username}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm font-bold ${slot === 0 ? 'text-white' : 'text-gray-600'}`}
-                        >
-                          {slot === 0
-                            ? salaSeleccionada.creador
-                            : 'Esperando jugador...'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* EQUIPO 2 (Rojo/Naranja) */}
@@ -535,24 +565,6 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
             {/* Footer de Acción (Pagar y Unirse) */}
             <div className="p-6 border-t border-white/5 bg-[#0b0c1b] flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row items-end justify-between gap-4">
-                {/* Input temporal para el GameAccount */}
-                <div className="w-full sm:w-auto">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                    ID Cuenta de Juego (GameAccount)
-                  </label>
-                  <input
-                    type="number"
-                    value={gameAccountId}
-                    onChange={(e) =>
-                      setGameAccountId(
-                        e.target.value ? Number(e.target.value) : '',
-                      )
-                    }
-                    placeholder="Ej: 1"
-                    className="w-full sm:w-48 bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none"
-                  />
-                </div>
-
                 {/* Botón Mágico */}
                 <button
                   onClick={handleUnirseSala}
@@ -564,6 +576,28 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
                     ? 'Procesando Pago...'
                     : `Pagar S/ ${salaSeleccionada.costo?.toFixed(2)} y Unirse`}
                 </button>
+                {/* Menú Desplegable de Cuentas */}
+                <div className="w-full sm:w-auto">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
+                    Selecciona tu cuenta
+                  </label>
+                  <select
+                    value={selectedAccountId}
+                    onChange={(e) =>
+                      setSelectedAccountId(Number(e.target.value))
+                    }
+                    className="w-full sm:w-64 bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none cursor-pointer"
+                  >
+                    {cuentasJuego.length === 0 && (
+                      <option value="">No tienes cuentas vinculadas</option>
+                    )}
+                    {cuentasJuego.map((cuenta) => (
+                      <option key={cuenta.id} value={cuenta.id}>
+                        🎮 {cuenta.idVisible} ({cuenta.juego})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <p className="text-[10px] text-gray-500 text-center sm:text-left">
                 * El sistema descontará S/ {salaSeleccionada.costo?.toFixed(2)}{' '}

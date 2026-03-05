@@ -12,4 +12,16 @@ export interface Sala {
   juego?: string; // 'VALORANT' o 'DOTA2'
   estado?: string; // 'ESPERANDO', 'EN JUEGO', 'FINALIZADA'
   premio?: number; // PREMIO_A_REPARTIR
+
+  participantes?: {
+    username: string;
+    steamName: string;
+    equipo: string;
+  }[];
+}
+
+export interface CuentaJuego {
+  id: number;
+  idVisible: string;
+  juego: string;
 }

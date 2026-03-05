@@ -10,5 +10,7 @@
         Task<Domain.Entities.Gaming.GameAccount?> ObtenerPorUsuarioYJuegoAsync(int usuarioId, string juego);
 
         Task ActualizarAsync(Domain.Entities.Gaming.GameAccount gameAccount);
+
+        Task<IEnumerable<Domain.Entities.Gaming.GameAccount>> ObtenerCuentasPorUsuarioAsync(int usuarioId);
     }
 }

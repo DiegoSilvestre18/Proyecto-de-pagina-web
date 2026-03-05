@@ -57,6 +57,26 @@ namespace SistemaApuestas.Api.Controllers
             }
         }
 
+        [HttpGet("mis-cuentas")]
+        public async Task<IActionResult> ObtenerMisCuentas()
+        {
+            try
+            {
+                var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (usuarioIdClaim == null) return Unauthorized("Token inválido.");
+
+                int usuarioId = int.Parse(usuarioIdClaim);
+
+                // Asumimos que tu amigo creó este método en el servicio
+                var cuentas = await _gameAccountService.ObtenerCuentasUsuarioAsync(usuarioId);
+                return Ok(cuentas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
 
     }
 }

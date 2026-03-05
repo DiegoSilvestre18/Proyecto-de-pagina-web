@@ -148,12 +148,18 @@ namespace SistemaApuestas.Application.Services
             var salasMapeadas = salasBD.Select(s => new
             {
                 id = s.SalaId,
-                // Si tu BD no tiene una propiedad Creador en Sala, pon un texto por defecto por ahora
-                creador = "Usuario",
+                creador = "Usuario", // Ajusta esto si ya tienes el nombre del creador real
                 formato = s.TipoSala ?? s.Juego,
                 costo = s.CostoEntrada,
                 estado = s.Estado,
-                fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
+
+                 
+                participantes = s.Participantes.Select(p => new {
+                    username = p.Usuario.Username,
+                    steamName = p.GameAccount.IdVisible, // El nombre de Steam que agregó tu amigo
+                    equipo = p.Equipo // "PORASIGNAR", "EQUIPO1", "EQUIPO2"
+                }).ToList()
             });
 
             return salasMapeadas;

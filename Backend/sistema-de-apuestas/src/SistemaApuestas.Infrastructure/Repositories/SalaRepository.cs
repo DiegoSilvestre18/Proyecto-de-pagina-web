@@ -22,8 +22,12 @@ namespace SistemaApuestas.Infrastructure.Repositories
 
         public async Task<IEnumerable<Sala>> ObtenerTodasAsync()
         {
-            // OJO: Si tu base de datos no se llama _context, cámbialo por el nombre correcto (ej. _db)
-            return await _context.Salas.ToListAsync();
+            return await _context.Salas
+                .Include(s => s.Participantes)
+                    .ThenInclude(p => p.Usuario)      // Trae los datos del jugador
+                .Include(s => s.Participantes)
+                    .ThenInclude(p => p.GameAccount)  // Trae los datos de Steam
+                .ToListAsync();
         }
 
         public async Task<Sala?> ObtenerSalaConParticipantesAsync(int salaId) =>

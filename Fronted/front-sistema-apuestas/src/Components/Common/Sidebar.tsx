@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   Search,
   Play,
@@ -7,20 +8,24 @@ import {
   Gamepad2,
   Users,
   Wallet,
+  Settings,
   X,
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeView: string;
   isMobileMenuOpen: boolean;
-  onChangeView: (view: string) => void;
   onCloseMobileMenu: () => void;
 }
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+    isActive
+      ? 'bg-orange-600/10 text-orange-500'
+      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+  }`;
+
 const Sidebar: React.FC<SidebarProps> = ({
-  activeView,
   isMobileMenuOpen,
-  onChangeView,
   onCloseMobileMenu,
 }) => {
   return (
@@ -33,9 +38,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* Logo */}
       <div className="p-6 flex items-center justify-between">
-        <div
+        <NavLink
+          to="/main"
           className="flex items-center gap-3 cursor-pointer group"
-          onClick={() => onChangeView('dashboard')}
+          onClick={onCloseMobileMenu}
         >
           <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center group-hover:bg-orange-500 transition-colors shadow-lg shadow-orange-600/20">
             <span className="font-bold text-xs italic text-white">A</span>
@@ -43,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <h1 className="text-xl font-black tracking-tighter leading-none text-white">
             ARENA
           </h1>
-        </div>
+        </NavLink>
         <button className="lg:hidden text-gray-400" onClick={onCloseMobileMenu}>
           <X size={20} />
         </button>
@@ -63,36 +69,28 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navegación */}
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-        <button
-          onClick={() => onChangeView('dashboard')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-            activeView === 'dashboard'
-              ? 'bg-orange-600/10 text-orange-500'
-              : 'text-gray-400 hover:bg-white/5 hover:text-white'
-          }`}
+        <NavLink
+          to="/main"
+          end
+          className={navLinkClass}
+          onClick={onCloseMobileMenu}
         >
           <Play size={18} /> Inicio
-        </button>
-        <button
-          onClick={() => onChangeView('salas')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-            activeView === 'salas'
-              ? 'bg-orange-600/10 text-orange-500'
-              : 'text-gray-400 hover:bg-white/5 hover:text-white'
-          }`}
+        </NavLink>
+        <NavLink
+          to="/main/salas"
+          className={navLinkClass}
+          onClick={onCloseMobileMenu}
         >
           <Crosshair size={18} /> Salas de Apuestas
-        </button>
-        <button
-          onClick={() => onChangeView('recarga')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-            activeView === 'recarga'
-              ? 'bg-orange-600/10 text-orange-500'
-              : 'text-gray-400 hover:bg-white/5 hover:text-white'
-          }`}
+        </NavLink>
+        <NavLink
+          to="/main/recarga"
+          className={navLinkClass}
+          onClick={onCloseMobileMenu}
         >
           <Wallet size={18} /> Solicitar Recarga
-        </button>
+        </NavLink>
         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold">
           <Trophy size={18} /> Torneos
         </button>
@@ -108,6 +106,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold">
           <Users size={18} /> Clubes y Clanes
         </button>
+
+        <div className="pt-6 pb-2">
+          <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">
+            Cuenta
+          </p>
+        </div>
+        <NavLink
+          to="/main/settings/cuenta"
+          className={navLinkClass}
+          onClick={onCloseMobileMenu}
+        >
+          <Settings size={18} /> Configuración
+        </NavLink>
       </nav>
     </aside>
   );

@@ -201,7 +201,22 @@ namespace SistemaApuestas.Application.Services
             await _repository.ActualizarAsync(cuenta);
 
             return $"Rango actualizado exitosamente. Tu rango actual es: {nuevoRango}";
-        }   
+        }
+        public async Task<IEnumerable<object>> ObtenerCuentasUsuarioAsync(int usuarioId)
+        {
+            // Ahora sí usamos el método que acabamos de crear en el repositorio
+            var cuentas = await _repository.ObtenerCuentasPorUsuarioAsync(usuarioId);
+
+            // Lo moldeamos para mandarlo a React
+            // Lo moldeamos para mandarlo a React
+            return cuentas.Select(c => new
+            {
+                id = c.GameAccountId, // <--- ¡CÁMBIA ESTO AQUÍ!
+                idVisible = c.IdVisible ?? "Jugador",
+                juego = c.Juego
+            }).ToList();
+        }
 
     }
+
 }
