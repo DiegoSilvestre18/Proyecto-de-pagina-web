@@ -20,6 +20,12 @@ namespace SistemaApuestas.Infrastructure.Repositories
         public async Task<Sala?> ObtenerSalaPorIdAsync(int salaId) =>
             await _context.Salas.FindAsync(salaId);
 
+        public async Task<IEnumerable<Sala>> ObtenerTodasAsync()
+        {
+            // OJO: Si tu base de datos no se llama _context, cámbialo por el nombre correcto (ej. _db)
+            return await _context.Salas.ToListAsync();
+        }
+
         public async Task<Sala?> ObtenerSalaConParticipantesAsync(int salaId) =>
             await _context.Salas
                 .Include(s => s.Participantes)

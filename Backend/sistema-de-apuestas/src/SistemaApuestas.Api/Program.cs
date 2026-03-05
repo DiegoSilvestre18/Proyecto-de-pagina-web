@@ -1,23 +1,25 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SistemaApuestas.Application.Interfaces.Auth;
-using SistemaApuestas.Application.Interfaces.GameAccount;
-using SistemaApuestas.Application.Interfaces.Financial;
+using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Audit;
-using SistemaApuestas.Application.Repositories.Identity;
-using SistemaApuestas.Application.Repositories.GameAccount;
+using SistemaApuestas.Application.Interfaces.Auth;
+using SistemaApuestas.Application.Interfaces.Financial;
+using SistemaApuestas.Application.Interfaces.GameAccount;
+using SistemaApuestas.Application.Interfaces.Salas;
+using SistemaApuestas.Application.Repositories.Audit;
 using SistemaApuestas.Application.Repositories.Financial;
-using SistemaApuestas.Application.Services.Audit;
+using SistemaApuestas.Application.Repositories.GameAccount;
+using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Application.Services;
+using SistemaApuestas.Application.Services.Audit;
+using SistemaApuestas.Application.Services.Financial;
 using SistemaApuestas.Infrastructure.Persistence;
 using SistemaApuestas.Infrastructure.Repositories;
-using SistemaApuestas.Infrastructure.Repositories.Identity;
-using System.Text;
-using SistemaApuestas.Application.Services.Financial;
-using SistemaApuestas.Application.Repositories.Audit;
 using SistemaApuestas.Infrastructure.Repositories.Audit;
 using SistemaApuestas.Infrastructure.Repositories.Financial;
+using SistemaApuestas.Infrastructure.Repositories.Identity;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +36,10 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISolicitudRecargaRepository, SolicitudRecargaRepository>();
 builder.Services.AddScoped<ISolicitudRetiroRepository, SolicitudRetiroRepository>();
 builder.Services.AddScoped<IFinancialService, FinancialService>();
+
+builder.Services.AddScoped<ISalaService, SalaService>();
+// Si también tienes un repositorio para salas, agrégalo:
+builder.Services.AddScoped<ISalaRepository, SalaRepository>();
 
 // Registro de Controllers
 builder.Services.AddControllers();

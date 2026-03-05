@@ -5,9 +5,17 @@ import {
   ChevronRight,
   X,
   MessageCircle,
+  Gamepad2, // <-- Ícono nuevo para Salas
 } from 'lucide-react';
 import { type solicitudType } from '../Types/Types';
-import { tomarSolicitud, procesarSolicitud } from '../Services/MainServices';
+
+import {
+  tomarSolicitud,
+  procesarSolicitud,
+  tomarSala,
+  procesarSala,
+} from '../Services/MainServices';
+// Si creas un servicio específico para aprobar salas, impórtalo aquí.
 
 const CardSolicitudPendiente: React.FC<{
   solicitud: solicitudType;
@@ -20,7 +28,11 @@ const CardSolicitudPendiente: React.FC<{
     aprobar: true,
     nroOperacion: '',
     cuentaDestino: solicitud.cuentaDestino ?? '',
+
+    costoSala: solicitud.monto || 0,
   });
+
+  const isSala = solicitud.tipo.toUpperCase() === 'SALA';
 
   const handleOpenModal = () => {
     setStep(1);
@@ -29,10 +41,14 @@ const CardSolicitudPendiente: React.FC<{
 
   const handleTomarSolicitud = async () => {
     try {
-      await tomarSolicitud({
-        solicitudId: solicitud.solicitudId,
-        tipo: solicitud.tipo,
-      });
+      if (isSala) {
+        await tomarSala(solicitud.solicitudId); // Usa el nuevo endpoint de C#
+      } else {
+        await tomarSolicitud({
+          solicitudId: solicitud.solicitudId,
+          tipo: solicitud.tipo,
+        });
+      }
       alert('Solicitud tomada exitosamente');
       onTomar();
     } catch (error) {
@@ -42,17 +58,31 @@ const CardSolicitudPendiente: React.FC<{
 
   const handleProcesar = async () => {
     try {
-      await procesarSolicitud({
-        solicitudId: solicitud.solicitudId,
-        aprobar: formData.aprobar,
-        nroOperacion: formData.nroOperacion,
-        cuentaDestino: formData.cuentaDestino,
-      });
-      alert(
-        formData.aprobar
-          ? 'Solicitud aprobada exitosamente'
-          : 'Solicitud rechazada',
-      );
+      if (isSala) {
+        await procesarSala(
+          solicitud.solicitudId,
+          formData.aprobar,
+          formData.costoSala,
+        );
+        alert(
+          formData.aprobar
+            ? 'Sala aprobada y visible para todos'
+            : 'Solicitud de sala rechazada',
+        );
+      } else {
+        await procesarSolicitud({
+          solicitudId: solicitud.solicitudId,
+          aprobar: formData.aprobar,
+          nroOperacion: formData.nroOperacion,
+          cuentaDestino: formData.cuentaDestino,
+        });
+        alert(
+          formData.aprobar
+            ? 'Solicitud aprobada exitosamente'
+            : 'Solicitud rechazada',
+        );
+      }
+
       setShowDetails(false);
       onTomar();
     } catch (error) {
@@ -60,21 +90,33 @@ const CardSolicitudPendiente: React.FC<{
     }
   };
 
-  // Ícono dinámico según el método
-  const MethodIcon =
-    solicitud.metodo.toLowerCase() === 'transferencia'
-      ? CreditCard
-      : DollarSign;
+  // === LÓGICA VISUAL DINÁMICA ===
+  let MethodIcon = DollarSign;
+  if (isSala) MethodIcon = Gamepad2;
+  else if (solicitud.metodo.toLowerCase() === 'transferencia')
+    MethodIcon = CreditCard;
+
+  // Colores: Si es sala (Morado), si es pendiente normal (Naranja), si es activa normal (Verde)
+  let iconBgColor =
+    name === 'pendientes'
+      ? 'bg-orange-600/10 text-orange-500'
+      : 'bg-green-600/10 text-green-500';
+  if (isSala) {
+    iconBgColor =
+      name === 'pendientes'
+        ? 'bg-purple-600/10 text-purple-500'
+        : 'bg-blue-600/10 text-blue-500';
+  }
 
   return (
     <>
-      <div className="group bg-[#1a1b2e] border border-white/5 hover:border-orange-500/30 rounded-xl p-4 transition-all hover:bg-[#1f2037]">
+      <div
+        className={`group bg-[#1a1b2e] border border-white/5 hover:border-${isSala ? 'purple' : 'orange'}-500/30 rounded-xl p-4 transition-all hover:bg-[#1f2037]`}
+      >
         <div className="flex items-center justify-between">
           {/* Info Izquierda */}
           <div className="flex items-center gap-4">
-            <div
-              className={`p-3 rounded-lg ${name === 'pendientes' ? 'bg-orange-600/10 text-orange-500' : 'bg-green-600/10 text-green-500'}`}
-            >
+            <div className={`p-3 rounded-lg ${iconBgColor}`}>
               <MethodIcon size={20} />
             </div>
             <div>
@@ -83,17 +125,17 @@ const CardSolicitudPendiente: React.FC<{
                   {solicitud.tipo}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase">
-                  {solicitud.fechaEmision}
+                  {solicitud.fechaEmision || 'HOY'}
                 </span>
               </div>
               <p className="text-sm font-semibold text-white">
-                Usuario:{' '}
+                {isSala ? 'Creador:' : 'Usuario:'}{' '}
                 <span className="text-gray-300">
                   {solicitud.username || 'Desconocido'}
                 </span>
               </p>
               <p className="text-xs text-gray-400">
-                Método: {solicitud.metodo}
+                {isSala ? 'Formato:' : 'Método:'} {solicitud.metodo}
               </p>
             </div>
           </div>
@@ -101,7 +143,7 @@ const CardSolicitudPendiente: React.FC<{
           {/* Info Derecha & Botones */}
           <div className="flex flex-col items-end gap-2">
             <span className="text-lg font-black text-white">
-              S/ {solicitud.monto.toFixed(2)}
+              S/ {solicitud.monto?.toFixed(2) || '0.00'}
             </span>
 
             {name === 'pendientes' ? (
@@ -114,7 +156,7 @@ const CardSolicitudPendiente: React.FC<{
                 </button>
                 <button
                   onClick={handleTomarSolicitud}
-                  className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded transition-colors shadow-lg shadow-orange-600/20"
+                  className={`text-white text-xs font-bold px-4 py-1.5 rounded transition-colors shadow-lg ${isSala ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' : 'bg-orange-600 hover:bg-orange-500 shadow-orange-600/20'}`}
                 >
                   TOMAR
                 </button>
@@ -131,9 +173,9 @@ const CardSolicitudPendiente: React.FC<{
         </div>
       </div>
 
-      {/* MODAL DE GESTIÓN Y WHATSAPP (MULTIPASO) */}
+      {/* MODAL DE GESTIÓN (MULTIPASO) */}
       {showDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#141526] border border-white/10 rounded-2xl max-w-sm w-full p-8 shadow-2xl relative">
             <button
               onClick={() => {
@@ -155,17 +197,13 @@ const CardSolicitudPendiente: React.FC<{
                   <h3 className="text-xl font-black text-white mb-1">
                     Contactar Usuario
                   </h3>
-                  <p className="text-gray-400 text-xs">
-                    Ponte en contacto para enviar constancias o coordinar la
-                    transacción.
-                  </p>
                 </div>
 
                 {/* Resumen de la Solicitud */}
                 <div className="bg-[#1a1b2e] rounded-lg p-4 mb-6 border border-white/5 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      Usuario:
+                      {isSala ? 'Creador:' : 'Usuario:'}
                     </span>
                     <span className="text-sm font-bold text-white">
                       {solicitud.username}
@@ -173,30 +211,21 @@ const CardSolicitudPendiente: React.FC<{
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      Monto:
+                      {isSala ? 'Apuesta:' : 'Monto:'}
                     </span>
                     <span className="text-sm font-black text-white">
-                      S/ {solicitud.monto.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      Método:
-                    </span>
-                    <span className="text-sm font-bold text-white">
-                      {solicitud.metodo}
+                      S/ {solicitud.monto?.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 <a
-                  href={`https://wa.me/${solicitud.telefono?.replace(/\+/g, '')}?text=Hola%20${solicitud.username},%20me%20comunico%20desde%20Arena%20por%20tu%20solicitud%20de%20S/%20${solicitud.monto.toFixed(2)}.`}
+                  href={`https://wa.me/${solicitud.telefono?.replace(/\+/g, '')}?text=Hola%20${solicitud.username},%20me%20comunico%20desde%20Arena%20por%20tu%20solicitud%20de%20${solicitud.tipo}.`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#1ebd57] text-white font-bold rounded-lg shadow-lg shadow-[#25D366]/20 uppercase tracking-widest transition-all hover:scale-[1.02]"
+                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#1ebd57] text-white font-bold rounded-lg shadow-lg shadow-[#25D366]/20 uppercase tracking-widest transition-all"
                 >
-                  <MessageCircle size={18} />
-                  WhatsApp
+                  <MessageCircle size={18} /> WhatsApp
                 </a>
 
                 {name === 'pendientes' ? (
@@ -212,7 +241,7 @@ const CardSolicitudPendiente: React.FC<{
                 ) : (
                   <button
                     onClick={() => setStep(2)}
-                    className="w-full mt-4 py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors shadow-lg shadow-orange-600/20"
+                    className={`w-full mt-4 py-3 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors shadow-lg ${isSala ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' : 'bg-orange-600 hover:bg-orange-500 shadow-orange-600/20'}`}
                   >
                     Siguiente
                   </button>
@@ -223,19 +252,17 @@ const CardSolicitudPendiente: React.FC<{
               <div>
                 <div className="text-center mb-6 mt-2">
                   <h3 className="text-xl font-black text-white mb-1">
-                    Procesar Operación
+                    Procesar {isSala ? 'Sala' : 'Operación'}
                   </h3>
                   <p className="text-gray-400 text-xs">
-                    Ingresa los datos finales para cerrar esta solicitud de{' '}
-                    {solicitud.tipo}.
+                    {isSala
+                      ? '¿Deseas aprobar esta sala para que sea visible públicamente?'
+                      : `Ingresa los datos finales para cerrar esta solicitud de ${solicitud.tipo}.`}
                   </p>
                 </div>
 
                 {/* Formulario de Decisión */}
                 <div className="mb-4">
-                  <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
-                    Acción
-                  </label>
                   <div className="flex gap-2">
                     <button
                       onClick={() =>
@@ -261,50 +288,78 @@ const CardSolicitudPendiente: React.FC<{
                     >
                       Rechazar
                     </button>
+
+                    {/* Input para modificar la cuota (SOLO SALAS) */}
+                    {isSala && formData.aprobar && (
+                      <div className="space-y-4 mb-8">
+                        <div>
+                          <label className="text-[10px] font-bold text-orange-500 tracking-widest uppercase block mb-2">
+                            Modificar Apuesta Inicial (S/)
+                          </label>
+                          <input
+                            type="number"
+                            min="5"
+                            value={formData.costoSala}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                costoSala: Number(e.target.value),
+                              })
+                            }
+                            className="w-full bg-[#1a1b2e] border border-orange-500/50 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                          />
+                          <p className="text-[10px] text-gray-500 mt-1">
+                            La sala se publicará a nombre del capitán:{' '}
+                            <span className="text-white font-bold">
+                              {solicitud.username}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Inputs de Operación */}
-                <div className="space-y-4 mb-8">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
-                      Nro. de Operación
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.nroOperacion}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          nroOperacion: e.target.value,
-                        })
-                      }
-                      placeholder="Ej. XR-1200"
-                      className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
-                    />
+                {/* Inputs de Operación (SE OCULTAN SI ES UNA SALA) */}
+                {!isSala && (
+                  <div className="space-y-4 mb-8">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
+                        Nro. de Operación
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.nroOperacion}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            nroOperacion: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
+                        Cuenta Destino
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.cuentaDestino}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            cuentaDestino: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
-                      Cuenta Destino
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.cuentaDestino}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          cuentaDestino: e.target.value,
-                        })
-                      }
-                      placeholder="Ej. 934933812"
-                      className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Botones Finales */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-6">
                   <button
                     onClick={() => setStep(1)}
                     className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors"
@@ -313,9 +368,9 @@ const CardSolicitudPendiente: React.FC<{
                   </button>
                   <button
                     onClick={handleProcesar}
-                    className="flex-1 py-3 bg-white hover:bg-gray-200 text-black font-black rounded-lg text-xs tracking-widest uppercase transition-all hover:scale-[1.02] shadow-lg"
+                    className="flex-1 py-3 bg-white hover:bg-gray-200 text-black font-black rounded-lg text-xs tracking-widest uppercase transition-all shadow-lg"
                   >
-                    Guardar Cambios
+                    Confirmar Acción
                   </button>
                 </div>
               </div>

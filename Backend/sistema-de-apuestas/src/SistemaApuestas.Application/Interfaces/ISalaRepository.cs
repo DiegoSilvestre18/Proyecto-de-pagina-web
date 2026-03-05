@@ -19,5 +19,7 @@ namespace SistemaApuestas.Application.Interfaces
         Task AgregarParticipanteAsync(ParticipanteSala participante);
         Task AgregarMovimientoAsync(Movimiento movimiento);
         Task GuardarCambiosAsync();
+
+        Task<IEnumerable<Sala>> ObtenerTodasAsync();
     }
 }

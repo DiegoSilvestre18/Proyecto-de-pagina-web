@@ -1,4 +1,5 @@
-﻿using SistemaApuestas.Application.DTOs.Salas;
+﻿using Microsoft.EntityFrameworkCore;
+using SistemaApuestas.Application.DTOs.Salas;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Salas;
 using SistemaApuestas.Domain.Entities.Audit;
@@ -24,7 +25,8 @@ namespace SistemaApuestas.Application.Services
                 CostoEntrada = request.CostoEntrada,
                 PremioARepartir = request.PremioARepartir,
                 GananciaPlataforma = request.GananciaPlataforma,
-                Estado = "ESPERANDO",
+                // 👇 CAMBIO 1: La sala nace pendiente de revisión
+                Estado = "PENDIENTE_APROBACION",
                 TipoSala = "BASICA",
                 FechaCreacion = DateTime.UtcNow
             };
@@ -102,6 +104,61 @@ namespace SistemaApuestas.Application.Services
             };
         }
 
+        public async Task<string> TomarSalaAsync(int salaId, int adminId)
+        {
+            // Usamos tu repositorio para buscar la sala
+            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
+            if (sala == null) throw new Exception("Sala no encontrada");
+
+            // Pasamos la sala a la columna verde de "Mis Tareas Activas"
+            sala.Estado = "EN_REVISION";
+
+            await _repository.GuardarCambiosAsync();
+
+            return "Sala tomada con éxito. Ahora está en tu bandeja.";
+        }
+
+        public async Task<string> ProcesarSalaAsync(int salaId, bool aprobar, decimal costo, int adminId)
+        {
+            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
+            if (sala == null) throw new Exception("Sala no encontrada");
+
+            if (aprobar)
+            {
+                sala.Estado = "ESPERANDO";
+                sala.CostoEntrada = costo; // <-- Actualizamos con el nuevo precio del Admin
+            }
+            else
+            {
+                sala.Estado = "RECHAZADA";
+            }
+
+            await _repository.GuardarCambiosAsync();
+
+            return aprobar ? "Sala aprobada y publicada" : "Sala rechazada";
+        }
+
+        public async Task<IEnumerable<object>> ObtenerTodasLasSalasAsync()
+        {
+            // Llama a tu repositorio para traer todas las salas de la BD
+            // (Ajusta el nombre del método según lo que tengas en ISalaRepository)
+            var salasBD = await _repository.ObtenerTodasAsync();
+
+            // Mapeamos los datos para que coincidan con lo que pide tu React
+            var salasMapeadas = salasBD.Select(s => new
+            {
+                id = s.SalaId,
+                // Si tu BD no tiene una propiedad Creador en Sala, pon un texto por defecto por ahora
+                creador = "Usuario",
+                formato = s.TipoSala ?? s.Juego,
+                costo = s.CostoEntrada,
+                estado = s.Estado,
+                fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+            });
+
+            return salasMapeadas;
+        }
+
         public async Task<string> CancelarSalaAsync(int salaId)
         {
             var sala = await _repository.ObtenerSalaConParticipantesAsync(salaId);
@@ -156,6 +213,12 @@ namespace SistemaApuestas.Application.Services
             };
         }
 
+
+       
+
+        
+
+
         public async Task<string> FinalizarSalaAsync(FinalizarSalaDto request)
         {
             var sala = await _repository.ObtenerSalaConParticipantesAsync(request.SalaId);
@@ -192,5 +255,8 @@ namespace SistemaApuestas.Application.Services
 
             return $"¡Sala finalizada con éxito! Se han transferido S/ {sala.PremioARepartir} de Saldo Real a {ganador.Username}.";
         }
+
+
     }
+
 }

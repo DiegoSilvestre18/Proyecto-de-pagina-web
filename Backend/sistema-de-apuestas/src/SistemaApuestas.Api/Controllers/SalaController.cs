@@ -31,6 +31,48 @@ namespace SistemaApuestas.Api.Controllers
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
         }
 
+        // 👇 ESTE ES EL ENDPOINT QUE TE FALTA PARA QUE EL 404 DESAPAREZCA 👇
+        [HttpGet]
+        public async Task<IActionResult> ObtenerSalas()
+        {
+            try
+            {
+                var salas = await _salaService.ObtenerTodasLasSalasAsync();
+                return Ok(salas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpPut("admin/tomar/{id}")]
+        [Authorize(Roles = "SUPERADMIN,HOST")]
+        public async Task<IActionResult> TomarSala(int id)
+        {
+            try
+            {
+                var adminId = ObtenerUsuarioId();
+                var mensaje = await _salaService.TomarSalaAsync(id, adminId);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
+        [HttpPut("admin/procesar")]
+        [Authorize(Roles = "SUPERADMIN,HOST")]
+        public async Task<IActionResult> ProcesarSala([FromBody] ProcesarSalaDto request)
+        {
+            try
+            {
+                var adminId = ObtenerUsuarioId();
+                var mensaje = await _salaService.ProcesarSalaAsync(request.SalaId, request.Aprobar, request.Costo, adminId);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
+
         [HttpPost("unirse")]
         [Authorize]
         public async Task<IActionResult> UnirseASala([FromBody] InscripcionSalaDto request)

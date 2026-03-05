@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://localhost:7137';
+export const BASE_URL = 'http://localhost:5127';
 
 // Obtiene el token del almacenamiento (guardado dentro del objeto "auth")
 function getAuthHeader(): Record<string, string> {

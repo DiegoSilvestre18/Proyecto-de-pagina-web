@@ -5,7 +5,10 @@ import {
   getMisSolicitudes,
   getSolicitudesPendientes,
 } from '../Services/MainServices';
+// 👇 Importamos tu servicio de salas
+import { getSalas } from '../../Salas/Services/ServiceSalas';
 import CardSolicitudPendiente from '../Components/CardSolicitudPendiente';
+import { type Sala } from '../../Salas/types/types';
 
 interface ListType {
   name: 'pendientes' | 'mis-solicitudes';
@@ -31,18 +34,77 @@ export const ListSolicitudes: React.FC<ListType> = ({
 
   const fetchSolicitudesPendientes = async () => {
     setLoading(true);
-    const response = await getSolicitudesPendientes();
-    console.log('Solicitudes Pendientes:', response);
-    setSolicitudes(response);
-    setLoading(false);
+    try {
+      // 1. Traemos las solicitudes de dinero
+      const finanzasResp = await getSolicitudesPendientes();
+      const finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+
+      // 2. Traemos las salas y las adaptamos a la tarjeta
+      const salasResp = await getSalas();
+      const salasArr = Array.isArray(salasResp) ? salasResp : [];
+
+      console.log('Salas crudas del backend:', salasArr);
+
+      const salasPendientes: solicitudType[] = salasArr
+        .filter((sala: Sala) => sala.estado === 'PENDIENTE_APROBACION')
+        .map((sala: Sala) => ({
+          solicitudId: sala.id,
+          tipo: 'SALA',
+          fechaEmision: sala.fecha || 'HOY',
+          username: sala.creador,
+          metodo: sala.formato,
+          monto: sala.costo,
+          // 👇 Campos obligatorios de relleno para TypeScript
+          moneda: 'PEN',
+          cuentaDestino: '',
+          usuarioId: 0,
+          telefono: '',
+          email: '',
+        }));
+
+      // 3. Juntamos ambas listas en una sola
+      setSolicitudes([...finanzasArr, ...salasPendientes]);
+    } catch (error) {
+      console.error('Error al traer pendientes:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchMisSolicitudes = async () => {
     setLoading(true);
-    const response = await getMisSolicitudes();
-    console.log('Mis Solicitudes:', response);
-    setSolicitudes(response);
-    setLoading(false);
+    try {
+      // 1. Tareas de Finanzas
+      const finanzasResp = await getMisSolicitudes();
+      const finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+
+      // 2. Tareas de Salas (Las que tú has tomado)
+      const salasResp = await getSalas();
+      const salasArr = Array.isArray(salasResp) ? salasResp : [];
+      const salasActivas: solicitudType[] = salasArr
+        // Filtramos las que están "EN_REVISION"
+        .filter((sala: Sala) => sala.estado === 'EN_REVISION')
+        .map((sala: Sala) => ({
+          solicitudId: sala.id,
+          tipo: 'SALA',
+          fechaEmision: sala.fecha || 'HOY',
+          username: sala.creador,
+          metodo: sala.formato,
+          monto: sala.costo,
+          moneda: 'PEN',
+          cuentaDestino: '',
+          usuarioId: 0,
+          telefono: '',
+          email: '',
+        }));
+
+      // 3. Juntamos ambas
+      setSolicitudes([...finanzasArr, ...salasActivas]);
+    } catch (error) {
+      console.error('Error al traer mis solicitudes:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isPendiente = name === 'pendientes';
@@ -94,7 +156,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
             <CardSolicitudPendiente
               name={name}
               solicitud={solicitud}
-              key={solicitud.solicitudId}
+              key={`${solicitud.tipo}-${solicitud.solicitudId}`} // Clave única combinada
               onTomar={onRefresh}
             />
           ))

@@ -2,34 +2,21 @@ import { apiFetch } from '../../../../Global/Api';
 import { type procesarSolicitudType } from '../Types/Types';
 
 export const getSolicitudesPendientes = async () => {
-  try {
-    const response = await apiFetch(
-      '/api/Finanzas/admin/solicitudes-pendientes',
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  return await apiFetch('/api/Finanzas/admin/solicitudes-pendientes', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };
 
 export const getMisSolicitudes = async () => {
-  try {
-    const response = await apiFetch('/api/Finanzas/admin/mis-solicitudes', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  return await apiFetch('/api/Finanzas/admin/mis-solicitudes', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };
 
 export const tomarSolicitud = async ({
@@ -39,35 +26,41 @@ export const tomarSolicitud = async ({
   solicitudId: number;
   tipo: string;
 }) => {
-  try {
-    const formData = {
-      solicitudId,
-      tipo,
-    };
-    const response = await apiFetch('/api/Finanzas/admin/solicitudes/tomar', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const formData = { solicitudId, tipo };
+  return await apiFetch('/api/Finanzas/admin/solicitudes/tomar', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
 };
 
 export const procesarSolicitud = async (formData: procesarSolicitudType) => {
-  try {
-    const response = await apiFetch('/api/Finanzas/admin/recargas/procesar', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  return await apiFetch('/api/Finanzas/admin/recargas/procesar', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
+};
+
+export const tomarSala = async (salaId: number) => {
+  return await apiFetch(`/api/Sala/admin/tomar/${salaId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
+export const procesarSala = async (
+  salaId: number,
+  aprobar: boolean,
+  costo: number,
+) => {
+  return await apiFetch('/api/Sala/admin/procesar', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ salaId, aprobar, costo }), // <-- Enviamos el costo
+  });
 };
