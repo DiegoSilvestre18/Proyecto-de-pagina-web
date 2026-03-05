@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.GameAccount;
 using SistemaApuestas.Application.Interfaces.Financial;
@@ -46,8 +47,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// CONFIGURACIÓN DE JWT (Para generar y leer los tokens)
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+// CONFIGURACIÓN DE AUTENTICACIÓN (JWT + Steam)
+builder.Services.AddAuthentication(options =>
+{
+    // Por defecto, la API sigue protegiéndose con JWT para las peticiones de React
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+    // Steam necesita este esquema temporal de cookies para su flujo de redirección
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -60,6 +69,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddSteam("Steam", options =>
+    {
+        // Ruta interna que el middleware intercepta (NO es un endpoint de controller)
+        options.CallbackPath = "/signin-steam";
     });
 
 // Configuración de CORS para permitir solicitudes desde el frontend React

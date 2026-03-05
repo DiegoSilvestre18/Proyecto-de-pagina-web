@@ -5,19 +5,11 @@ import type { Club } from '../types';
 
 interface DashboardProps {
   clubs: Club[];
-  onNavigateToSalas?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ clubs, onNavigateToSalas }) => {
+const Dashboard: React.FC<DashboardProps> = ({ clubs }) => {
   const navigate = useNavigate();
 
-  const handleNavigateToSalas = () => {
-    if (onNavigateToSalas) {
-      onNavigateToSalas();
-    } else {
-      navigate('/main/salas');
-    }
-  };
   return (
     <div className="animate-in fade-in duration-500 pb-20">
       {/* Hero Banner Superior */}
@@ -75,7 +67,7 @@ const Dashboard: React.FC<DashboardProps> = ({ clubs, onNavigateToSalas }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tarjeta Emparejamiento */}
               <div
-                onClick={handleNavigateToSalas}
+                onClick={() => navigate('/main/salas')}
                 className="group bg-gradient-to-br from-orange-600 to-red-700 rounded-2xl p-1 pb-0 overflow-hidden cursor-pointer shadow-lg shadow-orange-600/10 hover:shadow-orange-600/30 transition-all hover:-translate-y-1"
               >
                 <div className="bg-[#141526] w-full h-full rounded-xl rounded-b-none p-6 flex flex-col items-center justify-center min-h-[280px] relative overflow-hidden group-hover:bg-[#1a1b30] transition-colors">

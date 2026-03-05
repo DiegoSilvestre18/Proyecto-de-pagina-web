@@ -6,7 +6,8 @@ import Login from '../Components/Features/Login/Pages/Login';
 import Register from '../Components/Features/Register/Pages/Register';
 import Dashboard from '../Components/Features/Main/Pages/Dashboard';
 import MainAdmin from '../Components/Features/MainAdmin/Pages/MainAdmin';
-import Settings from '../Components/Features/Settings/Pages/Settings';
+import AccountSettings from '../Components/Features/Settings/Pages/AccountSettings';
+import IntegrationsSettings from '../Components/Features/Settings/Pages/IntegrationsSettings';
 import Salas from '../Components/Features/Salas/Salas';
 import SolicitudRecarga from '../Components/Features/SolicitudDinero/pages/SolicitudRecarga';
 import { ProtectedRoute } from './ProtectedRoutes';
@@ -15,6 +16,7 @@ import {
   mockSalas,
   filtrosModos,
 } from '../Components/Features/Main/Data/mockData';
+import SettingsLayout from '../Components/layout/SettingsLayout';
 
 export const ClienteRoutes = () => {
   return (
@@ -39,7 +41,19 @@ export const ClienteRoutes = () => {
           element={<Salas salas={mockSalas} filtrosModos={filtrosModos} />}
         />
         <Route path="/main/recarga" element={<SolicitudRecarga />} />
-        <Route path="/main/settings" element={<Settings />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <SettingsLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/main/settings/cuenta" element={<AccountSettings />} />
+          <Route
+            path="/main/settings/integraciones"
+            element={<IntegrationsSettings />}
+          />
+        </Route>
       </Route>
 
       <Route

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import Sidebar from '../Common/Sidebar';
 import Header from '../Common/Header';
@@ -14,45 +14,11 @@ const AppLayout: React.FC = () => {
 
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Derivar la vista activa a partir de la ruta actual
-  const getActiveView = (): string => {
-    const path = location.pathname;
-    if (path.startsWith('/main/salas')) return 'salas';
-    if (path.startsWith('/main/recarga')) return 'recarga';
-    if (path.startsWith('/main/settings')) return 'settings';
-    return 'dashboard';
-  };
-
-  const activeView = getActiveView();
-
-  const handleChangeView = (view: string) => {
-    setIsMobileMenuOpen(false);
-    switch (view) {
-      case 'dashboard':
-        navigate('/main');
-        break;
-      case 'salas':
-        navigate('/main/salas');
-        break;
-      case 'recarga':
-        navigate('/main/recarga');
-        break;
-      case 'settings':
-        navigate('/main/settings');
-        break;
-      default:
-        navigate('/main');
-    }
-  };
 
   return (
     <div className="flex h-screen w-full bg-[#0b0c1b] text-white font-sans overflow-hidden">
       <Sidebar
-        activeView={activeView}
         isMobileMenuOpen={isMobileMenuOpen}
-        onChangeView={handleChangeView}
         onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       />
 
