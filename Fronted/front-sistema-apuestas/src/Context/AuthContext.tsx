@@ -8,6 +8,10 @@ import {
 
 export interface UserDto {
   id: number;
+  nombre: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  telefono: string;
   username: string;
   email: string;
   rol: string;

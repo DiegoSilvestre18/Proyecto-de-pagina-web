@@ -36,8 +36,11 @@ export const tomarSolicitud = async ({
   });
 };
 
-export const procesarSolicitud = async (formData: procesarSolicitudType) => {
-  return await apiFetch('/api/Finanzas/admin/recargas/procesar', {
+export const procesarSolicitud = async (
+  formData: procesarSolicitudType,
+  type: string,
+) => {
+  return await apiFetch(`/api/Finanzas/admin/${type}s/procesar`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
