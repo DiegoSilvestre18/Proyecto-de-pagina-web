@@ -10,10 +10,15 @@ type Notificacion = {
 } | null;
 
 const IntegrationsSettings: React.FC = () => {
-  const { token } = useAuth();
+  const { token, hasGameAccount, fetchGameAccounts } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [notificacion, setNotificacion] = useState<Notificacion>(null);
   const [vinculado, setVinculado] = useState(false);
+
+  // Sincronizar estado con las cuentas reales del contexto
+  useEffect(() => {
+    setVinculado(hasGameAccount('DOTA'));
+  }, [hasGameAccount]);
 
   const handleVincularDota = () => {
     if (!token) {
@@ -37,6 +42,7 @@ const IntegrationsSettings: React.FC = () => {
         mensaje: '¡Cuenta de Dota 2 vinculada exitosamente!',
       });
       setVinculado(true);
+      fetchGameAccounts(); // Refrescar cuentas en el contexto global
       setSearchParams({});
     }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Crosshair,
   Plus,
@@ -10,13 +11,8 @@ import {
   UserPlus,
 } from 'lucide-react';
 
-import type { CuentaJuego, Sala } from './types/types';
-import {
-  getSalas,
-  solicitarSala,
-  unirseASala,
-  getMisCuentasJuego,
-} from './Services/ServiceSalas';
+import type { Sala } from './types/types';
+import { getSalas, solicitarSala, unirseASala } from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
 interface SalasProps {
@@ -39,16 +35,18 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
 
   // Estado para capturar los datos del formulario
   const [formData, setFormData] = useState({
-    juego: 'DOTA2',
+    juego: 'DOTA',
     formato: '1v1',
     costo: 10,
   });
 
   const [isJoining, setIsJoining] = useState(false);
 
-  const [cuentasJuego, setCuentasJuego] = useState<CuentaJuego[]>([]);
-
   const [selectedAccountId, setSelectedAccountId] = useState<number | ''>('');
+
+  const closeSalaModal = () => {
+    setSalaSeleccionada(null);
+  };
 
   // Función que se ejecuta al darle a "Enviar"
   const handleSubmitSala = async (e: React.FormEvent) => {
@@ -86,7 +84,7 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
     }
   };
 
-  const { user } = useAuth();
+  const { user, gameAccounts, hasGameAccount, updateBalance } = useAuth();
 
   // 2. Disparamos la petición al Backend apenas carga el componente
   useEffect(() => {
@@ -107,21 +105,38 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
     fetchSalasBD();
   }, []);
 
+  // Filtrar cuentas de juego según la sala seleccionada
+  const normalizeJuego = (s: string) => s.toUpperCase().replace(/\d+$/, '');
+  const cuentasParaSala = salaSeleccionada
+    ? gameAccounts.filter(
+        (acc) =>
+          normalizeJuego(acc.juego) ===
+          normalizeJuego(salaSeleccionada.juego || ''),
+      )
+    : gameAccounts;
+
+  // Auto-seleccionar la primera cuenta compatible al cambiar de sala
   useEffect(() => {
-    const fetchCuentas = async () => {
-      try {
-        const cuentas = await getMisCuentasJuego();
-        if (Array.isArray(cuentas)) {
-          setCuentasJuego(cuentas);
-          // Si tienes cuentas, seleccionamos la primera por defecto
-          if (cuentas.length > 0) setSelectedAccountId(cuentas[0].id);
-        }
-      } catch (error) {
-        console.error('Error al traer las cuentas de juego', error);
+    if (cuentasParaSala.length > 0) {
+      setSelectedAccountId(cuentasParaSala[0].id);
+    } else {
+      setSelectedAccountId('');
+    }
+  }, [salaSeleccionada, cuentasParaSala.length]);
+
+  // Permite cerrar el modal con la tecla Escape
+  useEffect(() => {
+    if (!salaSeleccionada) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeSalaModal();
       }
     };
-    fetchCuentas();
-  }, []);
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [salaSeleccionada]);
 
   // 3. Estrategia de respaldo: Si el backend está vacío o falla, mostramos los mocks
   // LÓGICA DE FILTRADO INTELIGENTE
@@ -151,6 +166,14 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
 
   const handleUnirseSala = async () => {
     if (!salaSeleccionada) return;
+    console.log('Sala seleccionada:', salaSeleccionada);
+    // Verificar que tenga una cuenta del juego correspondiente
+    if (!hasGameAccount(salaSeleccionada.juego || '')) {
+      alert(
+        `Necesitas vincular una cuenta de ${salaSeleccionada.juego} para unirte a esta sala.`,
+      );
+      return;
+    }
 
     setIsJoining(true);
     try {
@@ -162,8 +185,20 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
       // Si C# devuelve un mensaje de éxito, lo mostramos (ej. "Inscripción exitosa. Se cobraron S/...")
       alert(response?.mensaje || '¡Te has unido a la sala con éxito!');
 
+      // Actualizar saldo del usuario en el contexto global
+      if (response?.saldoRealRestante !== undefined && response?.saldoBonoRestante !== undefined) {
+        updateBalance(response.saldoRealRestante, response.saldoBonoRestante);
+      }
+
       setSalaSeleccionada(null); // Cerramos el modal
-      // Opcional: podrías volver a llamar a la función que trae las salas para que se actualice la lista
+
+      // Refrescar la lista de salas para que se vea la inscripción
+      try {
+        const data = await getSalas();
+        if (data && data.length > 0) {
+          setSalasReales(data);
+        }
+      } catch { /* silenciar error de refresco */ }
     } catch (error: unknown) {
       // Le decimos a TypeScript que es 'unknown' (desconocido) y luego verificamos si tiene un mensaje
       if (error instanceof Error) {
@@ -177,7 +212,7 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-20 px-4 lg:px-12 pt-8 max-w-[1600px] mx-auto">
+    <div className="animate-in fade-in duration-500 pb-20 px-4 lg:px-12 pt-8 max-w-[1600px] mx-auto">
       {/* Cabecera de Salas */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-white/5 pb-6">
         <div>
@@ -342,271 +377,287 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
           ))}
       </div>
       {/* ====== MODAL DE CREAR / SOLICITAR SALA ====== */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
-          onClick={() => setShowModal(false)} // Si hace clic afuera, se cierra
-        >
+      {showModal &&
+        createPortal(
           <div
-            className="bg-[#141526] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()} // Evita que se cierre al hacer clic adentro
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowModal(false)} // Si hace clic afuera, se cierra
           >
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-black text-white">
-                {user?.rol === 'SUPERADMIN' || user?.rol === 'HOST'
-                  ? 'Configurar Nueva Sala'
-                  : 'Solicitar Sala'}
-              </h3>
-              <p className="text-gray-400 text-sm mt-1">
-                {user?.rol === 'SUPERADMIN' || user?.rol === 'HOST'
-                  ? 'Crea una partida oficial que aparecerá al instante.'
-                  : 'Arma tu partida. Un administrador la aprobará en breve.'}
-              </p>
-            </div>
-
-            {/* Agregamos el onSubmit al form */}
-            <form className="space-y-4" onSubmit={handleSubmitSala}>
-              {/* Juego */}
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">
-                  JUEGO
-                </label>
-                <select
-                  value={formData.juego}
-                  onChange={(e) =>
-                    setFormData({ ...formData, juego: e.target.value })
-                  }
-                  className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
-                >
-                  <option value="DOTA2">Dota 2</option>
-                  <option value="VALORANT">Valorant</option>
-                </select>
-              </div>
-
-              {/* Formato */}
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">
-                  FORMATO
-                </label>
-                <select
-                  value={formData.formato}
-                  onChange={(e) =>
-                    setFormData({ ...formData, formato: e.target.value })
-                  }
-                  className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
-                >
-                  <option value="1v1">1 vs 1 (Duelo)</option>
-                  <option value="5v5 All Pick">5 vs 5 (All Pick)</option>
-                  <option value="5v5 Captains Mode">
-                    5 vs 5 (Captains Mode)
-                  </option>
-                </select>
-              </div>
-
-              {/* Cuota (Apuesta) */}
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">
-                  APUESTA INICIAL (S/)
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  step="1"
-                  value={formData.costo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, costo: Number(e.target.value) })
-                  }
-                  placeholder="Ej: 10.00"
-                  className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 py-3 bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg shadow-orange-600/20 transition-all flex justify-center items-center"
-                >
-                  {isSubmitting ? 'Enviando...' : 'Enviar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {/* ====== MODAL DEL LOBBY (SALA DE ESPERA 5v5) ====== */}
-      {salaSeleccionada && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300"
-          onClick={() => setSalaSeleccionada(null)}
-        >
-          <div
-            className="bg-[#0b0c1b] border border-white/10 rounded-2xl max-w-4xl w-full flex flex-col shadow-2xl relative overflow-hidden max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Botón Cerrar */}
-            <button
-              onClick={() => setSalaSeleccionada(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white z-10 transition-colors bg-black/50 rounded-full p-1"
+            <div
+              className="bg-[#141526] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()} // Evita que se cierre al hacer clic adentro
             >
-              <X size={24} />
-            </button>
-
-            {/* Cabecera Épica */}
-            <div className="relative p-6 border-b border-white/5 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-50"></div>
-              <div className="relative z-10 text-center">
-                <span className="inline-block px-3 py-1 mb-2 text-xs font-black tracking-widest text-orange-400 bg-orange-500/10 rounded-full border border-orange-500/20 uppercase">
-                  {salaSeleccionada.juego} • {salaSeleccionada.formato}
-                </span>
-                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
-                  Partida de{' '}
-                  <span className="text-orange-500">
-                    {salaSeleccionada.creador}
-                  </span>
-                </h2>
-                <div className="flex items-center justify-center gap-6 mt-4 text-sm font-bold text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <Coins size={16} className="text-yellow-500" />
-                    Cuota:{' '}
-                    <span className="text-white">
-                      S/ {salaSeleccionada.costo?.toFixed(2) || '0.00'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users size={16} className="text-blue-500" />
-                    Jugadores: <span className="text-white">1 / 10</span>{' '}
-                    {/* Por ahora hardcodeado */}
-                  </div>
-                </div>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-black text-white">
+                  {user?.rol === 'SUPERADMIN' || user?.rol === 'HOST'
+                    ? 'Configurar Nueva Sala'
+                    : 'Solicitar Sala'}
+                </h3>
+                <p className="text-gray-400 text-sm mt-1">
+                  {user?.rol === 'SUPERADMIN' || user?.rol === 'HOST'
+                    ? 'Crea una partida oficial que aparecerá al instante.'
+                    : 'Arma tu partida. Un administrador la aprobará en breve.'}
+                </p>
               </div>
-            </div>
 
-            {/* Zona de Equipos (5v5) */}
-            <div className="flex-1 overflow-y-auto p-6 bg-[#141526]">
-              <div className="flex flex-col md:flex-row gap-8 relative">
-                {/* Icono VS en el medio (Solo visible en Desktop) */}
-                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-[#0b0c1b] border border-white/10 rounded-full items-center justify-center z-10 shadow-lg shadow-black">
-                  <Swords size={20} className="text-orange-500" />
-                </div>
-
-                {/* EQUIPO 1 (Azul/Verde) */}
-                <div className="flex-1 space-y-2">
-                  <h3 className="text-center font-black text-blue-400 tracking-widest uppercase mb-4 text-sm border-b border-blue-500/20 pb-2">
-                    Radiant / Atacantes
-                  </h3>
-                  {/* Creamos un array de 5 espacios. Si hay un jugador en esa posición, lo mostramos, si no, mostramos "Esperando" */}
-                  {[0, 1, 2, 3, 4].map((index) => {
-                    const jugador = salaSeleccionada.participantes?.[index]; // Buscamos si existe un jugador en este índice
-
-                    return (
-                      <div
-                        key={`eq1-${index}`}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${jugador ? 'bg-blue-900/20 border-blue-500/30' : 'bg-[#0b0c1b] border-white/5 border-dashed'}`}
-                      >
-                        <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
-                          {jugador ? (
-                            <Users size={16} />
-                          ) : (
-                            <UserPlus size={16} className="opacity-30" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p
-                            className={`text-sm font-bold ${jugador ? 'text-white' : 'text-gray-600'}`}
-                          >
-                            {jugador
-                              ? jugador.steamName
-                              : 'Esperando jugador...'}
-                          </p>
-                          {jugador && (
-                            <p className="text-[10px] text-gray-400">
-                              Usuario: {jugador.username}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* EQUIPO 2 (Rojo/Naranja) */}
-                <div className="flex-1 space-y-2">
-                  <h3 className="text-center font-black text-red-400 tracking-widest uppercase mb-4 text-sm border-b border-red-500/20 pb-2">
-                    Equipo 2
-                  </h3>
-                  {[0, 1, 2, 3, 4].map((slot) => (
-                    <div
-                      key={`eq2-${slot}`}
-                      className="flex items-center gap-3 p-3 rounded-lg border bg-[#0b0c1b] border-white/5 border-dashed"
-                    >
-                      <div className="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center text-red-500">
-                        <UserPlus size={16} className="opacity-30" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-gray-600">
-                          Esperando jugador...
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer de Acción (Pagar y Unirse) */}
-            <div className="p-6 border-t border-white/5 bg-[#0b0c1b] flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row items-end justify-between gap-4">
-                {/* Botón Mágico */}
-                <button
-                  onClick={handleUnirseSala}
-                  disabled={isJoining}
-                  className="w-full sm:w-auto px-8 py-3 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:hover:scale-100 text-white font-black uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-orange-600/20 hover:scale-[1.02] flex items-center justify-center gap-2"
-                >
-                  <Coins size={18} />
-                  {isJoining
-                    ? 'Procesando Pago...'
-                    : `Pagar S/ ${salaSeleccionada.costo?.toFixed(2)} y Unirse`}
-                </button>
-                {/* Menú Desplegable de Cuentas */}
-                <div className="w-full sm:w-auto">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                    Selecciona tu cuenta
+              {/* Agregamos el onSubmit al form */}
+              <form className="space-y-4" onSubmit={handleSubmitSala}>
+                {/* Juego */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">
+                    JUEGO
                   </label>
                   <select
-                    value={selectedAccountId}
+                    value={formData.juego}
                     onChange={(e) =>
-                      setSelectedAccountId(Number(e.target.value))
+                      setFormData({ ...formData, juego: e.target.value })
                     }
-                    className="w-full sm:w-64 bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none cursor-pointer"
+                    className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
                   >
-                    {cuentasJuego.length === 0 && (
-                      <option value="">No tienes cuentas vinculadas</option>
-                    )}
-                    {cuentasJuego.map((cuenta) => (
-                      <option key={cuenta.id} value={cuenta.id}>
-                        🎮 {cuenta.idVisible} ({cuenta.juego})
-                      </option>
-                    ))}
+                    <option value="DOTA">Dota 2</option>
+                    <option value="VALORANT">Valorant</option>
                   </select>
                 </div>
-              </div>
-              <p className="text-[10px] text-gray-500 text-center sm:text-left">
-                * El sistema descontará S/ {salaSeleccionada.costo?.toFixed(2)}{' '}
-                usando tu Saldo Bono primero. Esta acción no se puede deshacer.
-              </p>
+
+                {/* Formato */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">
+                    FORMATO
+                  </label>
+                  <select
+                    value={formData.formato}
+                    onChange={(e) =>
+                      setFormData({ ...formData, formato: e.target.value })
+                    }
+                    className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="1v1">1 vs 1 (Duelo)</option>
+                    <option value="5v5 All Pick">5 vs 5 (All Pick)</option>
+                    <option value="5v5 Captains Mode">
+                      5 vs 5 (Captains Mode)
+                    </option>
+                  </select>
+                </div>
+
+                {/* Cuota (Apuesta) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">
+                    APUESTA INICIAL (S/)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    step="1"
+                    value={formData.costo}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        costo: Number(e.target.value),
+                      })
+                    }
+                    placeholder="Ej: 10.00"
+                    className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                {/* Botones de acción */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 py-3 bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold rounded-lg transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg shadow-orange-600/20 transition-all flex justify-center items-center"
+                  >
+                    {isSubmitting ? 'Enviando...' : 'Enviar'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
+      {/* ====== MODAL DEL LOBBY (SALA DE ESPERA 5v5) ====== */}
+      {salaSeleccionada &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={closeSalaModal}
+          >
+            <div
+              className="bg-[#0b0c1b] border border-white/10 rounded-2xl max-w-4xl w-full flex flex-col shadow-2xl relative overflow-hidden max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Botón Cerrar */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  closeSalaModal();
+                }}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white z-10 transition-colors bg-black/50 rounded-full p-1"
+              >
+                <X size={24} />
+              </button>
+
+              {/* Cabecera Épica */}
+              <div className="relative p-6 border-b border-white/5 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-50"></div>
+                <div className="relative z-10 text-center">
+                  <span className="inline-block px-3 py-1 mb-2 text-xs font-black tracking-widest text-orange-400 bg-orange-500/10 rounded-full border border-orange-500/20 uppercase">
+                    {salaSeleccionada.juego} • {salaSeleccionada.formato}
+                  </span>
+                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+                    Partida de{' '}
+                    <span className="text-orange-500">
+                      {salaSeleccionada.creador}
+                    </span>
+                  </h2>
+                  <div className="flex items-center justify-center gap-6 mt-4 text-sm font-bold text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <Coins size={16} className="text-yellow-500" />
+                      Cuota:{' '}
+                      <span className="text-white">
+                        S/ {salaSeleccionada.costo?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={16} className="text-blue-500" />
+                      Jugadores: <span className="text-white">1 / 10</span>{' '}
+                      {/* Por ahora hardcodeado */}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Zona de Equipos (5v5) */}
+              <div className="flex-1 overflow-y-auto p-6 bg-[#141526]">
+                <div className="flex flex-col md:flex-row gap-8 relative">
+                  {/* Icono VS en el medio (Solo visible en Desktop) */}
+                  <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-[#0b0c1b] border border-white/10 rounded-full items-center justify-center z-10 shadow-lg shadow-black">
+                    <Swords size={20} className="text-orange-500" />
+                  </div>
+
+                  {/* EQUIPO 1 (Azul/Verde) */}
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-center font-black text-blue-400 tracking-widest uppercase mb-4 text-sm border-b border-blue-500/20 pb-2">
+                      Radiant / Atacantes
+                    </h3>
+                    {/* Creamos un array de 5 espacios. Si hay un jugador en esa posición, lo mostramos, si no, mostramos "Esperando" */}
+                    {[0, 1, 2, 3, 4].map((index) => {
+                      const jugador = salaSeleccionada.participantes?.[index]; // Buscamos si existe un jugador en este índice
+
+                      return (
+                        <div
+                          key={`eq1-${index}`}
+                          className={`flex items-center gap-3 p-3 rounded-lg border ${jugador ? 'bg-blue-900/20 border-blue-500/30' : 'bg-[#0b0c1b] border-white/5 border-dashed'}`}
+                        >
+                          <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            {jugador ? (
+                              <Users size={16} />
+                            ) : (
+                              <UserPlus size={16} className="opacity-30" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p
+                              className={`text-sm font-bold ${jugador ? 'text-white' : 'text-gray-600'}`}
+                            >
+                              {jugador
+                                ? jugador.steamName
+                                : 'Esperando jugador...'}
+                            </p>
+                            {jugador && (
+                              <p className="text-[10px] text-gray-400">
+                                Usuario: {jugador.username}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* EQUIPO 2 (Rojo/Naranja) */}
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-center font-black text-red-400 tracking-widest uppercase mb-4 text-sm border-b border-red-500/20 pb-2">
+                      Equipo 2
+                    </h3>
+                    {[0, 1, 2, 3, 4].map((slot) => (
+                      <div
+                        key={`eq2-${slot}`}
+                        className="flex items-center gap-3 p-3 rounded-lg border bg-[#0b0c1b] border-white/5 border-dashed"
+                      >
+                        <div className="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center text-red-500">
+                          <UserPlus size={16} className="opacity-30" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-gray-600">
+                            Esperando jugador...
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer de Acción (Pagar y Unirse) */}
+              <div className="p-6 border-t border-white/5 bg-[#0b0c1b] flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row items-end justify-between gap-4">
+                  {/* Botón Mágico */}
+                  <button
+                    onClick={handleUnirseSala}
+                    disabled={isJoining}
+                    className="w-full sm:w-auto px-8 py-3 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:hover:scale-100 text-white font-black uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-orange-600/20 hover:scale-[1.02] flex items-center justify-center gap-2"
+                  >
+                    <Coins size={18} />
+                    {isJoining
+                      ? 'Procesando Pago...'
+                      : `Pagar S/ ${salaSeleccionada.costo?.toFixed(2)} y Unirse`}
+                  </button>
+                  {/* Menú Desplegable de Cuentas */}
+                  <div className="w-full sm:w-auto">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
+                      Selecciona tu cuenta
+                    </label>
+                    <select
+                      value={selectedAccountId}
+                      onChange={(e) =>
+                        setSelectedAccountId(Number(e.target.value))
+                      }
+                      className="w-full sm:w-64 bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none cursor-pointer"
+                    >
+                      {cuentasParaSala.length === 0 && (
+                        <option value="">
+                          No tienes cuentas de {salaSeleccionada?.juego}{' '}
+                          vinculadas
+                        </option>
+                      )}
+                      {cuentasParaSala.map((cuenta) => (
+                        <option key={cuenta.id} value={cuenta.id}>
+                          🎮 {cuenta.idVisible} ({cuenta.juego})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-500 text-center sm:text-left">
+                  * El sistema descontará S/{' '}
+                  {salaSeleccionada.costo?.toFixed(2)} usando tu Saldo Bono
+                  primero. Esta acción no se puede deshacer.
+                </p>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

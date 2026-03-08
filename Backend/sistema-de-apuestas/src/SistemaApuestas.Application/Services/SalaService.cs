@@ -148,11 +148,15 @@ namespace SistemaApuestas.Application.Services
             var salasMapeadas = salasBD.Select(s => new
             {
                 id = s.SalaId,
-                creador = "Usuario", // Ajusta esto si ya tienes el nombre del creador real
+                nombre = s.Nombre ?? $"Sala de {s.Juego}",
+                creador = s.Creador?.Username ?? "Usuario",
                 formato = s.TipoSala ?? s.Juego,
+                juego = s.Juego,
                 costo = s.CostoEntrada,
                 estado = s.Estado,
                 fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
+                jugadores = s.Participantes.Count,
+                maxJugadores = (s.TipoSala ?? "").Contains("5v5") ? 10 : 2,
 
                  
                 participantes = s.Participantes.Select(p => new {

@@ -1,10 +1,13 @@
 import {
   useMemo,
   useState,
+  useEffect,
+  useCallback,
   useContext,
   createContext,
   type ReactNode,
 } from 'react';
+import { apiFetch } from '../Global/Api';
 
 export interface UserDto {
   id: number;
@@ -19,11 +22,23 @@ export interface UserDto {
   saldoBono: number;
 }
 
+export interface GameAccount {
+  id: number;
+  idVisible: string;
+  idExterno: string;
+  juego: string;
+  rangoActual: string;
+}
+
 // Definicion de la interfaz del Contexto
 interface AuthContextType {
   user: UserDto | null;
   token: string | null;
   isAutenticated: boolean;
+  gameAccounts: GameAccount[];
+  hasGameAccount: (juego: string) => boolean;
+  fetchGameAccounts: () => Promise<void>;
+  updateBalance: (saldoReal: number, saldoBono: number) => void;
   login: (
     token: string,
     expiracion: number,
@@ -73,6 +88,57 @@ const readAuthFromStorage = () => {
 // Se saca el Provider FUERA de la función readAuthFromStorage children
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [auth, setAuth] = useState(() => readAuthFromStorage());
+  const [gameAccounts, setGameAccounts] = useState<GameAccount[]>([]);
+
+  const fetchGameAccounts = useCallback(async () => {
+    try {
+      const data = await apiFetch('/api/GameAccount/mis-cuentas');
+      if (Array.isArray(data)) {
+        setGameAccounts(data);
+      } else if (data && Array.isArray(data.response)) {
+        setGameAccounts(data.response);
+      } else {
+        setGameAccounts([]);
+      }
+    } catch (error) {
+      console.error('Error al obtener cuentas de juego:', error);
+      setGameAccounts([]);
+    }
+  }, []);
+
+  const hasGameAccount = useCallback(
+    (juego: string) => {
+      const normalize = (s: string) => s.toUpperCase().replace(/\d+$/, '');
+      return gameAccounts.some(
+        (acc) => normalize(acc.juego) === normalize(juego),
+      );
+    },
+    [gameAccounts],
+  );
+
+  // Cargar cuentas de juego cuando hay sesión activa
+  useEffect(() => {
+    if (auth) {
+      fetchGameAccounts();
+    } else {
+      setGameAccounts([]);
+    }
+  }, [auth, fetchGameAccounts]);
+
+  const updateBalance = (saldoReal: number, saldoBono: number) => {
+    if (!auth) return;
+    const updated = {
+      ...auth,
+      usuario: { ...auth.usuario, saldoReal, saldoBono },
+    };
+    // Persistir en el storage correspondiente
+    if (localStorage.getItem('auth')) {
+      localStorage.setItem('auth', JSON.stringify(updated));
+    } else {
+      sessionStorage.setItem('auth', JSON.stringify(updated));
+    }
+    setAuth(updated);
+  };
 
   const login = (
     token: string,
@@ -105,10 +171,14 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
       user: auth ? auth.usuario : null,
       token: auth ? auth.token : null,
       isAutenticated: !!auth,
+      gameAccounts,
+      hasGameAccount,
+      fetchGameAccounts,
+      updateBalance,
       login,
       logout,
     }),
-    [auth],
+    [auth, gameAccounts, hasGameAccount, fetchGameAccounts],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
