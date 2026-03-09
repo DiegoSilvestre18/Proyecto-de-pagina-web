@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Search,
   Play,
@@ -34,6 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
+  const { pathname } = useLocation();
+  const settingsActive = pathname.startsWith('/main/settings');
   return (
     <aside
       className={`fixed lg:static inset-y-0 left-0 z-50 ${isCollapsed ? 'w-[72px]' : 'w-64'} bg-[#0f1021] border-r border-white/5 flex flex-col transition-all duration-300 ${
@@ -43,7 +45,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       }`}
     >
       {/* Logo */}
-      <div className="p-6 flex items-center justify-between">
+      <div
+        className={`${isCollapsed ? 'px-4 py-6' : 'p-6'} flex items-center justify-between`}
+      >
         <NavLink
           to="/main"
           className="flex items-center gap-3 cursor-pointer group overflow-hidden"
@@ -162,7 +166,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         {isCollapsed && <div className="pt-4 border-t border-white/5 mt-4" />}
         <NavLink
           to="/main/settings/cuenta"
-          className={navLinkClass}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+            settingsActive
+              ? 'bg-orange-600/10 text-orange-500'
+              : 'text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
           onClick={onCloseMobileMenu}
           title="Configuración"
         >

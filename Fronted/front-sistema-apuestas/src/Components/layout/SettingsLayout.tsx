@@ -1,33 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Edit2 } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 const SettingsLayout: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('cuenta');
+  const { pathname } = useLocation();
   const tabs = [
     { id: 'cuenta', label: 'Cuenta', url: '/main/settings/cuenta' },
-    {
-      id: 'verificacion',
-      label: 'Verificación',
-      url: '/main/settings/verificacion',
-    },
-    {
-      id: 'notificaciones',
-      label: 'Notificaciones',
-      url: '/main/settings/notificaciones',
-    },
-    { id: 'juego', label: 'Ajustes de juego', url: '/main/settings/juego' },
-    {
-      id: 'suscripciones',
-      label: 'Suscripciones',
-      url: '/main/settings/suscripciones',
-    },
     {
       id: 'integraciones',
       label: 'Integraciones',
       url: '/main/settings/integraciones',
     },
-    { id: 'privacidad', label: 'Privacidad', url: '/main/settings/privacidad' },
+    {
+      id: 'verificacion',
+      label: 'Verificación',
+      url: '/main/settings/verificacion',
+    },
   ];
 
   return (
@@ -56,7 +44,7 @@ const SettingsLayout: React.FC = () => {
               to={tab.url}
               key={tab.id}
               className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                activeTab === tab.id
+                pathname === tab.url
                   ? 'bg-white/10 text-white border-l-4 border-orange-600'
                   : 'text-gray-400 hover:bg-white/5 hover:text-gray-200 border-l-4 border-transparent'
               }`}

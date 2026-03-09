@@ -135,10 +135,7 @@ const Header: React.FC<HeaderProps> = ({
           {showDropdown && (
             <div className="absolute right-0 top-full mt-4 w-48 bg-[#1a1b2e] border border-white/10 rounded-lg shadow-xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
               <div className="px-4 py-2 border-b border-white/5 mb-2 lg:hidden">
-                <p className="text-sm font-bold text-white">
-                  {'user?.username'}
-                </p>
-                <p className="text-xs text-gray-400">MMR: {'user?.mmr'}</p>
+                <p className="text-sm font-bold text-white">{user?.username}</p>
               </div>
               <NavLink
                 to="/main/settings/cuenta"
