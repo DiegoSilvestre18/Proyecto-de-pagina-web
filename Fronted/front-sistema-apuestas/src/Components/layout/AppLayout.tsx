@@ -11,6 +11,7 @@ import Header from '../Common/Header';
 const AppLayout: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ const AppLayout: React.FC = () => {
       <Sidebar
         isMobileMenuOpen={isMobileMenuOpen}
         onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
       <main className="flex-1 flex flex-col relative overflow-hidden">

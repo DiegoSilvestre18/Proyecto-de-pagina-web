@@ -214,12 +214,15 @@ namespace SistemaApuestas.Application.Services
             var salasMapeadas = salasBD.Select(s => new
             {
                 id = s.SalaId,
-                creador = s.Creador != null ? s.Creador.Username : "Usuario",
-                juego = s.Juego, // <-- Faltaba esto para la cabecera en React
-                formato = s.Formato ?? s.TipoSala, // <-- Usa el formato real (ej: 5v5 Captains Mode)
+                nombre = s.Nombre ?? $"Sala de {s.Juego}",
+                creador = s.Creador?.Username ?? "Usuario",
+                juego = s.Juego,
+                formato = s.Formato ?? s.TipoSala, // <-- Tu ajuste para el 5v5 Captains Mode
                 costo = s.CostoEntrada,
                 estado = s.Estado,
                 fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
+                jugadores = s.Participantes.Count,
+                maxJugadores = (s.TipoSala ?? "").Contains("5v5") ? 10 : 2,
 
                 // 👇 1. MANDAMOS LOS DATOS DEL DRAFT AL FRONTEND 👇
                 capitan1Id = s.Capitan1Id,
@@ -322,9 +325,6 @@ namespace SistemaApuestas.Application.Services
 
             return "La moneda ha hablado. ¡Que empiece el Draft!";
         }
-
-
-
 
 
 

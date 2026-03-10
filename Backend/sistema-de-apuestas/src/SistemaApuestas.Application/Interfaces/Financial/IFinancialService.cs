@@ -16,5 +16,9 @@ namespace SistemaApuestas.Application.Interfaces.Financial
         Task<SolicitudResponseDto> LiberarSolicitudAsync(int adminId, int solicitudId, string tipo);
         Task<SolicitudResponseDto> ProcesarRetiroAsync(int adminId, ProcesarSolicitudDto request);
         Task<SolicitudResponseDto> ProcesarRecargaAsync(int adminId, ProcesarSolicitudDto request);
+
+        // Bono
+        Task<SolicitudResponseDto> OtorgarBonoAsync(int adminId, OtorgarBonoDto request);
+        Task<SaldoUsuarioDto> ObtenerMiSaldoAsync(int usuarioId);
     }
 }

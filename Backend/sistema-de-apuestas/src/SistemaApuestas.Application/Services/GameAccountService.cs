@@ -213,7 +213,9 @@ namespace SistemaApuestas.Application.Services
             {
                 id = c.GameAccountId, // <--- ¡CÁMBIA ESTO AQUÍ!
                 idVisible = c.IdVisible ?? "Jugador",
-                juego = c.Juego
+                idExterno = c.IdExterno,
+                juego = c.Juego,
+                rangoActual = c.RangoActual
             }).ToList();
         }
 

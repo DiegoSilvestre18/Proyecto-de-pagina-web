@@ -75,12 +75,15 @@ const CardSolicitudPendiente: React.FC<{
             : 'Solicitud de sala rechazada',
         );
       } else {
-        await procesarSolicitud({
-          solicitudId: solicitud.solicitudId,
-          aprobar: formData.aprobar,
-          nroOperacion: formData.nroOperacion,
-          cuentaDestino: formData.cuentaDestino,
-        });
+        await procesarSolicitud(
+          {
+            solicitudId: solicitud.solicitudId,
+            aprobar: formData.aprobar,
+            nroOperacion: formData.nroOperacion,
+            cuentaDestino: formData.cuentaDestino,
+          },
+          solicitud.tipo.toLowerCase(),
+        );
         alert(
           formData.aprobar
             ? 'Solicitud aprobada exitosamente'

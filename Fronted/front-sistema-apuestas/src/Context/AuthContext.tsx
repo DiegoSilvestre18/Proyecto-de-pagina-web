@@ -1,14 +1,19 @@
-import { useEffect } from 'react';
 import {
-  useMemo,
   useState,
+  useEffect,
+  useCallback,
   useContext,
   createContext,
   type ReactNode,
 } from 'react';
+import { apiFetch } from '../Global/Api';
 
 export interface UserDto {
   id: number;
+  nombre: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  telefono: string;
   username: string;
   email: string;
   rol: string;
@@ -17,10 +22,19 @@ export interface UserDto {
 }
 
 // 👇 1. NUEVO MOLDE: Le decimos a TS exactamente qué tiene el paquete 'auth'
+// 👇 1. NUEVO MOLDE: Le decimos a TS exactamente qué tiene el paquete 'auth'
 interface AuthState {
   token: string;
   expiracion: number;
   usuario: UserDto;
+}
+
+export interface GameAccount {
+  id: number;
+  idVisible: string;
+  idExterno: string;
+  juego: string;
+  rangoActual: string;
 }
 
 // Definicion de la interfaz del Contexto
@@ -28,6 +42,10 @@ interface AuthContextType {
   user: UserDto | null;
   token: string | null;
   isAutenticated: boolean;
+  gameAccounts: GameAccount[];
+  hasGameAccount: (juego: string) => boolean;
+  fetchGameAccounts: () => Promise<void>;
+  updateBalance: (saldoReal: number, saldoBono: number) => void;
   login: (
     token: string,
     expiracion: number,
@@ -75,6 +93,64 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [auth, setAuth] = useState<AuthState | null>(() =>
     readAuthFromStorage(),
   );
+
+  const [gameAccounts, setGameAccounts] = useState<GameAccount[]>([]);
+
+  const fetchGameAccounts = useCallback(async () => {
+    try {
+      const data = await apiFetch('/api/GameAccount/mis-cuentas');
+      if (Array.isArray(data)) {
+        setGameAccounts(data);
+      } else if (data && Array.isArray(data.response)) {
+        setGameAccounts(data.response);
+      } else {
+        setGameAccounts([]);
+      }
+    } catch (error) {
+      console.error('Error al obtener cuentas de juego:', error);
+      setGameAccounts([]);
+    }
+  }, []);
+
+  const hasGameAccount = useCallback(
+    (juego: string) => {
+      const normalize = (s: string) => s.toUpperCase().replace(/\d+$/, '');
+      return gameAccounts.some(
+        (acc) => normalize(acc.juego) === normalize(juego),
+      );
+    },
+    [gameAccounts],
+  );
+
+  // Cargar cuentas de juego cuando hay sesión activa
+  useEffect(() => {
+    // 1. Envolvemos todo en una función asíncrona interna
+    const cargarCuentas = async () => {
+      if (auth) {
+        await fetchGameAccounts(); // Le ponemos await para que espere
+      } else {
+        setGameAccounts([]);
+      }
+    };
+
+    // 2. La ejecutamos
+    cargarCuentas();
+  }, [auth, fetchGameAccounts]);
+
+  const updateBalance = (saldoReal: number, saldoBono: number) => {
+    if (!auth) return;
+    const updated = {
+      ...auth,
+      usuario: { ...auth.usuario, saldoReal, saldoBono },
+    };
+    // Persistir en el storage correspondiente
+    if (localStorage.getItem('auth')) {
+      localStorage.setItem('auth', JSON.stringify(updated));
+    } else {
+      sessionStorage.setItem('auth', JSON.stringify(updated));
+    }
+    setAuth(updated);
+  };
 
   // 1️⃣ PRIMERO declaramos la función
   const actualizarSaldo = (nuevoSaldoReal: number, nuevoSaldoBono: number) => {
@@ -153,17 +229,18 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     setAuth(null);
   };
 
-  const value = useMemo(
-    () => ({
-      user: auth ? auth.usuario : null,
-      token: auth ? auth.token : null,
-      isAutenticated: !!auth,
-      login,
-      logout,
-      actualizarSaldo,
-    }),
-    [auth],
-  );
+  const value = {
+    user: auth ? auth.usuario : null,
+    token: auth ? auth.token : null,
+    isAutenticated: !!auth,
+    gameAccounts,
+    hasGameAccount,
+    fetchGameAccounts,
+    updateBalance,
+    login,
+    logout,
+    actualizarSaldo,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

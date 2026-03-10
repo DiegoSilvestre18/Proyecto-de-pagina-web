@@ -27,6 +27,7 @@ namespace SistemaApuestas.Infrastructure.Repositories
         public async Task<IEnumerable<Sala>> ObtenerTodasAsync()
         {
             return await _context.Salas
+                .Include(s => s.Creador)              // Trae el nombre del creador
                 .Include(s => s.Participantes)
                     .ThenInclude(p => p.Usuario)      // Trae los datos del jugador
                 .Include(s => s.Participantes)

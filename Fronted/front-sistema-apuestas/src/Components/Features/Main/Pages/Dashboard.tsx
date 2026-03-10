@@ -1,6 +1,7 @@
 import React from 'react';
-import { Crosshair, Trophy, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Crosshair, Divide, Trophy, Users } from 'lucide-react';
+import { useAuth } from '../../../../Context/AuthContext';
+import { NavLink, useNavigate } from 'react-router-dom';
 import type { Club } from '../types';
 
 interface DashboardProps {
@@ -9,6 +10,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ clubs }) => {
   const navigate = useNavigate();
+  const { gameAccounts } = useAuth();
 
   return (
     <div className="animate-in fade-in duration-500 pb-20">
@@ -42,28 +44,32 @@ const Dashboard: React.FC<DashboardProps> = ({ clubs }) => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             {/* Conectar Juego */}
-            <div className="bg-[#141526] border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 hover:border-white/10 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-600/10 border border-red-500/20 rounded-xl flex items-center justify-center">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Dota_2_icon.svg/1024px-Dota_2_icon.svg.png"
-                    alt="Dota 2"
-                    className="w-8 h-8 opacity-80"
-                  />
+            {gameAccounts.length === 0 ? (
+              <div className="bg-[#141526] border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 hover:border-white/10 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-red-600/10 border border-red-500/20 rounded-xl flex items-center justify-center">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Dota_2_icon.svg/1024px-Dota_2_icon.svg.png"
+                      alt="Dota 2"
+                      className="w-8 h-8 opacity-80"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">CONECTAR JUEGO</h3>
+                    <p className="text-xs text-gray-400">
+                      Vincula tu cuenta de Steam para validar tu MMR
+                      automáticamente.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg">CONECTAR JUEGO</h3>
-                  <p className="text-xs text-gray-400">
-                    Vincula tu cuenta de Steam para validar tu MMR
-                    automáticamente.
-                  </p>
-                </div>
+                <NavLink
+                  to="/main/settings/integraciones"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg border border-white/10 transition-colors"
+                >
+                  Vincular Cuenta
+                </NavLink>
               </div>
-              <button className="w-full sm:w-auto px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg border border-white/10 transition-colors">
-                Vincular Cuenta
-              </button>
-            </div>
-
+            ) : null}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tarjeta Emparejamiento */}
               <div

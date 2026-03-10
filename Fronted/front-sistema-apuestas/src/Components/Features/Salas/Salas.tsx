@@ -19,8 +19,6 @@ import {
   unirseASala,
   getMisCuentasJuego,
   cambiarEquipoSala,
-  lanzarMonedaSala,
-  reclutarJugadorDraft,
 } from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
@@ -190,60 +188,8 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
     }
   };
 
-  const handleLanzarMoneda = async () => {
-    if (!salaSeleccionada) return;
-
-    try {
-      const response = await lanzarMonedaSala(salaSeleccionada.id);
-      alert('🪙 ' + (response?.mensaje || '¡La moneda ha hablado!'));
-
-      // Recargamos para que la sala pase al estado DRAFTING y muestre de quién es el turno
-      window.location.reload();
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert('Hubo un error al lanzar la moneda.');
-      }
-    }
-  };
-
-  const handlePickPlayer = async (jugadorId: number) => {
-    if (!salaSeleccionada) return;
-
-    try {
-      const response = await reclutarJugadorDraft(
-        salaSeleccionada.id,
-        jugadorId,
-      );
-
-      // Avisamos que salió bien
-      alert('✅ ' + (response?.mensaje || '¡Jugador reclutado!'));
-
-      // Recargamos la página para actualizar el turno y los colores de la piscina
-      window.location.reload();
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert('❌ ' + error.message);
-      } else {
-        alert('Hubo un error al intentar reclutar al jugador.');
-      }
-    }
-  };
-
   const miParticipacion = salaSeleccionada?.participantes?.find(
     (p: { username: string; equipo: string }) => p.username === user?.username,
-  );
-
-  const soyCapitan =
-    salaSeleccionada &&
-    user?.id != null &&
-    (user.id === salaSeleccionada.capitan1Id ||
-      user.id === salaSeleccionada.capitan2Id);
-
-  // Buscamos al jugador que tiene el turno actual
-  const jugadorConTurno = salaSeleccionada?.participantes?.find(
-    (p) => (p.usuarioId || p.id) === salaSeleccionada?.turnoId,
   );
 
   // Función REAL para cambiar de equipo
@@ -603,7 +549,7 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
                    NUEVA VISTA: PISCINA DE JUGADORES (CAPTAINS DRAFT) 
                    ======================================================== */
                 <div className="flex flex-col gap-6 relative animate-in fade-in duration-300">
-                  {/* 1. PANEL VIP DEL ADMIN (EL OJO SUPREMO) */}
+                  {/* PANEL VIP DEL ADMIN (EL OJO SUPREMO) */}
                   {user?.rol === 'SUPERADMIN' && (
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(249,115,22,0.1)]">
                       <div className="flex items-center gap-3">
@@ -626,55 +572,11 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
                     </div>
                   )}
 
-                  {/* 2. ====== BANNER DE SORTEO DE MONEDA ====== */}
-                  {salaSeleccionada.estado === 'SORTEO' && (
-                    <div className="bg-gradient-to-r from-orange-900/40 via-[#1a1b2e] to-purple-900/40 border border-orange-500/30 rounded-xl p-6 mb-2 text-center relative overflow-hidden shadow-[0_0_20px_rgba(249,115,22,0.1)]">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent"></div>
-
-                      <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-2 flex items-center justify-center gap-3">
-                        🪙 ¡Hora del Sorteo! 🪙
-                      </h3>
-                      <p className="text-gray-400 text-sm mb-6">
-                        La moneda decidirá qué capitán tiene el primer turno
-                        para reclutar.
-                      </p>
-
-                      {soyCapitan ? (
-                        <button
-                          onClick={handleLanzarMoneda}
-                          className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-all transform hover:scale-105"
-                        >
-                          Lanzar Moneda
-                        </button>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2 text-yellow-500 font-bold uppercase tracking-widest text-xs animate-pulse">
-                          <Crown size={16} /> Esperando a los capitanes...
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ====== BANNER DE TURNO DE DRAFT ====== */}
-                  {salaSeleccionada.estado === 'DRAFTING' && (
-                    <div className="bg-gradient-to-r from-blue-900/40 via-[#1a1b2e] to-green-900/40 border border-green-500/30 rounded-xl p-4 mb-2 text-center shadow-[0_0_20px_rgba(34,197,94,0.1)]">
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest mb-1 flex items-center justify-center gap-2">
-                        ⏱️ Turno de Selección ⏱️
-                      </h3>
-                      <p className="text-green-400 font-bold text-sm">
-                        Le toca elegir a:{' '}
-                        <span className="text-white text-lg ml-1">
-                          {jugadorConTurno?.username || 'Cargando...'}
-                        </span>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* 3. TÍTULO PISCINA DE JUGADORES */}
                   <h3 className="text-center font-black text-white tracking-widest uppercase text-sm border-b border-white/10 pb-3 mt-2">
                     Piscina de Jugadores
                   </h3>
 
-                  {/* 4. GRID ÚNICA DE 10 ESPACIOS */}
+                  {/* GRID ÚNICA DE 10 ESPACIOS */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => {
                       const jugador = salaSeleccionada.participantes?.[index];
@@ -703,7 +605,7 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
 
                       // 3. ¿Le toca elegir a este capitán? (Por ahora lo dejamos en true para probar)
                       // const esMiTurno = salaSeleccionada.turnoId === user?.id;
-                      const esMiTurno = salaSeleccionada.turnoId === user?.id;
+                      const esMiTurno = true;
 
                       return (
                         <div
@@ -787,8 +689,8 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
                               !isCapitan && (
                                 <button
                                   onClick={() =>
-                                    handlePickPlayer(idDelJugador as number)
-                                  } // <-- Mira el "as number"
+                                    alert(`Reclutando a ${jugador.username}...`)
+                                  } // handlePickPlayer(idDelJugador)
                                   className="text-[10px] bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded transition-all font-black uppercase shadow-[0_0_10px_rgba(34,197,94,0.3)]"
                                 >
                                   Reclutar

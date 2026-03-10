@@ -5,7 +5,7 @@ import type { Game } from '../Features/types';
 
 const GamesData: Game[] = [
   {
-    id: 'dota2',
+    id: 'DOTA',
     title: 'DOTA 2',
     tagline: 'APUESTAS Y SALAS DE',
     description:

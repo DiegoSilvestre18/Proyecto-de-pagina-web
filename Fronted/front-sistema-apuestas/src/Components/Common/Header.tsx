@@ -11,6 +11,8 @@ import {
   ChevronDown,
   LogOut,
   Settings,
+  CircleUser,
+  CircleDollarSign,
 } from 'lucide-react';
 import { type UserDto } from '../../Context/AuthContext';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -117,11 +119,7 @@ const Header: React.FC<HeaderProps> = ({
           onClick={() => setShowDropdown(!showDropdown)}
           ref={dropdownRef}
         >
-          <img
-            src={'link'}
-            alt="Avatar"
-            className="w-10 h-10 rounded-lg object-cover border border-white/10 group-hover:border-orange-500/50 transition-colors"
-          />
+          <CircleUser className="w-10 h-10 rounded-lg object-cover border border-white/10 group-hover:border-orange-500/50 transition-colors" />
           <div className="hidden lg:block text-left">
             <p className="text-sm font-bold leading-tight">{user?.username}</p>
             <p className="text-[10px] text-gray-400 font-semibold tracking-widest">
@@ -137,17 +135,21 @@ const Header: React.FC<HeaderProps> = ({
           {showDropdown && (
             <div className="absolute right-0 top-full mt-4 w-48 bg-[#1a1b2e] border border-white/10 rounded-lg shadow-xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
               <div className="px-4 py-2 border-b border-white/5 mb-2 lg:hidden">
-                <p className="text-sm font-bold text-white">
-                  {'user?.username'}
-                </p>
-                <p className="text-xs text-gray-400">MMR: {'user?.mmr'}</p>
+                <p className="text-sm font-bold text-white">{user?.username}</p>
               </div>
               <NavLink
-                to="/main/settings"
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:bg-white/5 hover:text-white transition-colors text-left"
+                to="/main/settings/cuenta"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-left"
               >
                 <Settings size={16} />
                 Configuracion
+              </NavLink>
+              <NavLink
+                to="/main/retiro"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-green-400 transition-colors text-left"
+              >
+                <CircleDollarSign size={16} />
+                Retirar
               </NavLink>
               <button
                 onClick={handleLogout}

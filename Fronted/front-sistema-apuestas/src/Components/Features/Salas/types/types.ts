@@ -9,7 +9,7 @@ export interface Sala {
   maxJugadores: number; // El límite (ej. 10 para un 5v5, 2 para un 1v1)
 
   // Opcionales que te servirán más adelante cuando el backend mande todo:
-  juego?: string; // 'VALORANT' o 'DOTA2'
+  juego?: string; // 'VALORANT' o 'DOTA'
   estado?: string; // 'ESPERANDO', 'EN JUEGO', 'FINALIZADA'
   premio?: number;
   capitan1Id?: number; // ID del jugador que es capitán del equipo 1

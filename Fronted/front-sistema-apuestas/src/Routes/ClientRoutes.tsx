@@ -17,6 +17,7 @@ import {
   filtrosModos,
 } from '../Components/Features/Main/Data/mockData';
 import SettingsLayout from '../Components/layout/SettingsLayout';
+import SolicitudRetiro from '../Components/Features/SolicitudDinero/pages/SolicitudRetiro';
 
 export const ClienteRoutes = () => {
   return (
@@ -41,6 +42,7 @@ export const ClienteRoutes = () => {
           element={<Salas salas={mockSalas} filtrosModos={filtrosModos} />}
         />
         <Route path="/main/recarga" element={<SolicitudRecarga />} />
+        <Route path="/main/retiro" element={<SolicitudRetiro />} />
         <Route
           element={
             <ProtectedRoute>
