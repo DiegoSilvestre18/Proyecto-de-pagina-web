@@ -38,6 +38,14 @@ namespace SistemaApuestas.Api.Controllers
             return Ok(resultado);
         }
 
+        [HttpGet("mi-saldo")]
+        public async Task<IActionResult> ObtenerMiSaldo()
+        {
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var saldo = await _financialService.ObtenerMiSaldoAsync(usuarioId);
+            return Ok(saldo);
+        }
+
         // ====================================================================
         // ACCIONES DEL ADMIN
         // ====================================================================
@@ -100,6 +108,15 @@ namespace SistemaApuestas.Api.Controllers
         {
             var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var resultado = await _financialService.ProcesarRetiroAsync(adminId, request);
+            return Ok(resultado);
+        }
+
+        [HttpPost("admin/bonos/otorgar")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> OtorgarBono([FromBody] OtorgarBonoDto request)
+        {
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var resultado = await _financialService.OtorgarBonoAsync(adminId, request);
             return Ok(resultado);
         }
     }

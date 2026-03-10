@@ -1,5 +1,5 @@
 import { apiFetch } from '../../../../Global/Api';
-import { type procesarSolicitudType } from '../Types/Types';
+import { type procesarSolicitudType, type formBonoType } from '../Types/Types';
 
 export const getSolicitudesPendientes = async () => {
   return await apiFetch('/api/Finanzas/admin/solicitudes-pendientes', {
@@ -65,5 +65,15 @@ export const procesarSala = async (
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ salaId, aprobar, costo }), // <-- Enviamos el costo
+  });
+};
+
+export const otorgarBono = async (formData: formBonoType) => {
+  return await apiFetch('/api/Finanzas/admin/bonos/otorgar', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
   });
 };

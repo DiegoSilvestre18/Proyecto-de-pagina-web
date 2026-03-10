@@ -18,3 +18,9 @@ export interface procesarSolicitudType {
   nroOperacion: string;
   cuentaDestino: string;
 }
+
+export interface formBonoType {
+  username: string;
+  montoBono: number;
+  motivo: string;
+}

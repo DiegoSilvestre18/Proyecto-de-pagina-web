@@ -223,12 +223,6 @@ namespace SistemaApuestas.Application.Services
             };
         }
 
-
-       
-
-        
-
-
         public async Task<string> FinalizarSalaAsync(FinalizarSalaDto request)
         {
             var sala = await _repository.ObtenerSalaConParticipantesAsync(request.SalaId);

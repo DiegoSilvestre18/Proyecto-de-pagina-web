@@ -91,6 +91,19 @@ namespace SistemaApuestas.Application.Services.Financial
             };
         }
 
+        public async Task<SaldoUsuarioDto> ObtenerMiSaldoAsync(int usuarioId)
+        {
+            var usuario = await _usuarioRepo.ObtenerPorIdAsync(usuarioId);
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado.");
+
+            return new SaldoUsuarioDto
+            {
+                SaldoReal = usuario.SaldoReal,
+                SaldoBono = usuario.SaldoBono
+            };
+        }
+
         // =========================================
         // ACCIONES DEL ADMIN
         // =========================================
@@ -272,6 +285,40 @@ namespace SistemaApuestas.Application.Services.Financial
                 SolicitudId = retiro.RetiroId,
                 Estado = retiro.Estado,
                 Mensaje = request.Aprobar ? "Retiro aprobado." : "Retiro rechazado."
+            };
+        }
+
+        public async Task<SolicitudResponseDto> OtorgarBonoAsync(int adminId, OtorgarBonoDto request)
+        {
+            if (request.MontoBono <= 0)
+                throw new Exception("El monto de bono debe ser mayor a 0.");
+
+            if (string.IsNullOrWhiteSpace(request.Username))
+                throw new Exception("Debes enviar un username válido.");
+
+            var usuario = await _usuarioRepo.ObtenerPorUsernameAsync(request.Username.Trim());
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado.");
+
+            usuario.SaldoBono += request.MontoBono;
+            await _usuarioRepo.ActualizarAsync(usuario);
+
+            var movimiento = new MovimientoDto
+            {
+                UsuarioId = usuario.UsuarioId,
+                Tipo = "INGRESO",
+                MontoReal = 0,
+                MontoBono = request.MontoBono,
+                Concepto = $"Bono otorgado por admin {adminId}. Motivo: {request.Motivo}",
+                Fecha = DateTime.UtcNow
+            };
+            await _auditRepo.RegistrarMovimientoAsync(movimiento);
+
+            return new SolicitudResponseDto
+            {
+                SolicitudId = 0,
+                Estado = "APROBADA",
+                Mensaje = $"Se otorgó bono de S/ {request.MontoBono} al usuario {usuario.Username}."
             };
         }
     }
