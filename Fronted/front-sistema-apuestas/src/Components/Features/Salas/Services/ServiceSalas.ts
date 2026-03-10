@@ -48,6 +48,7 @@ export const solicitarSala = async (data: CrearSalaRequest) => {
 export interface UnirseSalaRequest {
   salaId: number;
   gameAccountId?: number;
+  equipo: string;
 }
 
 export const unirseASala = async (data: UnirseSalaRequest) => {
@@ -65,4 +66,29 @@ export const unirseASala = async (data: UnirseSalaRequest) => {
 
 export const getMisCuentasJuego = async () => {
   return await apiFetch('/api/GameAccount/mis-cuentas');
+};
+
+export const cambiarEquipoSala = async (
+  salaId: number,
+  nuevoEquipo: string,
+) => {
+  return await apiFetch(`/api/Sala/${salaId}/cambiar-equipo`, {
+    method: 'PUT', // Usamos PUT porque así lo definió tu amigo en el controlador
+    body: JSON.stringify({ nuevoEquipo }), // Mandamos el DTO
+  });
+};
+
+export const lanzarMonedaSala = async (salaId: number) => {
+  return await apiFetch(`/api/Sala/${salaId}/lanzar-moneda`, {
+    method: 'POST',
+  });
+};
+
+export const reclutarJugadorDraft = async (
+  salaId: number,
+  jugadorId: number,
+) => {
+  return await apiFetch(`/api/Sala/${salaId}/reclutar/${jugadorId}`, {
+    method: 'POST',
+  });
 };

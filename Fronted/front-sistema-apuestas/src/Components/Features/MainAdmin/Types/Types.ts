@@ -10,6 +10,7 @@ export interface solicitudType {
   username: string;
   telefono: string;
   email: string;
+  estado?: string;
 }
 
 export interface procesarSolicitudType {

@@ -106,5 +106,32 @@ namespace SistemaApuestas.Application.Services
 
             return (new JwtSecurityTokenHandler().WriteToken(token), expirationDate);
         }
+
+        public async Task<UsuarioDto> ObtenerPerfilAsync(int userId)
+        {
+            // Asumo que tu repositorio tiene una función para buscar por ID.
+            // Si se llama diferente (ej: GetByIdAsync), solo cambia el nombre aquí abajo:
+            var user = await _usuarioRepository.ObtenerPorIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new Exception("Usuario no encontrado.");
+            }
+
+            // Devolvemos la "foto" fresca de sus datos, incluyendo su nuevo saldo
+            return new UsuarioDto
+            {
+                Id = user.UsuarioId,
+                Username = user.Username,
+                Nombre = user.Nombre,
+                ApellidoPaterno = user.ApellidoPaterno,
+                ApellidoMaterno = user.ApellidoMaterno,
+                Telefono = user.Telefono,
+                Email = user.Email,
+                Rol = user.Rol,
+                SaldoReal = user.SaldoReal,
+                SaldoBono = user.SaldoBono
+            };
+        }
     }
 }

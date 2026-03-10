@@ -10,5 +10,10 @@ namespace SistemaApuestas.Application.DTOs.Salas
         public bool Aprobar { get; set; }
 
         public decimal Costo { get; set; }
+
+        public string? Equipo { get; set; }
+
+        public string? NombreLobby { get; set; } // <-- Debe estar aquí para recibir el texto
+        public string? PasswordLobby { get; set; } // <-- Debe estar aquí
     }
 }

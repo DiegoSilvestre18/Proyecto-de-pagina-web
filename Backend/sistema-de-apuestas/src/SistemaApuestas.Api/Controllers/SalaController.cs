@@ -66,7 +66,14 @@ namespace SistemaApuestas.Api.Controllers
             try
             {
                 var adminId = ObtenerUsuarioId();
-                var mensaje = await _salaService.ProcesarSalaAsync(request.SalaId, request.Aprobar, request.Costo, adminId);
+                var mensaje = await _salaService.ProcesarSalaAsync(
+                    request.SalaId,
+                    request.Aprobar,
+                    request.Costo, 
+                    adminId, 
+                    request.NombreLobby,
+                    request.PasswordLobby
+                    );
                 return Ok(new { mensaje });
             }
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
@@ -119,6 +126,61 @@ namespace SistemaApuestas.Api.Controllers
                 return Ok(new { mensaje });
             }
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
+        [HttpPut("{salaId}/cambiar-equipo")]
+        [Authorize]
+        public async Task<IActionResult> CambiarEquipo(int salaId, [FromBody] CambiarEquipoDto request)
+        {
+            try
+            {
+                // Extraemos quién es el usuario directamente del Token JWT
+                var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (usuarioIdClaim == null) return Unauthorized("Token inválido.");
+
+                int usuarioId = int.Parse(usuarioIdClaim);
+
+                // Llamamos al servicio
+                var mensaje = await _salaService.CambiarEquipoAsync(usuarioId, salaId, request.NuevoEquipo);
+
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/lanzar-moneda")]
+        [Authorize]
+        public async Task<IActionResult> LanzarMoneda(int id)
+        {
+            try
+            {
+                var usuarioId = ObtenerUsuarioId(); // Identificamos qué capitán apretó el botón
+                var mensaje = await _salaService.LanzarMonedaAsync(id, usuarioId);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost("{salaId}/reclutar/{jugadorId}")]
+        [Authorize]
+        public async Task<IActionResult> ReclutarJugador(int salaId, int jugadorId)
+        {
+            try
+            {
+                var capitanId = ObtenerUsuarioId(); // El que aprieta el botón es el capitán
+                var mensaje = await _salaService.ReclutarJugadorAsync(salaId, capitanId, jugadorId);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 }

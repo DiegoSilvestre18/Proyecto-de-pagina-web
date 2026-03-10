@@ -6,12 +6,16 @@
         public decimal CostoEntrada { get; set; }
         public decimal PremioARepartir { get; set; }
         public decimal GananciaPlataforma { get; set; }
+
+        public string Formato { get; set; } = "1v1";
     }
 
     public class InscripcionSalaDto
     {
         public int SalaId { get; set; }
         public int GameAccountId { get; set; }
+        public string Equipo { get; set; }
+
     }
 
     public class FinalizarSalaDto

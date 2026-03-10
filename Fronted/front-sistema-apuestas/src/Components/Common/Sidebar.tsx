@@ -10,7 +10,11 @@ import {
   Wallet,
   Settings,
   X,
+  Shield, // 👇 1. Agregamos el ícono del escudo
 } from 'lucide-react';
+
+// 👇 2. Importa tu useAuth (asegúrate de que la ruta sea correcta hacia tu AuthContext)
+import { useAuth } from '../../Context/AuthContext';
 
 interface SidebarProps {
   isMobileMenuOpen: boolean;
@@ -28,6 +32,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   isMobileMenuOpen,
   onCloseMobileMenu,
 }) => {
+  // 👇 3. Extraemos el usuario para saber su rol
+  const { user } = useAuth();
+
   return (
     <aside
       className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#0f1021] border-r border-white/5 flex flex-col transition-transform duration-300 ${
@@ -106,6 +113,25 @@ const Sidebar: React.FC<SidebarProps> = ({
         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold">
           <Users size={18} /> Clubes y Clanes
         </button>
+
+        {/* 👇 4. SECCIÓN EXCLUSIVA PARA EL ADMIN 👇 */}
+        {user?.rol === 'SUPERADMIN' && (
+          <>
+            <div className="pt-6 pb-2">
+              <p className="text-[10px] font-bold text-orange-500 tracking-widest uppercase px-3">
+                Administración
+              </p>
+            </div>
+            <NavLink
+              to="/main-admin" /* <--- Ajusta esta ruta si tu panel de admin tiene otra URL */
+              className={navLinkClass}
+              onClick={onCloseMobileMenu}
+            >
+              <Shield size={18} /> Panel de Control
+            </NavLink>
+          </>
+        )}
+        {/* 👆 FIN SECCIÓN ADMIN 👆 */}
 
         <div className="pt-6 pb-2">
           <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">

@@ -21,5 +21,8 @@ namespace SistemaApuestas.Application.Interfaces
         Task GuardarCambiosAsync();
 
         Task<IEnumerable<Sala>> ObtenerTodasAsync();
+
+        Task<List<SistemaApuestas.Domain.Entities.Betting.ParticipanteSala>> ObtenerParticipantesConCuentasAsync(int salaId);
+
     }
 }

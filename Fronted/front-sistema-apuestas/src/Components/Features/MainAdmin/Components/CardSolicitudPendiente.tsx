@@ -5,7 +5,7 @@ import {
   ChevronRight,
   X,
   MessageCircle,
-  Gamepad2, // <-- Ícono nuevo para Salas
+  Gamepad2,
 } from 'lucide-react';
 import { type solicitudType } from '../Types/Types';
 
@@ -15,13 +15,14 @@ import {
   tomarSala,
   procesarSala,
 } from '../Services/MainServices';
-// Si creas un servicio específico para aprobar salas, impórtalo aquí.
 
+// 👇 1. Agregamos onAbrirModalGanador como propiedad opcional
 const CardSolicitudPendiente: React.FC<{
   solicitud: solicitudType;
   onTomar: () => void;
   name: string;
-}> = ({ solicitud, onTomar, name }) => {
+  onAbrirModalGanador?: () => void;
+}> = ({ solicitud, onTomar, name, onAbrirModalGanador }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -30,6 +31,8 @@ const CardSolicitudPendiente: React.FC<{
     cuentaDestino: solicitud.cuentaDestino ?? '',
 
     costoSala: solicitud.monto || 0,
+    nombreLobby: '',
+    passwordLobby: '',
   });
 
   const isSala = solicitud.tipo.toUpperCase() === 'SALA';
@@ -42,7 +45,7 @@ const CardSolicitudPendiente: React.FC<{
   const handleTomarSolicitud = async () => {
     try {
       if (isSala) {
-        await tomarSala(solicitud.solicitudId); // Usa el nuevo endpoint de C#
+        await tomarSala(solicitud.solicitudId);
       } else {
         await tomarSolicitud({
           solicitudId: solicitud.solicitudId,
@@ -63,6 +66,8 @@ const CardSolicitudPendiente: React.FC<{
           solicitud.solicitudId,
           formData.aprobar,
           formData.costoSala,
+          formData.nombreLobby,
+          formData.passwordLobby,
         );
         alert(
           formData.aprobar
@@ -90,13 +95,11 @@ const CardSolicitudPendiente: React.FC<{
     }
   };
 
-  // === LÓGICA VISUAL DINÁMICA ===
   let MethodIcon = DollarSign;
   if (isSala) MethodIcon = Gamepad2;
   else if (solicitud.metodo.toLowerCase() === 'transferencia')
     MethodIcon = CreditCard;
 
-  // Colores: Si es sala (Morado), si es pendiente normal (Naranja), si es activa normal (Verde)
   let iconBgColor =
     name === 'pendientes'
       ? 'bg-orange-600/10 text-orange-500'
@@ -127,6 +130,12 @@ const CardSolicitudPendiente: React.FC<{
                 <span className="text-[10px] text-gray-500 font-bold uppercase">
                   {solicitud.fechaEmision || 'HOY'}
                 </span>
+                {/* 👇 Indicador visual si está en curso 👇 */}
+                {isSala && solicitud.estado === 'EN_CURSO' && (
+                  <span className="text-[10px] text-yellow-500 font-bold uppercase animate-pulse border border-yellow-500/30 px-2 py-0.5 rounded bg-yellow-500/10">
+                    EN CURSO
+                  </span>
+                )}
               </div>
               <p className="text-sm font-semibold text-white">
                 {isSala ? 'Creador:' : 'Usuario:'}{' '}
@@ -161,6 +170,14 @@ const CardSolicitudPendiente: React.FC<{
                   TOMAR
                 </button>
               </div>
+            ) : // 👇 2. Lógica para mostrar el botón de GANADOR o GESTIONAR 👇
+            isSala && solicitud.estado === 'EN_CURSO' ? (
+              <button
+                onClick={onAbrirModalGanador}
+                className="flex items-center gap-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 text-xs font-bold px-4 py-1.5 rounded transition-colors border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]"
+              >
+                🏆 FINALIZAR
+              </button>
             ) : (
               <button
                 onClick={handleOpenModal}
@@ -173,7 +190,7 @@ const CardSolicitudPendiente: React.FC<{
         </div>
       </div>
 
-      {/* MODAL DE GESTIÓN (MULTIPASO) */}
+      {/* MODAL DE GESTIÓN (MULTIPASO) - (El resto sigue exactamente igual) */}
       {showDetails && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#141526] border border-white/10 rounded-2xl max-w-sm w-full p-8 shadow-2xl relative">
@@ -288,75 +305,112 @@ const CardSolicitudPendiente: React.FC<{
                     >
                       Rechazar
                     </button>
+                  </div>
 
-                    {/* Input para modificar la cuota (SOLO SALAS) */}
-                    {isSala && formData.aprobar && (
-                      <div className="space-y-4 mb-8">
-                        <div>
-                          <label className="text-[10px] font-bold text-orange-500 tracking-widest uppercase block mb-2">
-                            Modificar Apuesta Inicial (S/)
-                          </label>
-                          <input
-                            type="number"
-                            min="5"
-                            value={formData.costoSala}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                costoSala: Number(e.target.value),
-                              })
-                            }
-                            className="w-full bg-[#1a1b2e] border border-orange-500/50 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
-                          />
-                          <p className="text-[10px] text-gray-500 mt-1">
-                            La sala se publicará a nombre del capitán:{' '}
-                            <span className="text-white font-bold">
-                              {solicitud.username}
-                            </span>
-                          </p>
-                        </div>
+                  {/* Input para modificar la cuota (SOLO SALAS) */}
+                  {isSala && formData.aprobar && (
+                    <div className="space-y-4 mb-8 mt-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-orange-500 tracking-widest uppercase block mb-2">
+                          Modificar Apuesta Inicial (S/)
+                        </label>
+                        <input
+                          type="number"
+                          min="5"
+                          value={formData.costoSala}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              costoSala: Number(e.target.value),
+                            })
+                          }
+                          className="w-full bg-[#1a1b2e] border border-orange-500/50 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                        />
                       </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* Inputs de Operación (SE OCULTAN SI ES UNA SALA) */}
-                {!isSala && (
-                  <div className="space-y-4 mb-8">
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
-                        Nro. de Operación
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.nroOperacion}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            nroOperacion: e.target.value,
-                          })
-                        }
-                        className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
-                      />
+                      <div>
+                        <label className="text-[10px] font-bold text-purple-400 tracking-widest uppercase block mb-2">
+                          Nombre del Lobby en Dota 2
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nombreLobby}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nombreLobby: e.target.value,
+                            })
+                          }
+                          placeholder="Ej. WachiCup_55"
+                          className="w-full bg-[#1a1b2e] border border-purple-500/50 rounded-lg p-3 text-white text-sm focus:border-purple-500 outline-none transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-purple-400 tracking-widest uppercase block mb-2">
+                          Contraseña del Lobby
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.passwordLobby}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              passwordLobby: e.target.value,
+                            })
+                          }
+                          placeholder="Ej. dota123"
+                          className="w-full bg-[#1a1b2e] border border-purple-500/50 rounded-lg p-3 text-white text-sm focus:border-purple-500 outline-none transition-colors"
+                        />
+                      </div>
+
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        La sala se publicará a nombre del capitán:{' '}
+                        <span className="text-white font-bold">
+                          {solicitud.username}
+                        </span>
+                      </p>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
-                        Cuenta Destino
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.cuentaDestino}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cuentaDestino: e.target.value,
-                          })
-                        }
-                        className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
-                      />
+                  )}
+
+                  {/* Inputs de Operación (SE OCULTAN SI ES UNA SALA) */}
+                  {!isSala && (
+                    <div className="space-y-4 mb-8 mt-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
+                          Nro. de Operación
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nroOperacion}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nroOperacion: e.target.value,
+                            })
+                          }
+                          className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 tracking-widest uppercase block mb-2">
+                          Cuenta Destino
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.cuentaDestino}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              cuentaDestino: e.target.value,
+                            })
+                          }
+                          className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Botones Finales */}
                 <div className="flex gap-2 mt-6">

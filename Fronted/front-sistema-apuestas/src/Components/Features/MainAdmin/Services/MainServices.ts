@@ -52,15 +52,23 @@ export const tomarSala = async (salaId: number) => {
     headers: { 'Content-Type': 'application/json' },
   });
 };
-
 export const procesarSala = async (
   salaId: number,
   aprobar: boolean,
   costo: number,
+  nombreLobby?: string,
+  passwordLobby?: string,
 ) => {
   return await apiFetch('/api/Sala/admin/procesar', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ salaId, aprobar, costo }), // <-- Enviamos el costo
+    // 👇 ¡Aquí es donde ocurre la magia! Agregamos los dos campos al body
+    body: JSON.stringify({
+      salaId,
+      aprobar,
+      costo,
+      nombreLobby,
+      passwordLobby,
+    }),
   });
 };

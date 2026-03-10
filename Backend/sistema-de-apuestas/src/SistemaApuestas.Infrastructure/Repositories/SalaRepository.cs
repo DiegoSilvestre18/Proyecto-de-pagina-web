@@ -17,8 +17,12 @@ namespace SistemaApuestas.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Sala?> ObtenerSalaPorIdAsync(int salaId) =>
-            await _context.Salas.FindAsync(salaId);
+        public async Task<Sala> ObtenerSalaPorIdAsync(int salaId)
+        {
+            return await _context.Salas
+                .Include(s => s.Participantes) // 👈 ¡ESTO ES VITAL PARA QUE PUEDA CONTARLOS!
+                .FirstOrDefaultAsync(s => s.SalaId == salaId);
+        }
 
         public async Task<IEnumerable<Sala>> ObtenerTodasAsync()
         {
@@ -45,6 +49,16 @@ namespace SistemaApuestas.Infrastructure.Repositories
             return await _context.GameAccounts.FirstOrDefaultAsync(ga => ga.GameAccountId == gameAccountId && ga.UsuarioId == usuarioId);
         }
 
+        public async Task<List<ParticipanteSala>> ObtenerParticipantesConCuentasAsync(int salaId)
+        {
+            return await _context.ParticipanteSalas // o el nombre de tu DbSet, ej: _context.ParticipanteSalas
+                .Include(p => p.GameAccount)        // Traemos la cuenta de juego unida al participante
+                .Where(p => p.SalaId == salaId)
+                .ToListAsync();
+        }
+
+
+
         public async Task<bool> ExisteInscripcionAsync(int salaId, int usuarioId) =>
             await _context.ParticipanteSalas.AnyAsync(p => p.SalaId == salaId && p.UsuarioId == usuarioId);
 
@@ -58,5 +72,7 @@ namespace SistemaApuestas.Infrastructure.Repositories
         public async Task AgregarMovimientoAsync(Movimiento movimiento) => _context.Movimientos.Add(movimiento);
 
         public async Task GuardarCambiosAsync() => await _context.SaveChangesAsync();
+
+        
     }
 }

@@ -33,6 +33,28 @@ namespace SistemaApuestas.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
+            //Confi pa el cap 1
+            modelBuilder.Entity<Domain.Entities.Betting.Sala>()
+                .HasOne(s => s.Capitan1)
+                .WithMany() // Un usuario puede ser capitán 1 en muchas salas (o en ninguna)
+                .HasForeignKey(s => s.Capitan1Id)
+                .OnDelete(DeleteBehavior.Restrict); // Restrict evita el error de "múltiples rutas de borrado en cascada"
+
+            // Configuración para el Capitán 2
+            modelBuilder.Entity<Domain.Entities.Betting.Sala>()
+                .HasOne(s => s.Capitan2)
+                .WithMany()
+                .HasForeignKey(s => s.Capitan2Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // (Opcional) Si también te da error con Creador, puedes agregar esto:
+             modelBuilder.Entity<Domain.Entities.Betting.Sala>()
+                  .HasOne(s => s.Creador)
+                  .WithMany() 
+                  .HasForeignKey(s => s.CreadorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+
             var utcConverter = new ValueConverter<DateTime, DateTime>(
                 toDb => toDb.Kind == DateTimeKind.Utc ? toDb : toDb.ToUniversalTime(),
                 fromDb => DateTime.SpecifyKind(fromDb, DateTimeKind.Utc)

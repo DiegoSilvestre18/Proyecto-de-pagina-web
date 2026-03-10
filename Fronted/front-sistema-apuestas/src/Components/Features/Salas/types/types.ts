@@ -11,12 +11,23 @@ export interface Sala {
   // Opcionales que te servirán más adelante cuando el backend mande todo:
   juego?: string; // 'VALORANT' o 'DOTA2'
   estado?: string; // 'ESPERANDO', 'EN JUEGO', 'FINALIZADA'
-  premio?: number; // PREMIO_A_REPARTIR
+  premio?: number;
+  capitan1Id?: number; // ID del jugador que es capitán del equipo 1
+  capitan2Id?: number; // ID del jugador que es capitán del equipo 2
+  turnoId?: number; // ID del capitán al que le toca elegir
+  ganadorSorteoId?: number; // ID del capitán que ganó el lanzamiento de moneda
+
+  nombreLobby?: string;
+  passwordLobby?: string; // PREMIO_A_REPARTIR
 
   participantes?: {
     username: string;
     steamName: string;
     equipo: string;
+    nombreLobby?: string;
+    passwordLobby?: string;
+    id?: number;
+    usuarioId?: number; // ID del participante en la tabla PARTICIPANTE_SALA
   }[];
 }
 

@@ -10,5 +10,7 @@ namespace SistemaApuestas.Application.Interfaces.Auth
     {
         Task<string> RegisterAsync(RegisterDto request);
         Task<AuthResponseDto> LoginAsync(LoginDto request);
+
+        Task<UsuarioDto> ObtenerPerfilAsync(int userId);
     }
 }
