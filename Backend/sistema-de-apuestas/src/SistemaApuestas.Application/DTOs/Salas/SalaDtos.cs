@@ -2,12 +2,16 @@
 {
     public class CrearSalaDto
     {
-        public string Juego { get; set; } = string.Empty;
+        public string Juego { get; set; }
+        public string Formato { get; set; } // "5v5 Captains Mode"
+
+        // 👇 LOS NUEVOS CAMPOS CLAVE 👇
+        public string TipoSala { get; set; } // "BASICA", "PREMIUM", "PERSONALIZADA"
+        public string TipoPremio { get; set; } // "REAL" o "BONO" (Para la personalizada)
+
+        // Estos solo se usarán si es PERSONALIZADA
         public decimal CostoEntrada { get; set; }
         public decimal PremioARepartir { get; set; }
-        public decimal GananciaPlataforma { get; set; }
-
-        public string Formato { get; set; } = "1v1";
     }
 
     public class InscripcionSalaDto
@@ -39,4 +43,5 @@
         public string Confianza { get; set; } = string.Empty;
         public string Motivo { get; set; } = string.Empty;
     }
+
 }
