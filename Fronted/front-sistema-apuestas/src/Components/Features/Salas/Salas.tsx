@@ -32,7 +32,7 @@ interface SalasProps {
   filtrosModos: string[];
 }
 
-const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
+const Salas: React.FC<SalasProps> = ({ salas: salasMock }) => {
   const { user, gameAccounts, hasGameAccount, updateBalance, actualizarSaldo } =
     useAuth();
   const [activeTab, setActiveTab] = useState('NAVEGAR');
@@ -394,47 +394,33 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-2 mb-8">
-        {filtrosModos.map((modo, index) => (
-          <button
-            key={index}
-            className="px-4 py-1.5 bg-[#141526] hover:bg-white/10 border border-white/5 rounded-full text-xs font-semibold text-gray-300 hover:text-white transition-colors"
-          >
-            {modo}
-          </button>
-        ))}
-        <div className="w-px h-6 bg-white/10 mx-2"></div>
+      <div className="flex gap-2 bg-[#0b0c1b] p-1 rounded-full border border-white/5 overflow-x-auto">
+        <button
+          onClick={() => setFiltroEstado('TODAS')}
+          className={`px-4 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filtroEstado === 'TODAS' ? 'bg-white/20 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          Todas
+        </button>
+        <button
+          onClick={() => setFiltroEstado('ESPERANDO')}
+          className={`px-4 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filtroEstado === 'ESPERANDO' ? 'bg-green-500/20 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
+        >
+          🟢 En Espera
+        </button>
 
-        <div className="flex gap-2 bg-[#0b0c1b] p-1 rounded-full border border-white/5">
-          <button
-            onClick={() => setFiltroEstado('TODAS')}
-            className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${filtroEstado === 'TODAS' ? 'bg-white/20 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
-          >
-            Todas
-          </button>
-          <button
-            onClick={() => setFiltroEstado('ESPERANDO')}
-            className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${filtroEstado === 'ESPERANDO' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-          >
-            🟢 En Espera
-          </button>
-          {user?.rol === 'SUPERADMIN' && (
-            <>
-              <button
-                onClick={() => setFiltroEstado('EN_CURSO')}
-                className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${filtroEstado === 'EN_CURSO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-              >
-                ⚔️ En Curso
-              </button>
-              <button
-                onClick={() => setFiltroEstado('FINALIZADA')}
-                className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${filtroEstado === 'FINALIZADA' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-              >
-                🏁 Finalizadas
-              </button>
-            </>
-          )}
-        </div>
+        {/* Estos ya no tienen el if de SUPERADMIN, todos pueden verlos */}
+        <button
+          onClick={() => setFiltroEstado('EN_CURSO')}
+          className={`px-4 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filtroEstado === 'EN_CURSO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
+        >
+          ⚔️ En Curso
+        </button>
+        <button
+          onClick={() => setFiltroEstado('FINALIZADA')}
+          className={`px-4 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filtroEstado === 'FINALIZADA' ? 'bg-red-500/20 text-red-500 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
+        >
+          🏁 Finalizadas
+        </button>
       </div>
 
       {/* Lista de Salas */}
@@ -460,24 +446,40 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
               className="group flex items-center justify-between p-4 bg-[#141526] border border-white/5 hover:border-orange-500/30 rounded-lg transition-all cursor-pointer hover:bg-[#1a1b30]"
             >
               <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-3 mb-1">
                   <p className="text-[10px] text-gray-500 font-bold uppercase flex items-center gap-1.5">
                     <span
-                      className={`w-1.5 h-1.5 rounded-full animate-pulse ${sala.estado === 'ESPERANDO' ? 'bg-green-500' : sala.estado === 'PENDIENTE_APROBACION' ? 'bg-orange-500' : 'bg-gray-500'}`}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        sala.estado === 'ESPERANDO'
+                          ? 'bg-green-500 animate-pulse'
+                          : sala.estado === 'EN_CURSO'
+                            ? 'bg-blue-500 animate-pulse'
+                            : sala.estado === 'FINALIZADA'
+                              ? 'bg-red-500'
+                              : 'bg-gray-500'
+                      }`}
                     ></span>
                     {sala.fecha}
                   </p>
-                  {activeTab === 'MIS SALAS' && (
-                    <span
-                      className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${sala.estado === 'ESPERANDO' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : sala.estado === 'PENDIENTE_APROBACION' || sala.estado === 'EN_REVISION' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
-                    >
-                      {sala.estado === 'ESPERANDO'
-                        ? 'Aprobada'
-                        : sala.estado === 'RECHAZADA'
-                          ? 'Rechazada'
+                  <span
+                    className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider transition-all ${
+                      sala.estado === 'ESPERANDO'
+                        ? 'bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
+                        : sala.estado === 'EN_CURSO'
+                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                          : sala.estado === 'FINALIZADA'
+                            ? 'bg-red-500/10 text-red-500 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
+                            : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                    }`}
+                  >
+                    {sala.estado === 'ESPERANDO'
+                      ? 'Esperando'
+                      : sala.estado === 'EN_CURSO'
+                        ? 'En Curso'
+                        : sala.estado === 'FINALIZADA'
+                          ? 'Finalizada'
                           : 'En Revisión'}
-                    </span>
-                  )}
+                  </span>
                 </div>
                 <h4 className="font-bold text-sm text-white truncate">
                   {sala.nombre}
@@ -768,6 +770,37 @@ const Salas: React.FC<SalasProps> = ({ salas: salasMock, filtrosModos }) => {
               >
                 <X size={20} />
               </button>
+              <div className="absolute top-4 right-14 z-50 pointer-events-none pr-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg transition-all ${
+                    salaSeleccionada.estado === 'ESPERANDO'
+                      ? 'bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
+                      : salaSeleccionada.estado === 'EN_CURSO'
+                        ? 'bg-blue-900/40 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                        : salaSeleccionada.estado === 'FINALIZADA'
+                          ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                          : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
+                  }`}
+                >
+                  {salaSeleccionada.estado === 'ESPERANDO' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  )}
+                  {salaSeleccionada.estado === 'EN_CURSO' && (
+                    <Swords size={12} className="text-blue-400" />
+                  )}
+                  {salaSeleccionada.estado === 'FINALIZADA' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                  )}
+
+                  {salaSeleccionada.estado === 'ESPERANDO'
+                    ? 'ESPERANDO'
+                    : salaSeleccionada.estado === 'EN_CURSO'
+                      ? 'EN CURSO'
+                      : salaSeleccionada.estado === 'FINALIZADA'
+                        ? 'FINALIZADA'
+                        : salaSeleccionada.estado}
+                </span>
+              </div>
 
               {salaSeleccionada.estado === 'ESPERANDO' &&
                 user?.rol === 'SUPERADMIN' &&

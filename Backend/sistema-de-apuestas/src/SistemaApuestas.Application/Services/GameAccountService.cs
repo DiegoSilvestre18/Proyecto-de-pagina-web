@@ -27,7 +27,11 @@ namespace SistemaApuestas.Application.Services
             // 1. Validar la regla de negocio
             if (await _repository.UsuarioYaTieneCuentaAsync(usuarioId, juegoMayusculas))
             {
-                throw new Exception("Esta cuenta de juego ya está registrada en el sistema.");
+                throw new Exception("Ya tienes una cuenta de este juego registrada en tu perfil.");
+            }
+            if (await _repository.ExisteCuentaVinculadaAsync(request.Identificador, juegoMayusculas))
+            {
+                throw new Exception("¡Esta cuenta de juego ya está vinculada a otro usuario! Si te pertenece, contacta a soporte.");
             }
 
             string rangoObtenido = "UNRANKED";

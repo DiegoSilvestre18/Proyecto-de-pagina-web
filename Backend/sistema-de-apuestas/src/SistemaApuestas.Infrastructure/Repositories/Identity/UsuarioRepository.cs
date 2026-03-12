@@ -92,5 +92,11 @@ namespace SistemaApuestas.Infrastructure.Repositories.Identity
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<bool> EstaBaneadoAsync(int usuarioId)
+        {
+            // Aquí sí podemos usar _context porque estamos en la Infraestructura
+            return await _context.Baneos.AnyAsync(b => b.UsuarioId == usuarioId);
+        }
     }
 }

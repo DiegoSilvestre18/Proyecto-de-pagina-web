@@ -24,5 +24,7 @@ namespace SistemaApuestas.Application.Repositories.Identity
         // Lógica de Negocio (Operaciones atómicas para apuestas)
         Task ActualizarSaldosAsync(int usuarioId, decimal variacionSaldoReal, decimal variacionSaldoBono);
         Task IncrementarPartidasJugadasAsync(int usuarioId);
+
+        Task<bool> EstaBaneadoAsync(int usuarioId);
     }
 }

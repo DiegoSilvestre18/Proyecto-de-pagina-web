@@ -12,5 +12,7 @@
         Task ActualizarAsync(Domain.Entities.Gaming.GameAccount gameAccount);
 
         Task<IEnumerable<Domain.Entities.Gaming.GameAccount>> ObtenerCuentasPorUsuarioAsync(int usuarioId);
+
+        Task<bool> ExisteCuentaVinculadaAsync(string idExterno, string juego);
     }
 }

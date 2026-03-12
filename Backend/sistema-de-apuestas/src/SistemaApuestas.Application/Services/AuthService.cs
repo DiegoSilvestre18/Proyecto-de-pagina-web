@@ -1,4 +1,5 @@
 ﻿// ¡Mira! Ya no hay using a Infrastructure ni a Entity Framework
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.DTOs.Auth.LogIn;
@@ -58,6 +59,13 @@ namespace SistemaApuestas.Application.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PassHash))
             {
                 throw new Exception("Usuario o contraseña incorrectos.");
+
+
+            }
+            var estaBaneado = await _usuarioRepository.EstaBaneadoAsync(user.UsuarioId);
+            if (estaBaneado)
+            {
+                throw new Exception("ACCESO DENEGADO: Tu cuenta ha sido suspendida permanentemente por la administración.");
             }
 
             var jwtInfo = GenerarJwt(user);
