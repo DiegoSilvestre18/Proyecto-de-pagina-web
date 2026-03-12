@@ -4,6 +4,7 @@ using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Salas;
 using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
+using SistemaApuestas.Domain.Entities.Identity;
 
 namespace SistemaApuestas.Application.Services
 {
@@ -41,6 +42,12 @@ namespace SistemaApuestas.Application.Services
 
         public async Task<UnirseSalaResponseDto> UnirseASalaAsync(int jugadorId, InscripcionSalaDto request)
         {
+            var estaBaneado = await _usuarioRepository.EstaBaneadoAsync(jugadorId);
+            if (estaBaneado)
+            {
+                throw new Exception("ACCESO DENEGADO: No puedes unirte a salas porque tu cuenta está baneada.");
+            }
+
             var jugador = await _repository.ObtenerUsuarioPorIdAsync(jugadorId);
             if (jugador == null) throw new Exception("Jugador no encontrado.");
 
