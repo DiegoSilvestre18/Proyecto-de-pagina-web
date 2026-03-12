@@ -29,7 +29,7 @@ const Login: React.FC = () => {
   if (user) {
     switch (user.rol.toLowerCase()) {
       case 'superadmin':
-        navigate('/main-admin');
+        navigate('/main');
         break;
       case 'user':
         navigate('/main');
