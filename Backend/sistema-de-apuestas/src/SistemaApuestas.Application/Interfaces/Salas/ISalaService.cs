@@ -20,9 +20,5 @@ namespace SistemaApuestas.Application.Interfaces.Salas
         Task<string> LanzarMonedaAsync(int salaId, int usuarioId);
 
         Task<string> ReclutarJugadorAsync(int salaId, int capitanId, int jugadorReclutadoId);
-
-        Task<string> FinalizarAutoChessAsync(FinalizarAutoChessDto dto);
-
-        Task<string> EmpezarPartidaAsync(int salaId);
     }
 }

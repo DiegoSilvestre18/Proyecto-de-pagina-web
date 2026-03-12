@@ -116,7 +116,17 @@ namespace SistemaApuestas.Api.Controllers
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
         }
 
-        
+        [HttpPost("finalizar")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> FinalizarSala([FromBody] FinalizarSalaDto request)
+        {
+            try
+            {
+                var mensaje = await _salaService.FinalizarSalaAsync(request);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
 
         [HttpPut("{salaId}/cambiar-equipo")]
         [Authorize]
@@ -166,55 +176,6 @@ namespace SistemaApuestas.Api.Controllers
                 var capitanId = ObtenerUsuarioId(); // El que aprieta el botón es el capitán
                 var mensaje = await _salaService.ReclutarJugadorAsync(salaId, capitanId, jugadorId);
                 return Ok(new { mensaje });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
-        }
-
-        // 🔥 Bloqueado solo para el Administrador
-        [Authorize(Roles = "SUPERADMIN")]
-        [HttpPost("finalizar")]
-        public async Task<IActionResult> FinalizarSala([FromBody] FinalizarSalaDto dto)
-        {
-            try
-            {
-                // Le pasamos el DTO completo a tu servicio
-                var resultado = await _salaService.FinalizarSalaAsync(dto);
-                return Ok(new { mensaje = resultado });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
-        }
-
-        // 🔥 Bloqueado solo para el Administrador
-        [Authorize(Roles = "SUPERADMIN")]
-        [HttpPost("finalizar-autochess")]
-        public async Task<IActionResult> FinalizarAutoChess([FromBody] FinalizarAutoChessDto dto)
-        {
-            try
-            {
-                // Llamamos a nuestro nuevo servicio con los 3 ganadores
-                var resultado = await _salaService.FinalizarAutoChessAsync(dto);
-                return Ok(new { mensaje = resultado });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "SUPERADMIN")]
-        [HttpPost("{salaId}/empezar")]
-        public async Task<IActionResult> EmpezarPartida(int salaId)
-        {
-            try
-            {
-                var resultado = await _salaService.EmpezarPartidaAsync(salaId);
-                return Ok(new { mensaje = resultado });
             }
             catch (Exception ex)
             {
