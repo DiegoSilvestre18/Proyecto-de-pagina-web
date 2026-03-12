@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Search } from 'lucide-react'; // 👈 Agregamos el ícono Search
 import { type solicitudType } from '../Types/Types';
 import {
   getMisSolicitudes,
@@ -8,8 +8,6 @@ import {
 import { getSalas } from '../../Salas/Services/ServiceSalas';
 import CardSolicitudPendiente from '../Components/CardSolicitudPendiente';
 import { type Sala } from '../../Salas/types/types';
-
-// 👇 1. Importamos useAuth para tener el token para la petición
 import { useAuth } from '../../../../Context/AuthContext';
 
 interface ListType {
@@ -27,7 +25,9 @@ export const ListSolicitudes: React.FC<ListType> = ({
   const [loading, setLoading] = useState(true);
   const [solicitudes, setSolicitudes] = useState<solicitudType[]>([]);
 
-  // 👇 2. Estados para controlar el Modal de Ganador
+  // 👇 1. NUEVO ESTADO PARA LA BARRA DE BÚSQUEDA
+  const [busqueda, setBusqueda] = useState('');
+
   const { token } = useAuth();
   const [salaAFinalizar, setSalaAFinalizar] = useState<number | null>(null);
   const [procesandoGanador, setProcesandoGanador] = useState(false);
@@ -63,7 +63,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
           usuarioId: 0,
           telefono: '',
           email: '',
-          // 👇 Guardamos el estado original para saber si mostrar el botón de Finalizar luego
           estado: sala.estado,
         }));
 
@@ -84,7 +83,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
       const salasResp = await getSalas();
       const salasArr = Array.isArray(salasResp) ? salasResp : [];
       const salasActivas: solicitudType[] = salasArr
-        // 👇 3. AHORA TAMBIÉN FILTRAMOS LAS SALAS 'EN_CURSO'
         .filter(
           (sala: Sala) =>
             sala.estado === 'EN_REVISION' || sala.estado === 'EN_CURSO',
@@ -101,7 +99,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
           usuarioId: 0,
           telefono: '',
           email: '',
-          estado: sala.estado, // Pasamos el estado a la tarjeta
+          estado: sala.estado,
         }));
 
       setSolicitudes([...finanzasArr, ...salasActivas]);
@@ -112,15 +110,12 @@ export const ListSolicitudes: React.FC<ListType> = ({
     }
   };
 
-  // 👇 4. Función para enviar al ganador al backend
   const handleFinalizarPartida = async (
     salaId: number,
     equipoGanador: string,
   ) => {
     try {
       setProcesandoGanador(true);
-
-      // Asegúrate de poner el PUERTO correcto de tu C#
       const response = await fetch(
         'https://localhost:5127/api/Sala/finalizar',
         {
@@ -131,7 +126,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
           },
           body: JSON.stringify({
             salaId: salaId,
-            equipoGanador: equipoGanador, // 'EQUIPO1' o 'EQUIPO2'
+            equipoGanador: equipoGanador,
           }),
         },
       );
@@ -139,7 +134,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
       if (response.ok) {
         alert('🏆 ¡Partida finalizada y premios repartidos a los ganadores!');
         setSalaAFinalizar(null);
-        onRefresh(); // Recargamos la lista automáticamente
+        onRefresh();
       } else {
         const error = await response.json();
         alert('Error: ' + error.mensaje);
@@ -152,12 +147,25 @@ export const ListSolicitudes: React.FC<ListType> = ({
     }
   };
 
+  // 👇 2. MOTOR DE BÚSQUEDA INSTANTÁNEO 👇
+  const solicitudesFiltradas = solicitudes.filter((sol) => {
+    if (busqueda.trim() === '') return true; // Si no hay búsqueda, muestra todo
+    const termino = busqueda.toLowerCase();
+
+    return (
+      (sol.username && sol.username.toLowerCase().includes(termino)) ||
+      (sol.tipo && sol.tipo.toLowerCase().includes(termino)) ||
+      (sol.solicitudId && sol.solicitudId.toString().includes(termino)) ||
+      (sol.metodo && sol.metodo.toLowerCase().includes(termino))
+    );
+  });
+
   const isPendiente = name === 'pendientes';
 
   return (
     <div className="bg-[#141526] border border-white/5 rounded-2xl p-6 h-full flex flex-col relative">
       {/* Cabecera de la lista */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPendiente ? 'bg-orange-600/20 text-orange-500' : 'bg-green-600/20 text-green-500'}`}
@@ -178,8 +186,22 @@ export const ListSolicitudes: React.FC<ListType> = ({
         <span
           className={`text-xs font-bold px-3 py-1 rounded-full ${isPendiente ? 'bg-orange-500/10 text-orange-500' : 'bg-green-500/10 text-green-500'}`}
         >
-          {solicitudes.length}
+          {solicitudesFiltradas.length}
         </span>
+      </div>
+
+      {/* 👇 3. BARRA DE BÚSQUEDA UI 👇 */}
+      <div className="relative mb-6 pb-4 border-b border-white/5">
+        <div className="absolute inset-y-0 left-0 pl-3 top-0 bottom-4 flex items-center pointer-events-none">
+          <Search size={16} className="text-gray-500" />
+        </div>
+        <input
+          type="text"
+          placeholder="Buscar por usuario, ID o tipo..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full bg-[#0b0c1b] border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white text-sm focus:border-orange-500 outline-none transition-colors"
+        />
       </div>
 
       {/* Contenido de la lista */}
@@ -191,19 +213,23 @@ export const ListSolicitudes: React.FC<ListType> = ({
               Cargando...
             </p>
           </div>
-        ) : solicitudes.length === 0 ? (
+        ) : solicitudesFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-gray-600">
             <AlertCircle size={32} className="mb-2 opacity-50" />
-            <p className="text-sm">No hay solicitudes en esta bandeja.</p>
+            <p className="text-sm">
+              {busqueda
+                ? 'No se encontraron resultados.'
+                : 'No hay solicitudes en esta bandeja.'}
+            </p>
           </div>
         ) : (
-          solicitudes.map((solicitud) => (
+          // 👇 4. RENDERIZAMOS LA LISTA FILTRADA EN LUGAR DE LA ORIGINAL 👇
+          solicitudesFiltradas.map((solicitud) => (
             <CardSolicitudPendiente
               name={name}
               solicitud={solicitud}
               key={`${solicitud.tipo}-${solicitud.solicitudId}`}
               onTomar={onRefresh}
-              // 👇 5. Pasamos la función para abrir el modal a la tarjeta
               onAbrirModalGanador={() =>
                 setSalaAFinalizar(solicitud.solicitudId)
               }
@@ -212,7 +238,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
         )}
       </div>
 
-      {/* 👇 6. AQUÍ ESTÁ EL MODAL FLOTANTE 👇 */}
+      {/* AQUÍ ESTÁ EL MODAL FLOTANTE */}
       {salaAFinalizar !== null && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] flex items-center justify-center p-4">
           <div className="bg-[#1a1b2e] p-8 rounded-2xl border border-white/10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -225,7 +251,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
             </p>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Botón Radiant */}
               <button
                 onClick={() =>
                   handleFinalizarPartida(salaAFinalizar, 'EQUIPO1')
@@ -241,7 +266,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
                 </span>
               </button>
 
-              {/* Botón Dire */}
               <button
                 onClick={() =>
                   handleFinalizarPartida(salaAFinalizar, 'EQUIPO2')
@@ -268,7 +292,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
           </div>
         </div>
       )}
-      {/* 👆 FIN DEL MODAL 👆 */}
     </div>
   );
 };

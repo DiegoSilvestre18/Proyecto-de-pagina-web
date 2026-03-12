@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Crosshair, Gavel, Play, LogOut, DollarSign } from 'lucide-react';
+import { Gavel, Play, LogOut, DollarSign, Search } from 'lucide-react';
 import { useAuth } from '../../../../Context/AuthContext';
 import ListSolicitudes from '../Pages/ListSolicitudes';
-import FormBono from '../Components/FormBono';
+import ModalGestorUsuarios from '../Components/ModalGestorUsuarios';
 
 const MainAdmin: React.FC = () => {
   const { user, logout } = useAuth();
@@ -67,52 +67,25 @@ const MainAdmin: React.FC = () => {
 
         {/* ACCIONES RÁPIDAS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Botón Crear Sala */}
-          <button className="group relative overflow-hidden rounded-2xl p-6 flex items-center justify-between border border-white/5 bg-[#141526] hover:border-orange-500/50 transition-all hover:shadow-lg hover:shadow-orange-600/10 hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10 text-left">
-              <h3 className="text-xl font-black text-white mb-1 tracking-tight flex items-center gap-2">
-                CREAR SALA <Play size={16} className="text-orange-500" />
-              </h3>
-              <p className="text-gray-400 text-xs">
-                Configura una partida oficial o torneo.
-              </p>
-            </div>
-            <div className="relative z-10 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-              <Crosshair size={24} className="text-white" />
-            </div>
-          </button>
-          {/* Botón para dar saldo bono */}
+          {/* Botón Crear Sala (MANTENLO IGUAL) */}
+          <button className="...">...</button>
+
+          {/* 👇 NUEVO BOTÓN: GESTOR DE USUARIOS 👇 */}
           <button
             onClick={() => setShowModal(true)}
-            className="group relative overflow-hidden rounded-2xl p-6 flex items-center justify-between border border-white/5 bg-[#141526] hover:border-green-500/50 transition-all hover:shadow-lg hover:shadow-red-600/10 hover:-translate-y-1"
+            className="group relative overflow-hidden rounded-2xl p-6 flex items-center justify-between border border-white/5 bg-[#141526] hover:border-red-500/50 transition-all hover:shadow-lg hover:shadow-red-600/10 hover:-translate-y-1"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10 text-left">
-              <h3 className="text-xl font-black text-white mb-1 tracking-tight flex items-center gap-2">
-                GENERAR SALDO BONO
-              </h3>
-              <p className="text-gray-400 text-xs">
-                Dar créditos de saldo a usuarios.
-              </p>
-            </div>
-            <div className="relative z-10 w-12 h-12 bg-gradient-to-br from-red-600 to-red-900 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-              <DollarSign size={24} className="text-white" />
-            </div>
-          </button>
-          {/* Botón Aplicar Baneo */}
-          <button className="group relative overflow-hidden rounded-2xl p-6 flex items-center justify-between border border-white/5 bg-[#141526] hover:border-red-500/50 transition-all hover:shadow-lg hover:shadow-red-600/10 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="relative z-10 text-left">
               <h3 className="text-xl font-black text-white mb-1 tracking-tight flex items-center gap-2">
-                APLICAR BANEO
+                GESTIÓN DE JUGADORES
               </h3>
               <p className="text-gray-400 text-xs">
-                Suspende usuarios o modifica MMR (Smurfs).
+                Buscar usuarios, editar MMR manual, banear o dar bonos.
               </p>
             </div>
             <div className="relative z-10 w-12 h-12 bg-gradient-to-br from-red-600 to-red-900 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-              <Gavel size={24} className="text-white" />
+              <Search size={24} className="text-white" />
             </div>
           </button>
         </div>
@@ -141,7 +114,15 @@ const MainAdmin: React.FC = () => {
             className="bg-[#141526] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
             onClick={(e) => e.stopPropagation()} // Evita que se cierre al hacer clic adentro
           >
-            <FormBono onClose={() => setShowModal(false)} />
+            {showModal && (
+              <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
+                onClick={() => setShowModal(false)}
+              >
+                {/* Llamamos al nuevo Súper Gestor de Usuarios */}
+                <ModalGestorUsuarios onClose={() => setShowModal(false)} />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -47,5 +47,12 @@ namespace SistemaApuestas.Infrastructure.Repositories
                 .Where(ga => ga.UsuarioId == usuarioId)
                 .ToListAsync();
         }
+
+        public async Task<bool> ExisteCuentaVinculadaAsync(string idExterno, string juego)
+        {
+            // Busca si existe CUALQUIER registro que tenga ese ID en ese juego específico
+            return await _context.GameAccounts // (O el nombre que tenga tu DbSet, ej: _context.CuentasJuego)
+                .AnyAsync(c => c.IdExterno == idExterno && c.Juego == juego);
+        }
     }
 }
