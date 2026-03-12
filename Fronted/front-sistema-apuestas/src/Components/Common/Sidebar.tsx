@@ -182,11 +182,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         {/* 👆 FIN SECCIÓN ADMIN 👆 */}
 
-        <div className="pt-6 pb-2">
-          <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">
-            Cuenta
-          </p>
-        </div>
         {!isCollapsed && (
           <div className="pt-6 pb-2">
             <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">

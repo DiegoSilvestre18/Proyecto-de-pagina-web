@@ -13,7 +13,6 @@ import SolicitudRecarga from '../Components/Features/SolicitudDinero/pages/Solic
 import { ProtectedRoute } from './ProtectedRoutes';
 import {
   mockClubs,
-  mockSalas,
   filtrosModos,
 } from '../Components/Features/Main/Data/mockData';
 import SettingsLayout from '../Components/layout/SettingsLayout';
@@ -39,7 +38,7 @@ export const ClienteRoutes = () => {
         <Route path="/main" element={<Dashboard clubs={mockClubs} />} />
         <Route
           path="/main/salas"
-          element={<Salas salas={mockSalas} filtrosModos={filtrosModos} />}
+          element={<Salas filtrosModos={filtrosModos} />}
         />
         <Route path="/main/recarga" element={<SolicitudRecarga />} />
         <Route path="/main/retiro" element={<SolicitudRetiro />} />

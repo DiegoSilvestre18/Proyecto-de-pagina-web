@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User, Mail, Lock, Phone, Headset } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRegister } from '../../../../Hooks/useRegister';
@@ -7,18 +7,27 @@ import FormInput from '../../../Common/FormInput';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { formUsuario, handleFormUsuario, handleSubmit } = useRegister('USER');
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { error, payload } = handleSubmit();
-    if (error || !payload) {
-      alert(error);
+    try {
+      setLoading(true);
+      const { error, payload } = handleSubmit();
+      if (error || !payload) {
+        alert(error);
+        setLoading(false);
+        return;
+      }
+      await postUser(payload);
+      setLoading(false);
+      navigate('/');
+    } catch (error) {
+      alert('Error al crear la cuenta. Por favor, inténtalo de nuevo.');
+      setLoading(false);
       return;
     }
-    console.log('payload a enviar', payload);
-    await postUser(payload);
-    navigate('/');
   };
 
   return (
@@ -140,13 +149,22 @@ const Register: React.FC = () => {
             .
           </span>
         </div>
-
-        <button
-          className="w-full py-3 bg-white text-black hover:bg-gray-200 font-bold rounded shadow-lg uppercase tracking-widest transition-all hover:scale-[1.01]"
-          type="submit"
-        >
-          Crear Cuenta
-        </button>
+        {!loading ? (
+          <button
+            className="w-full py-3 bg-white text-black hover:bg-gray-200 font-bold rounded shadow-lg uppercase tracking-widest transition-all hover:scale-[1.01]"
+            type="submit"
+          >
+            Crear Cuenta
+          </button>
+        ) : (
+          <button
+            className="w-full py-3 bg-white text-black hover:bg-gray-200 font-bold rounded shadow-lg uppercase tracking-widest transition-all hover:scale-[1.01]"
+            type="submit"
+            disabled={!loading}
+          >
+            Creando Cuenta ...
+          </button>
+        )}
       </form>
 
       <p className="text-center text-xs text-gray-500 mt-6">
