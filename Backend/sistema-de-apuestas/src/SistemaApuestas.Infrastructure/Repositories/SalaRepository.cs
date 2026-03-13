@@ -50,6 +50,16 @@ namespace SistemaApuestas.Infrastructure.Repositories
             return await _context.GameAccounts.FirstOrDefaultAsync(ga => ga.GameAccountId == gameAccountId && ga.UsuarioId == usuarioId);
         }
 
+        public async Task<Sala?> ObtenerSalaActivaPorCuentaJuegoAsync(int gameAccountId, int salaIdActual)
+        {
+            return await _context.ParticipanteSalas
+                .Where(p => p.GameAccountId == gameAccountId && p.SalaId != salaIdActual)
+                .Select(p => p.Sala)
+                .Where(s => s.Estado != "FINALIZADA" && s.Estado != "CANCELADA" && s.Estado != "RECHAZADA")
+                .OrderByDescending(s => s.FechaCreacion)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<List<ParticipanteSala>> ObtenerParticipantesConCuentasAsync(int salaId)
         {
             return await _context.ParticipanteSalas // o el nombre de tu DbSet, ej: _context.ParticipanteSalas

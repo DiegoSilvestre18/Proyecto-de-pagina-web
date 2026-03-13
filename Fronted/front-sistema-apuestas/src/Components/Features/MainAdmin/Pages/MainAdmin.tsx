@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Gavel, Play, LogOut, DollarSign, Search } from 'lucide-react';
 import { useAuth } from '../../../../Context/AuthContext';
 import ListSolicitudes from '../Pages/ListSolicitudes';
@@ -22,6 +22,10 @@ const MainAdmin: React.FC = () => {
     mmrMinimo: 0,
     mmrMaximo: 10000,
   });
+
+  useEffect(() => {
+    if (user && user.rol.toUpperCase() === 'USER') return;
+  }, [user]);
 
   const handleSubmitSalaAdmin = async (e: React.FormEvent) => {
     e.preventDefault();

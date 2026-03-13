@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
       id: 2,
       title: 'Recarga y paga la cuota de ingreso',
       description:
-        'Carga saldo para entrar a salas con apuestas y premios reales.',
+        'Carga saldo para entrar a salas con cuotas y premios reales.',
       done: (user?.saldoReal ?? 0) > 0,
       actionLabel: 'Recargar saldo',
       actionPath: '/main/recarga',
@@ -71,7 +71,7 @@ const Dashboard: React.FC = () => {
             TEMPORADA 1 ACTIVA
           </span>
           <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">
-            COMPITE. APUESTA. <br />
+            COMPITE. GANA JUGANDO. <br />
             <span className="text-orange-500">DEMUESTRA TU NIVEL.</span>
           </h2>
           <p className="text-gray-400 text-sm lg:text-base max-w-xl">
@@ -181,8 +181,8 @@ const Dashboard: React.FC = () => {
                     EMPAREJAMIENTO
                   </h3>
                   <p className="text-sm text-gray-400 text-center px-4 relative z-10">
-                    Busca salas activas o crea la tuya para apostar contra otros
-                    jugadores.
+                    Busca salas activas o crea la tuya para competir contra
+                    otros jugadores.
                   </p>
                 </div>
                 <div className="h-1.5 w-full bg-orange-500"></div>

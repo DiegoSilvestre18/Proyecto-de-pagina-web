@@ -84,7 +84,7 @@ const Login: React.FC = () => {
         </h2>
         <p className="text-gray-400 text-sm">
           Inicia sesión en tu cuenta global para gestionar tu billetera, unirte
-          a salas y apostar en cualquier juego.
+          a salas y competir en cualquier juego.
         </p>
       </div>
       {/* Mostrar mensaje de error si existe */}
@@ -125,9 +125,9 @@ const Login: React.FC = () => {
             />{' '}
             Recordarme
           </label>
-          <a href="#" className="text-xs text-orange-500 hover:text-orange-400">
+          {/* <a href="#" className="text-xs text-orange-500 hover:text-orange-400">
             ¿Olvidaste tu contraseña?
-          </a>
+          </a> */}
         </div>
 
         <button

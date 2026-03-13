@@ -7,9 +7,9 @@ const GamesData: Game[] = [
   {
     id: 'DOTA',
     title: 'DOTA 2',
-    tagline: 'APUESTAS Y SALAS DE',
+    tagline: 'SALAS Y RETOS DE',
     description:
-      'Encuentra rivales, únete a salas personalizadas y apuesta tus créditos. Demuestra tu MMR en duelos reales.',
+      'Encuentra rivales, únete a salas personalizadas y compite con tus créditos. Demuestra tu MMR en duelos reales.',
     bgImage:
       'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
     logo: 'DOTA 2',
@@ -18,9 +18,9 @@ const GamesData: Game[] = [
   {
     id: 'valorant',
     title: 'VALORANT',
-    tagline: 'COMPITE POR EL POZO EN',
+    tagline: 'COMPITE Y ESCALA EN',
     description:
-      'Crea tu sala, establece la apuesta y compite en duelos de puntería o partidas 5v5. El ganador se lleva todo.',
+      'Crea tu sala, define la cuota de ingreso y compite en duelos de puntería o partidas 5v5. El ganador se lleva el premio.',
     bgImage:
       'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop',
     logo: 'VALORANT',
@@ -57,7 +57,7 @@ const Layout: React.FC = () => {
                 </span>
               </h1>
               <p className="text-[10px] text-gray-400">
-                Plataforma de Apuestas
+                Plataforma competitiva
               </p>
             </div>
           </div>

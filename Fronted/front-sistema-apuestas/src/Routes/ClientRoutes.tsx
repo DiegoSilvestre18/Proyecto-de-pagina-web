@@ -55,7 +55,7 @@ export const ClienteRoutes = () => {
       <Route
         path="/main-admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['HOST', 'SUPERADMIN']}>
             <MainAdmin />
           </ProtectedRoute>
         }

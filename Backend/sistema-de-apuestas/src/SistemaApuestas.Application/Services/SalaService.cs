@@ -90,6 +90,12 @@ namespace SistemaApuestas.Application.Services
             if (await _repository.ExisteInscripcionAsync(request.SalaId, jugadorId))
                 throw new Exception("Ya estás inscrito en esta sala.");
 
+            var salaActivaExistente = await _repository.ObtenerSalaActivaPorCuentaJuegoAsync(gameAccount.GameAccountId, request.SalaId);
+            if (salaActivaExistente != null)
+            {
+                throw new Exception($"No puedes inscribirte en otra sala mientras tu cuenta de juego siga activa en la sala {salaActivaExistente.SalaId}.");
+            }
+
             // Verificamos si la sala ya está llena ANTES de procesar el pago
             // (Asegúrate de tener un método para contar participantes, ej: _repository.ContarParticipantesSalaAsync)
             // O si ya tienes la colección Participantes cargada en 'sala', puedes usar sala.Participantes.Count

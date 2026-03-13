@@ -2,10 +2,18 @@ import { type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 
-export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+  allowedRoles?: string[];
+}
+
+export const ProtectedRoute = ({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) => {
   const { user } = useAuth();
   const location = useLocation();
-  console.log(user);
+
   // Si no hay usuario, lo manda al login
   if (!user) {
     return (
@@ -20,9 +28,13 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  // if (role && user.rol !== role) {
-  //   return <Navigate to="/unauthorized" replace />;
-  // }
+  if (
+    allowedRoles &&
+    allowedRoles.length > 0 &&
+    !allowedRoles.includes(user.rol.toUpperCase())
+  ) {
+    return <Navigate to="/main" replace />;
+  }
 
   // Si pasa las validaciones, renderizamos el contenido protegido
   return <>{children}</>;

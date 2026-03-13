@@ -34,7 +34,7 @@ export const mockSalas: Sala[] = [
   {
     id: 3,
     fecha: 'HOY, 16:00 GMT-5',
-    nombre: 'Práctica Turbo Apuestas',
+    nombre: 'Práctica Turbo Competitiva',
     creador: 'xX_Slayer_Xx',
     formato: '5v5 Turbo',
     costo: 5.0,
