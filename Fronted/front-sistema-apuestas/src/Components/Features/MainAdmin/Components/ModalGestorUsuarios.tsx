@@ -45,7 +45,7 @@ const ModalGestorUsuarios: React.FC<ModalGestorUsuariosProps> = ({
   >('NONE');
   const [nuevoMmr, setNuevoMmr] = useState('');
   const [montoBono, setMontoBono] = useState('');
-  const [juegoSeleccionado, setJuegoSeleccionado] = useState('DOTA2');
+  const [juegoSeleccionado, setJuegoSeleccionado] = useState('DOTA');
 
   // Ya no necesitamos sacar el { token } aquí, porque apiFetch lo hace solo
 

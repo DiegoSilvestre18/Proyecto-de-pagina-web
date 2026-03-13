@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.DTOs.Auth.LogIn;
 using SistemaApuestas.Application.DTOs.Auth.Regiser;
 using SistemaApuestas.Application.Interfaces.Auth;
+using SistemaApuestas.Application.Interfaces.GameAccount;
+using SistemaApuestas.Application.Repositories.GameAccount;
 using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Domain.Entities.Identity;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,13 +17,18 @@ namespace SistemaApuestas.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IUsuarioRepository _usuarioRepository; // Usamos la interfaz
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IGameAccountRepository _gameAccountRepository; 
         private readonly IConfiguration _config;
 
         // Constructor que recibe la interfaz
-        public AuthService(IUsuarioRepository usuarioRepository, IConfiguration config)
+        public AuthService(
+            IUsuarioRepository usuarioRepository,
+            IGameAccountRepository gameAccountRepository, // 👈 AQUÍ
+            IConfiguration config)
         {
             _usuarioRepository = usuarioRepository;
+            _gameAccountRepository = gameAccountRepository; // 👈 3. LO GUARDAMOS
             _config = config;
         }
 
@@ -62,6 +69,7 @@ namespace SistemaApuestas.Application.Services
 
 
             }
+
             var estaBaneado = await _usuarioRepository.EstaBaneadoAsync(user.UsuarioId);
             if (estaBaneado)
             {
@@ -69,6 +77,8 @@ namespace SistemaApuestas.Application.Services
             }
 
             var jwtInfo = GenerarJwt(user);
+
+            var cuentaDota = await _gameAccountRepository.ObtenerPorUsuarioYJuegoAsync(user.UsuarioId, "DOTA");
 
             return new AuthResponseDto
             {
@@ -85,7 +95,9 @@ namespace SistemaApuestas.Application.Services
                     Email = user.Email,
                     Rol = user.Rol,
                     SaldoReal = user.SaldoReal,
-                    SaldoBono = user.SaldoBono
+                    SaldoBono = user.SaldoBono,
+
+                    MmrDota = cuentaDota != null ? cuentaDota.RangoActual : "Unranked"
                 }
             };
         }
@@ -117,8 +129,6 @@ namespace SistemaApuestas.Application.Services
 
         public async Task<UsuarioDto> ObtenerPerfilAsync(int userId)
         {
-            // Asumo que tu repositorio tiene una función para buscar por ID.
-            // Si se llama diferente (ej: GetByIdAsync), solo cambia el nombre aquí abajo:
             var user = await _usuarioRepository.ObtenerPorIdAsync(userId);
 
             if (user == null)
@@ -126,7 +136,10 @@ namespace SistemaApuestas.Application.Services
                 throw new Exception("Usuario no encontrado.");
             }
 
-            // Devolvemos la "foto" fresca de sus datos, incluyendo su nuevo saldo
+            // 1. Buscamos la cuenta usando el repositorio oficial
+            var cuentaDota = await _gameAccountRepository.ObtenerPorUsuarioYJuegoAsync(userId, "DOTA");
+
+            // 2. Retornamos todo en un ÚNICO bloque unificado
             return new UsuarioDto
             {
                 Id = user.UsuarioId,
@@ -138,7 +151,10 @@ namespace SistemaApuestas.Application.Services
                 Email = user.Email,
                 Rol = user.Rol,
                 SaldoReal = user.SaldoReal,
-                SaldoBono = user.SaldoBono
+                SaldoBono = user.SaldoBono,
+
+                // 👇 Y aquí agregamos el MMR fresco
+                MmrDota = cuentaDota != null ? cuentaDota.RangoActual : "Unranked"
             };
         }
     }

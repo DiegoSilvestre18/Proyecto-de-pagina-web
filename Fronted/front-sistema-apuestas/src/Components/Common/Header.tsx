@@ -123,7 +123,9 @@ const Header: React.FC<HeaderProps> = ({
           <div className="hidden lg:block text-left">
             <p className="text-sm font-bold leading-tight">{user?.username}</p>
             <p className="text-[10px] text-gray-400 font-semibold tracking-widest">
-              MMR <span className="text-white">{'mmr'}</span>
+              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
+                MMR {user?.mmrDota || 'UNRANKED'}
+              </span>
             </p>
           </div>
           <ChevronDown

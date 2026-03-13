@@ -17,5 +17,7 @@ namespace SistemaApuestas.Application.DTOs.Auth.LogIn
         public string Rol { get; set; } = string.Empty;
         public decimal SaldoReal { get; set; }
         public decimal SaldoBono { get; set; }
+
+        public string? MmrDota { get; set; }
     }
 }

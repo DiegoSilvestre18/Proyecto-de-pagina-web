@@ -106,9 +106,20 @@ namespace SistemaApuestas.Application.Services
 
                 nombreCuenta = perfil.GetProperty("personaname").GetString() ?? request.Identificador;
 
+                // 👇 AQUI APLICAMOS LA TRADUCCIÓN 👇
                 if (datosDota.RootElement.TryGetProperty("rank_tier", out var rankElement) && rankElement.ValueKind != JsonValueKind.Null)
                 {
-                    rangoObtenido = rankElement.GetInt32().ToString();
+                    int rankTier = rankElement.GetInt32();
+
+                    // Usamos el Helper que acabamos de crear
+                    var traduccion = DotaRankHelper.TraducirRankTier(rankTier);
+
+                    // Guardamos el rango de forma legible (ej: "Archon 1") o el MMR numérico
+                    // Depende de cómo quieras manejarlo en RangoActual. 
+                    // Si prefieres guardar "2310", usa: traduccion.MmrEstimado.ToString()
+                    // Si prefieres "Archon 1", usa: traduccion.NombreRango
+
+                    rangoObtenido = traduccion.MmrEstimado.ToString(); // Yo recomiendo guardar el número para hacer matemáticas después
                 }
             }
             else
@@ -192,9 +203,16 @@ namespace SistemaApuestas.Application.Services
                 var jsonString = await response.Content.ReadAsStringAsync();
                 var datosDota = JsonDocument.Parse(jsonString);
 
+                // 👇 AQUI APLICAMOS LA MISMA TRADUCCIÓN 👇
                 if (datosDota.RootElement.TryGetProperty("rank_tier", out var rankElement) && rankElement.ValueKind != JsonValueKind.Null)
                 {
-                    nuevoRango = rankElement.GetInt32().ToString();
+                    int rankTier = rankElement.GetInt32();
+
+                    // Usamos el Helper
+                    var traduccion = DotaRankHelper.TraducirRankTier(rankTier);
+
+                    // Guardamos el MMR numérico estimado
+                    nuevoRango = traduccion.MmrEstimado.ToString();
                 }
             }
 

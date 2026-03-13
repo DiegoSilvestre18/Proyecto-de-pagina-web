@@ -19,6 +19,7 @@ export interface UserDto {
   rol: string;
   saldoReal: number;
   saldoBono: number;
+  mmrDota?: string;
 }
 
 // 👇 1. NUEVO MOLDE: Le decimos a TS exactamente qué tiene el paquete 'auth'
