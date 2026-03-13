@@ -15,5 +15,6 @@ namespace SistemaApuestas.Application.DTOs.Salas
 
         public string? NombreLobby { get; set; } // <-- Debe estar aquí para recibir el texto
         public string? PasswordLobby { get; set; } // <-- Debe estar aquí
+
     }
 }

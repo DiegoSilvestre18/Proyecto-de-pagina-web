@@ -46,6 +46,8 @@ const Salas: React.FC = () => {
     tipoSala: 'BASICA',
     premioARepartir: 50,
     tipoPremio: 'REAL',
+    mmrMinimo: 0,
+    mmrMaximo: 10000,
   });
 
   const [isJoining, setIsJoining] = useState(false);
@@ -73,6 +75,8 @@ const Salas: React.FC = () => {
         tipoSala: formData.tipoSala,
         tipoPremio: formData.tipoPremio || 'REAL',
         premioARepartir: formData.premioARepartir,
+        mmrMinimo: formData.mmrMinimo,
+        mmrMaximo: formData.mmrMaximo,
       });
 
       alert(

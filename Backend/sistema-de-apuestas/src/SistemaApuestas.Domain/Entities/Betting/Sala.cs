@@ -58,5 +58,11 @@ namespace SistemaApuestas.Domain.Entities.Betting
 
         [ForeignKey("Capitan2Id")]
         public Identity.Usuario? Capitan2 { get; set; }
+
+        [Column("mmr_minimo")]
+        public int MmrMinimo { get; set; } = 0;
+
+        [Column("mmr_maximo")]
+        public int MmrMaximo { get; set; } = 10000;
     }
 }

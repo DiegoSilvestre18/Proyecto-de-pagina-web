@@ -3,11 +3,49 @@ import { Gavel, Play, LogOut, DollarSign, Search } from 'lucide-react';
 import { useAuth } from '../../../../Context/AuthContext';
 import ListSolicitudes from '../Pages/ListSolicitudes';
 import ModalGestorUsuarios from '../Components/ModalGestorUsuarios';
+import ModalCrearSala from '../../Salas/Components/ModalCrearSala';
+import { solicitarSala } from '../../Salas/Services/ServiceSalas';
 
 const MainAdmin: React.FC = () => {
   const { user, logout } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [showModalSala, setShowModalSala] = useState(false);
+  const [isSubmittingSala, setIsSubmittingSala] = useState(false);
+  const [formDataSala, setFormDataSala] = useState({
+    juego: 'DOTA2',
+    formato: '5v5 Captains Mode',
+    costo: 6,
+    tipoSala: 'BASICA',
+    premioARepartir: 50,
+    tipoPremio: 'REAL',
+    mmrMinimo: 0,
+    mmrMaximo: 10000,
+  });
+
+  const handleSubmitSalaAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingSala(true);
+    try {
+      await solicitarSala({
+        juego: formDataSala.juego,
+        formato: formDataSala.formato,
+        costoEntrada: formDataSala.costo,
+        tipoSala: formDataSala.tipoSala,
+        tipoPremio: formDataSala.tipoPremio || 'REAL',
+        premioARepartir: formDataSala.premioARepartir,
+        mmrMinimo: formDataSala.mmrMinimo,
+        mmrMaximo: formDataSala.mmrMaximo,
+      });
+      alert('¡Sala oficial creada y publicada con éxito!');
+      setShowModalSala(false);
+      // window.location.reload(); // Opcional: si quieres que la página se refresque
+    } catch (error) {
+      alert('Error al crear la sala.');
+    } finally {
+      setIsSubmittingSala(false);
+    }
+  };
 
   const handleRefreshAll = () => {
     setRefreshKey((prev) => prev + 1);
@@ -68,7 +106,37 @@ const MainAdmin: React.FC = () => {
         {/* ACCIONES RÁPIDAS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Botón Crear Sala (MANTENLO IGUAL) */}
-          <button className="...">...</button>
+          <div className="bg-[#141526] border border-white/5 rounded-2xl p-6 hover:border-orange-500/30 transition-all flex flex-col justify-center">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-white text-lg uppercase tracking-wider">
+                  CREAR SALA OFICIAL
+                </h3>
+                <p className="text-gray-400 text-sm mt-1">
+                  Abre una sala pública de inmediato.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowModalSala(true)}
+                className="w-12 h-12 bg-orange-600 hover:bg-orange-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-orange-600/20 transition-all"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
           {/* 👇 NUEVO BOTÓN: GESTOR DE USUARIOS 👇 */}
           <button
@@ -138,6 +206,16 @@ const MainAdmin: React.FC = () => {
       `,
         }}
       />
+      {showModalSala && (
+        <ModalCrearSala
+          userRol={user?.rol}
+          formData={formDataSala}
+          onFormChange={setFormDataSala}
+          onSubmit={handleSubmitSalaAdmin}
+          isSubmitting={isSubmittingSala}
+          onClose={() => setShowModalSala(false)}
+        />
+      )}
     </div>
   );
 };

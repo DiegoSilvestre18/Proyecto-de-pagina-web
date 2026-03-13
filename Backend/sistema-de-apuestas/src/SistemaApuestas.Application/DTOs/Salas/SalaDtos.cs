@@ -8,6 +8,12 @@
         public decimal GananciaPlataforma { get; set; }
 
         public string Formato { get; set; } = "1v1";
+
+        public string? TipoSala { get; set; }
+
+        public int MmrMinimo { get; set; }
+        public int MmrMaximo { get; set; }
+
     }
 
     public class InscripcionSalaDto

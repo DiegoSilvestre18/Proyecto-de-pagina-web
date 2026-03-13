@@ -16,6 +16,8 @@ export interface Sala {
   capitan2Id?: number; // ID del jugador que es capitán del equipo 2
   turnoId?: number; // ID del capitán al que le toca elegir
   ganadorSorteoId?: number; // ID del capitán que ganó el lanzamiento de moneda
+  mmrMinimo: number;
+  mmrMaximo: number;
 
   nombreLobby?: string;
   passwordLobby?: string; // PREMIO_A_REPARTIR

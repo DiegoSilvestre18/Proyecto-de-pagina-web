@@ -84,6 +84,12 @@ const SalasList: React.FC<SalasListProps> = ({
                 Organizado por{' '}
                 <span className="text-gray-300">{sala.creador}</span>
               </p>
+              {sala.mmrMinimo !== undefined && sala.mmrMaximo !== undefined && (
+                <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[10px] font-bold text-gray-400">
+                  <span className="text-orange-500">🎯 MMR:</span>
+                  {sala.mmrMinimo} - {sala.mmrMaximo}
+                </div>
+              )}
             </div>
 
             <div className="w-32 text-center hidden md:flex items-center justify-center">

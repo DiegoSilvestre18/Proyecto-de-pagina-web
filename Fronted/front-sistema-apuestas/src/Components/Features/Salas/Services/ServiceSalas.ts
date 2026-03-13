@@ -30,6 +30,8 @@ export interface CrearSalaRequest {
   tipoSala: string;
   tipoPremio: string;
   premioARepartir: number;
+  mmrMinimo: number;
+  mmrMaximo: number;
 }
 
 export const solicitarSala = async (data: CrearSalaRequest) => {

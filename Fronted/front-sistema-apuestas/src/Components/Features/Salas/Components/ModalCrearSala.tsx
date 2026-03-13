@@ -8,6 +8,8 @@ interface FormDataSala {
   tipoSala: string;
   premioARepartir: number;
   tipoPremio: string;
+  mmrMinimo: number;
+  mmrMaximo: number;
 }
 
 interface ModalCrearSalaProps {
@@ -95,6 +97,40 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               )}
             </select>
           </div>
+
+          <div className="flex gap-4">
+            <div>
+              <label className="text-xs text-gray-400">MMR Mínimo</label>
+              <input
+                type="number"
+                value={formData.mmrMinimo}
+                onChange={(e) =>
+                  onFormChange({
+                    // 👈 Usamos onFormChange en vez de setFormData
+                    ...formData,
+                    mmrMinimo: Number(e.target.value),
+                  })
+                }
+                className="w-full bg-[#1a1b2e] p-2 rounded text-white"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">MMR Máximo</label>
+              <input
+                type="number"
+                value={formData.mmrMaximo}
+                onChange={(e) =>
+                  onFormChange({
+                    // 👈 Usamos onFormChange en vez de setFormData
+                    ...formData,
+                    mmrMaximo: Number(e.target.value),
+                  })
+                }
+                className="w-full bg-[#1a1b2e] p-2 rounded text-white"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-bold text-gray-500 mb-2">
               TIPO DE SALA Y PREMIOS

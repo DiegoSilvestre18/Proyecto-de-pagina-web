@@ -2,6 +2,7 @@
 using SistemaApuestas.Application.DTOs.Salas;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Salas;
+using SistemaApuestas.Application.Repositories.GameAccount;
 using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
@@ -13,15 +14,21 @@ namespace SistemaApuestas.Application.Services
     {
         private readonly ISalaRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IGameAccountRepository _gameAccountRepository;
 
-        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser)
+        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser, IGameAccountRepository gameAccountRepository)
         {
             _repository = repository;
             _usuarioRepository = repositoryUser;
+            _gameAccountRepository = gameAccountRepository;
         }
 
         public async Task<int> CrearSalaAsync(int creadorId, CrearSalaDto request)
         {
+            // 1. Buscamos quién está creando la sala para saber su ROL
+            var creador = await _repository.ObtenerUsuarioPorIdAsync(creadorId);
+            bool esAdmin = creador != null && (creador.Rol == "SUPERADMIN" || creador.Rol == "ADMIN");
+
             var nuevaSala = new Sala
             {
                 CreadorId = creadorId,
@@ -29,16 +36,18 @@ namespace SistemaApuestas.Application.Services
                 CostoEntrada = request.CostoEntrada,
                 PremioARepartir = request.PremioARepartir,
                 GananciaPlataforma = request.GananciaPlataforma,
-                // 👇 CAMBIO 1: La sala nace pendiente de revisión
                 Formato = request.Formato,
-                Estado = "PENDIENTE_APROBACION",
-                TipoSala = "BASICA",
-                FechaCreacion = DateTime.UtcNow
+                TipoSala = request.TipoSala ?? "BASICA", // Asegurar que no sea nulo
+                FechaCreacion = DateTime.UtcNow,
+                MmrMinimo = request.MmrMinimo,
+                MmrMaximo = request.MmrMaximo,
+
+                // 👇 LA MAGIA: Si es admin, sale pública al instante. Si es usuario, va a revisión.
+                Estado = esAdmin ? "ESPERANDO" : "PENDIENTE_APROBACION"
             };
 
             await _repository.AgregarSalaAsync(nuevaSala);
             await _repository.GuardarCambiosAsync();
-
 
             return nuevaSala.SalaId;
         }
@@ -59,6 +68,21 @@ namespace SistemaApuestas.Application.Services
 
             var gameAccount = await _repository.ObtenerGameAccountAsync(request.GameAccountId, jugadorId);
             if (gameAccount == null) throw new Exception("La cuenta de juego no existe o no te pertenece.");
+
+            // 1. Buscamos el MMR del jugador
+            var cuentaJuego = await _gameAccountRepository.ObtenerPorUsuarioYJuegoAsync(jugadorId, sala.Juego);
+
+            // Si no tiene rango numérico válido, lo tratamos como 0 (Unranked)
+            int mmrJugador = 0;
+            if (int.TryParse(gameAccount.RangoActual, out int mmrParseado))
+            {
+                mmrJugador = mmrParseado;
+            }
+
+            if (mmrJugador < sala.MmrMinimo || mmrJugador > sala.MmrMaximo)
+            {
+                throw new Exception($"Nivel no permitido. Tu MMR ({mmrJugador}) está fuera del rango ({sala.MmrMinimo} a {sala.MmrMaximo}).");
+            }
 
             // Permitimos unirse si está ESPERANDO (o en otro estado previo al draft si tienes uno)
             if (sala.Estado != "ESPERANDO") throw new Exception("La sala ya no acepta participantes.");
@@ -151,8 +175,8 @@ namespace SistemaApuestas.Application.Services
 
                 // Una vez que tienes la lista, la ordenas de mayor a menor MMR
                 var participantesOrdenados = participantesConCuentas
-                                             .OrderByDescending(p => p.GameAccount.RangoActual) // Asegúrate de que Mmr exista
-                                             .ToList();
+                    .OrderByDescending(p => int.TryParse(p.GameAccount?.RangoActual, out int mmr) ? mmr : 0)
+                    .ToList();
 
                 // 2. Asignamos a los capitanes (los dos con más MMR)
                 if (participantesOrdenados.Count >= 2)
@@ -232,7 +256,9 @@ namespace SistemaApuestas.Application.Services
                 estado = s.Estado,
                 fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
                 jugadores = s.Participantes.Count,
-                maxJugadores = (s.TipoSala ?? "").Contains("5v5") ? 10 : 2,
+                maxJugadores = (s.Formato ?? "").Contains("5v5") ? 10 : ((s.Formato ?? "").Contains("Auto Chess") ? 8 : 2),
+                mmrMinimo = s.MmrMinimo,
+                mmrMaximo = s.MmrMaximo,
 
                 // 👇 1. MANDAMOS LOS DATOS DEL DRAFT AL FRONTEND 👇
                 capitan1Id = s.Capitan1Id,
