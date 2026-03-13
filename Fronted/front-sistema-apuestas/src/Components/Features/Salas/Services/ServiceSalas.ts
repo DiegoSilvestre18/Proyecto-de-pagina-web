@@ -30,7 +30,6 @@ export interface CrearSalaRequest {
   tipoSala: string;
   tipoPremio: string;
   premioARepartir: number;
-  // Nota: El backend de C# debería sacar el UsuarioId/Creador desde el Token JWT por seguridad.
 }
 
 export const solicitarSala = async (data: CrearSalaRequest) => {
@@ -96,37 +95,30 @@ export const reclutarJugadorDraft = async (
   });
 };
 
-export const finalizarSalaAdmin = async (salaId: number, ganadorId: number) => {
-  return await apiFetch('/api/Sala/finalizar', {
-    method: 'POST',
-    // 👇 Solo agregamos JSON.stringify() aquí 👇
-    body: JSON.stringify({
-      salaId: salaId,
-      ganadorId: ganadorId,
-    }),
-  });
-};
-
-// Envíamos los IDs de los 3 ganadores al backend
-export const finalizarAutoChessAdmin = async (
-  salaId: number,
-  primeroId: number,
-  segundoId: number,
-  terceroId: number,
-) => {
-  return await apiFetch('/api/Sala/finalizar-autochess', {
-    method: 'POST',
-    body: JSON.stringify({
-      salaId: salaId,
-      primerPuestoId: primeroId,
-      segundoPuestoId: segundoId,
-      tercerPuestoId: terceroId,
-    }),
-  });
-};
-
 export const empezarPartidaAdmin = async (salaId: number) => {
   return await apiFetch(`/api/Sala/${salaId}/empezar`, {
     method: 'POST',
+  });
+};
+
+export const finalizarSalaAdmin = async (
+  salaId: number,
+  equipoGanador: number,
+) => {
+  return await apiFetch(`/api/Sala/${salaId}/finalizar`, {
+    method: 'POST',
+    body: JSON.stringify({ equipoGanador }),
+  });
+};
+
+export const finalizarAutoChessAdmin = async (
+  salaId: number,
+  podio1: number,
+  podio2: number,
+  podio3: number,
+) => {
+  return await apiFetch(`/api/Sala/${salaId}/finalizar-autochess`, {
+    method: 'POST',
+    body: JSON.stringify({ podio1, podio2, podio3 }),
   });
 };

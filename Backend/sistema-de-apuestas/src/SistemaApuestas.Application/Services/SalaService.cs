@@ -14,70 +14,31 @@ namespace SistemaApuestas.Application.Services
         private readonly ISalaRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
 
-        public SalaService(ISalaRepository repository, IUsuarioRepository usuarioRepository)
+        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser)
         {
             _repository = repository;
-            _usuarioRepository = usuarioRepository;
+            _usuarioRepository = repositoryUser;
         }
 
         public async Task<int> CrearSalaAsync(int creadorId, CrearSalaDto request)
         {
-            decimal costoFinal = 0;
-            decimal premioTotal = 0;
-
-            // 🦈 LÓGICA DE NEGOCIO Y RENTABILIDAD
-            switch (request.TipoSala)
-            {
-                case "BASICA":
-                    costoFinal = 6m;
-                    premioTotal = 50m; // 5 ganadores x S/ 10
-                    break;
-                case "PREMIUM":
-                    costoFinal = 11m;
-                    premioTotal = 100m; // 5 ganadores x S/ 20
-                    break;
-
-                // ♟️ TABLA EXCEL DE AUTO CHESS (8 Jugadores)
-                case "AUTOCHESS_3":
-                    costoFinal = 3m;
-                    premioTotal = 20m; // (1º: 12, 2º: 5, 3º: 3) | Ganancia Pagina: 4
-                    break;
-                case "AUTOCHESS_5":
-                    costoFinal = 5m;
-                    premioTotal = 36m; // (1º: 20, 2º: 10, 3º: 6) | Ganancia Pagina: 4
-                    break;
-                case "AUTOCHESS_10":
-                    costoFinal = 10m;
-                    premioTotal = 72m; // (1º: 40, 2º: 18, 3º: 14) | Ganancia Pagina: 8
-                    break;
-                case "AUTOCHESS_15":
-                    costoFinal = 15m;
-                    premioTotal = 104m; // (1º: 60, 2º: 24, 3º: 20) | Ganancia Pagina: 16
-                    break;
-
-                case "PERSONALIZADA":
-                    costoFinal = request.CostoEntrada;
-                    premioTotal = request.PremioARepartir;
-                    break;
-            }
-
             var nuevaSala = new Sala
             {
                 CreadorId = creadorId,
                 Juego = request.Juego,
+                CostoEntrada = request.CostoEntrada,
+                PremioARepartir = request.PremioARepartir,
+                GananciaPlataforma = request.GananciaPlataforma,
+                // 👇 CAMBIO 1: La sala nace pendiente de revisión
                 Formato = request.Formato,
-                TipoSala = request.TipoSala,
-
-                // Valores blindados por el servidor
-                CostoEntrada = costoFinal,
-                PremioARepartir = premioTotal,
-
                 Estado = "PENDIENTE_APROBACION",
+                TipoSala = "BASICA",
                 FechaCreacion = DateTime.UtcNow
             };
 
             await _repository.AgregarSalaAsync(nuevaSala);
             await _repository.GuardarCambiosAsync();
+
 
             return nuevaSala.SalaId;
         }
@@ -110,13 +71,8 @@ namespace SistemaApuestas.Application.Services
             // O si ya tienes la colección Participantes cargada en 'sala', puedes usar sala.Participantes.Count
             int numParticipantesActuales = sala.Participantes?.Count ?? 0;
 
-            // Definimos los límites según el formato exacto
-            int limiteJugadores = 2; // Por defecto 1v1
-            if (sala.Formato != null)
-            {
-                if (sala.Formato.Contains("5v5")) limiteJugadores = 10;
-                else if (sala.Formato == "Auto Chess") limiteJugadores = 8;
-            }
+            // Si la sala es de 5v5, el límite es 10. (Si es 1v1, el límite es 2).
+            int limiteJugadores = sala.Formato.Contains("5v5") ? 10 : 2;
 
             if (numParticipantesActuales >= limiteJugadores)
             {
@@ -276,7 +232,7 @@ namespace SistemaApuestas.Application.Services
                 estado = s.Estado,
                 fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
                 jugadores = s.Participantes.Count,
-                maxJugadores = s.Formato == "Auto Chess" ? 8 : ((s.Formato ?? "").Contains("5v5") ? 10 : 2),    
+                maxJugadores = (s.TipoSala ?? "").Contains("5v5") ? 10 : 2,
 
                 // 👇 1. MANDAMOS LOS DATOS DEL DRAFT AL FRONTEND 👇
                 capitan1Id = s.Capitan1Id,
@@ -383,6 +339,43 @@ namespace SistemaApuestas.Application.Services
 
 
 
+        public async Task<string> FinalizarSalaAsync(FinalizarSalaDto request)
+        {
+            var sala = await _repository.ObtenerSalaConParticipantesAsync(request.SalaId);
+            if (sala == null) throw new Exception("Sala no encontrada.");
+
+            if (sala.Estado == "FINALIZADA" || sala.Estado == "CANCELADA")
+                throw new Exception("La sala ya no está activa.");
+
+            var participanteGanador = sala.Participantes.FirstOrDefault(p => p.UsuarioId == request.GanadorId);
+            if (participanteGanador == null)
+                throw new Exception("El jugador indicado como ganador no participó en esta sala.");
+
+            var ganador = await _repository.ObtenerUsuarioPorIdAsync(request.GanadorId);
+            if (ganador == null) throw new Exception("Usuario ganador no encontrado.");
+
+            ganador.SaldoReal += sala.PremioARepartir;
+
+            var movimientoPremio = new Movimiento
+            {
+                UsuarioId = ganador.UsuarioId,
+                Tipo = "INGRESO",
+                MontoReal = sala.PremioARepartir,
+                MontoBono = 0,
+                Concepto = $"Premio por ganar la Sala {sala.SalaId} de {sala.Juego}",
+                Fecha = DateTime.UtcNow
+            };
+
+            await _repository.AgregarMovimientoAsync(movimientoPremio);
+
+            sala.Estado = "FINALIZADA";
+            sala.ResultadoGanador = ganador.Username;
+
+            await _repository.GuardarCambiosAsync();
+
+            return $"¡Sala finalizada con éxito! Se han transferido S/ {sala.PremioARepartir} de Saldo Real a {ganador.Username}.";
+        }
+
         public async Task<string> CambiarEquipoAsync(int usuarioId, int salaId, string nuevoEquipo)
         {
             // 1. Validar que no manden cualquier texto raro
@@ -457,143 +450,6 @@ namespace SistemaApuestas.Application.Services
             await _repository.GuardarCambiosAsync();
 
             return !quedanLibres ? "¡Draft finalizado! La partida va a comenzar." : $"Jugador reclutado para el {equipoDelCapitan}.";
-        }
-
-        public async Task<string> FinalizarSalaAsync(FinalizarSalaDto dto)
-        {
-            // 1. Buscamos la sala usando el ID que viene en tu DTO
-            var sala = await _repository.ObtenerSalaPorIdAsync(dto.SalaId);
-            if (sala == null) throw new Exception("Sala no encontrada.");
-
-            if (sala.Estado != "EN_CURSO")
-                throw new Exception("La sala no está en curso, no se puede finalizar.");
-
-           
-            // 2. ⚠️ EL FILTRO CLAVE: Convertimos el número 1 o 2 al texto que usa tu BD
-            string equipoGanadorStr = dto.GanadorId == 1 ? "EQUIPO1" : "EQUIPO2";
-
-            var ganadores = sala.Participantes.Where(p => p.Equipo == equipoGanadorStr).ToList();
-
-            if (!ganadores.Any())
-                throw new Exception("No se encontraron jugadores en el equipo ganador.");
-
-            // 3. LA MATEMÁTICA DEL NEGOCIO 💰
-            decimal pozoTotal = sala.CostoEntrada * sala.Participantes.Count; // Ej: 11 * 10 = 110
-
-            // Aquí definimos la ganancia de la plataforma
-            decimal comisionPagina = 10m;
-
-            decimal pozoARepartir = pozoTotal - comisionPagina; // Ej: 110 - 10 = 100
-            decimal premioPorJugador = pozoARepartir / ganadores.Count; // Ej: 100 / 5 = 20
-
-            // 4. Repartimos el dinero a cada ganador
-            foreach (var participante in ganadores)
-            {
-                // Traemos al usuario de la base de datos para actualizarle la billetera
-                var usuario = await _usuarioRepository.ObtenerPorIdAsync(participante.UsuarioId);
-                if (usuario != null)
-                {
-                    usuario.SaldoReal += premioPorJugador; // ¡Se llevó sus 20 soles!
-                }
-            }
-
-            // 5. Cerramos la sala
-            sala.Estado = "FINALIZADA";
-
-            // Opcional: Si tienes un campo en la sala para saber quién ganó, lo guardas
-            // sala.EquipoGanador = dto.GanadorId; 
-
-            // 6. Guardamos los nuevos saldos y el estado de la sala en la Base de Datos
-            await _repository.GuardarCambiosAsync();
-
-            return $"¡Sala finalizada! Se repartieron S/ {premioPorJugador} a cada ganador. Ganancia de la página: S/ {comisionPagina}.";
-        }
-
-        public async Task<string> FinalizarAutoChessAsync(FinalizarAutoChessDto dto)
-        {
-            // 1. Validaciones básicas de la sala
-            var sala = await _repository.ObtenerSalaConParticipantesAsync(dto.SalaId);
-            if (sala == null) throw new Exception("Sala no encontrada.");
-
-            if (sala.Estado != "EN_CURSO")
-                throw new Exception("La sala no está en curso, no se puede finalizar.");
-
-            if (sala.Formato != "Auto Chess")
-                throw new Exception("Este método es exclusivo para salas de Auto Chess.");
-
-            // 2. Validar que los 3 ganadores sean diferentes (¡Para evitar trampas del Admin!)
-            if (dto.PrimerPuestoId == dto.SegundoPuestoId ||
-                dto.PrimerPuestoId == dto.TercerPuestoId ||
-                dto.SegundoPuestoId == dto.TercerPuestoId)
-            {
-                throw new Exception("Los 3 puestos deben ser jugadores diferentes.");
-            }
-
-            // 3. LA MATEMÁTICA DEL EXCEL 📊
-            decimal premio1 = 0;
-            decimal premio2 = 0;
-            decimal premio3 = 0;
-            decimal comision = 0;
-
-            switch (sala.TipoSala)
-            {
-                case "AUTOCHESS_3":
-                    premio1 = 12m; premio2 = 5m; premio3 = 3m; comision = 4m; break;
-                case "AUTOCHESS_5":
-                    premio1 = 20m; premio2 = 10m; premio3 = 6m; comision = 4m; break;
-                case "AUTOCHESS_10":
-                    premio1 = 40m; premio2 = 18m; premio3 = 14m; comision = 8m; break;
-                case "AUTOCHESS_15":
-                    premio1 = 60m; premio2 = 24m; premio3 = 20m; comision = 16m; break;
-                default:
-                    throw new Exception("Tipo de sala Auto Chess no reconocido para premiación.");
-            }
-
-            // 4. Buscar a los usuarios en la base de datos (Asegúrate de tener _usuarioRepository inyectado)
-            var ganador1 = await _usuarioRepository.ObtenerPorIdAsync(dto.PrimerPuestoId);
-            var ganador2 = await _usuarioRepository.ObtenerPorIdAsync(dto.SegundoPuestoId);
-            var ganador3 = await _usuarioRepository.ObtenerPorIdAsync(dto.TercerPuestoId);
-
-            if (ganador1 == null || ganador2 == null || ganador3 == null)
-                throw new Exception("Uno o más jugadores ganadores no fueron encontrados en el sistema.");
-
-            // 5. Pagar los premios (Sumar saldo real)
-            ganador1.SaldoReal += premio1;
-            ganador2.SaldoReal += premio2;
-            ganador3.SaldoReal += premio3;
-
-            // Opcional: Registrar los movimientos financieros (Si tienes la tabla Movimientos)
-            // await _repository.AgregarMovimientoAsync(new Movimiento { UsuarioId = dto.PrimerPuestoId, MontoReal = premio1, Tipo = "INGRESO", Concepto = "1er Puesto Auto Chess" ... });
-            // ... haz lo mismo para el 2do y 3ro si lo necesitas para el historial.
-
-            // 6. Cerrar la sala
-            sala.Estado = "FINALIZADA";
-
-            // Guardamos los IDs de los ganadores en la sala como registro histórico (Si tienes estos campos, genial, si no, puedes ignorar estas 3 líneas)
-            // sala.PrimerPuestoId = dto.PrimerPuestoId;
-            // sala.SegundoPuestoId = dto.SegundoPuestoId;
-            // sala.TercerPuestoId = dto.TercerPuestoId;
-
-            // 7. Guardar todo en la Base de Datos
-            await _repository.GuardarCambiosAsync();
-
-            return $"¡Auto Chess Finalizado! 1º: S/{premio1} | 2º: S/{premio2} | 3º: S/{premio3}. Comisión ganada: S/{comision}.";
-        }
-
-        public async Task<string> EmpezarPartidaAsync(int salaId)
-        {
-            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
-            if (sala == null) throw new Exception("Sala no encontrada.");
-
-            if (sala.Estado != "ESPERANDO")
-                throw new Exception("La sala no está en fase de espera.");
-
-            // Cambiamos el estado para que el frontend habilite el panel de podio
-            sala.Estado = "EN_CURSO";
-
-            await _repository.GuardarCambiosAsync();
-
-            return "¡La partida ha comenzado! Estado cambiado a EN_CURSO.";
         }
 
 
