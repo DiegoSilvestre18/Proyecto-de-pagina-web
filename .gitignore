@@ -2,6 +2,7 @@
 # Archivos de compilación y binarios
 [Bb]in/
 [Oo]bj/
+appsettings.Development.json
 # Configuración local de Visual Studio
 .vs/
 *.user
