@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CreditCard, DollarSign, QrCode, X } from 'lucide-react';
+import qrPlin from '../../../../assets/QR_PLIN.png';
 import { Metodos, Monedas } from '../data/mockData';
 import { postSolicitarRecarga } from '../Services/ServiceRecarga';
 import { type RecargaForm } from '../types/types';
@@ -133,11 +134,7 @@ const SolicitudRecarga: React.FC = () => {
 
               {/* Contenedor del QR */}
               <div className="bg-white p-3 rounded-xl mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(116,34,132,0.15)]">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=YAPE://ARENA-SAC-${formData.monto || '0'}`}
-                  alt="QR Yape"
-                  className="w-40 h-40 rounded"
-                />
+                <img src={qrPlin} alt="QR Yape" className="w-40 h-40 rounded" />
               </div>
 
               {/* Resumen del Pago */}
