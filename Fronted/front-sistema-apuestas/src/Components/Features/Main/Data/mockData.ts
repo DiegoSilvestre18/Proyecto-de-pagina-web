@@ -1,4 +1,4 @@
-import type { User, Club, Sala } from '../types';
+import type { User, Sala } from '../types';
 
 // TODO: Reemplazar por llamadas al backend (Services)
 export const mockUser: User = {
@@ -9,33 +9,6 @@ export const mockUser: User = {
   avatar:
     'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=100&h=100',
 };
-
-export const mockClubs: Club[] = [
-  {
-    id: 1,
-    name: 'Lima Esports',
-    members: 45,
-    verified: true,
-    avatar:
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=50&h=50',
-  },
-  {
-    id: 2,
-    name: 'DotaPT Community',
-    members: 128,
-    verified: true,
-    avatar:
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=50&h=50',
-  },
-  {
-    id: 3,
-    name: 'Valorant LATAM',
-    members: 342,
-    verified: false,
-    avatar:
-      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&q=80&w=50&h=50',
-  },
-];
 
 export const mockSalas: Sala[] = [
   {

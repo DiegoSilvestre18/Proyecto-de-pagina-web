@@ -2,6 +2,7 @@
 using SistemaApuestas.Application.DTOs.Salas;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Salas;
+using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
 using SistemaApuestas.Domain.Entities.Identity;
@@ -11,10 +12,12 @@ namespace SistemaApuestas.Application.Services
     public class SalaService : ISalaService
     {
         private readonly ISalaRepository _repository;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public SalaService(ISalaRepository repository)
+        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser)
         {
             _repository = repository;
+            _usuarioRepository = repositoryUser;
         }
 
         public async Task<int> CrearSalaAsync(int creadorId, CrearSalaDto request)

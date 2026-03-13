@@ -11,12 +11,9 @@ import IntegrationsSettings from '../Components/Features/Settings/Pages/Integrat
 import Salas from '../Components/Features/Salas/Salas';
 import SolicitudRecarga from '../Components/Features/SolicitudDinero/pages/SolicitudRecarga';
 import { ProtectedRoute } from './ProtectedRoutes';
-import {
-  mockClubs,
-  filtrosModos,
-} from '../Components/Features/Main/Data/mockData';
 import SettingsLayout from '../Components/layout/SettingsLayout';
 import SolicitudRetiro from '../Components/Features/SolicitudDinero/pages/SolicitudRetiro';
+import ComoJugar from '../Components/Features/ComoJugar/Pages/ComoJugar';
 
 export const ClienteRoutes = () => {
   return (
@@ -35,11 +32,9 @@ export const ClienteRoutes = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/main" element={<Dashboard clubs={mockClubs} />} />
-        <Route
-          path="/main/salas"
-          element={<Salas filtrosModos={filtrosModos} />}
-        />
+        <Route path="/main" element={<Dashboard />} />
+        <Route path="/main/como-jugar" element={<ComoJugar />} />
+        <Route path="/main/salas" element={<Salas />} />
         <Route path="/main/recarga" element={<SolicitudRecarga />} />
         <Route path="/main/retiro" element={<SolicitudRetiro />} />
         <Route

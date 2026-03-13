@@ -133,35 +133,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Wallet size={18} className="shrink-0" />{' '}
           {!isCollapsed && 'Solicitar Recarga'}
         </NavLink>
-        <button
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold"
-          title="Torneos"
-        >
-          <Trophy size={18} className="shrink-0" /> {!isCollapsed && 'Torneos'}
-        </button>
-        <button
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold"
-          title="Mi Rango"
-        >
-          <Gamepad2 size={18} className="shrink-0" />{' '}
-          {!isCollapsed && 'Mi Rango'}
-        </button>
-
-        {!isCollapsed && (
-          <div className="pt-6 pb-2">
-            <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase px-3">
-              Comunidad
-            </p>
-          </div>
-        )}
-        {isCollapsed && <div className="pt-4 border-t border-white/5 mt-4" />}
-        <button
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-semibold"
-          title="Clubes y Clanes"
-        >
-          <Users size={18} className="shrink-0" />{' '}
-          {!isCollapsed && 'Clubes y Clanes'}
-        </button>
 
         {/* 👇 4. SECCIÓN EXCLUSIVA PARA EL ADMIN 👇 */}
         {user?.rol === 'SUPERADMIN' && (

@@ -75,9 +75,12 @@ const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-3 lg:gap-6">
-        <button className="hidden lg:flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition-colors">
+        <NavLink
+          to="/main/como-jugar"
+          className="hidden lg:flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition-colors"
+        >
           <GraduationCap size={18} /> Cómo Jugar
-        </button>
+        </NavLink>
 
         {/* Saldos */}
         <div className="hidden md:flex items-center bg-[#1a1b2e] rounded-lg border border-white/5 p-1">

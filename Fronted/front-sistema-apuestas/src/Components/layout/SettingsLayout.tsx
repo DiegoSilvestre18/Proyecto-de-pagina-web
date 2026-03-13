@@ -11,11 +11,6 @@ const SettingsLayout: React.FC = () => {
       label: 'Integraciones',
       url: '/main/settings/integraciones',
     },
-    {
-      id: 'verificacion',
-      label: 'Verificación',
-      url: '/main/settings/verificacion',
-    },
   ];
 
   return (
