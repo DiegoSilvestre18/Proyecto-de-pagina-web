@@ -55,6 +55,7 @@ interface AuthContextType {
   ) => void;
   logout: () => void;
   actualizarSaldo: (nuevoSaldoReal: number, nuevoSaldoBono: number) => void;
+  updateUserProfile: (userData: Partial<UserDto>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -230,6 +231,28 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     setAuth(null);
   };
 
+  const updateUserProfile = (userData: Partial<UserDto>) => {
+    setAuth((prevAuth) => {
+      if (!prevAuth || !prevAuth.usuario) return prevAuth;
+
+      const authActualizado: AuthState = {
+        ...prevAuth,
+        usuario: {
+          ...prevAuth.usuario,
+          ...userData,
+        },
+      };
+
+      if (localStorage.getItem('auth')) {
+        localStorage.setItem('auth', JSON.stringify(authActualizado));
+      } else if (sessionStorage.getItem('auth')) {
+        sessionStorage.setItem('auth', JSON.stringify(authActualizado));
+      }
+
+      return authActualizado;
+    });
+  };
+
   const value = {
     user: auth ? auth.usuario : null,
     token: auth ? auth.token : null,
@@ -241,6 +264,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     login,
     logout,
     actualizarSaldo,
+    updateUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
