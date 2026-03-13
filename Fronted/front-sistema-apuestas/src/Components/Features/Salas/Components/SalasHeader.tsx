@@ -15,12 +15,12 @@ const SalasHeader: React.FC<SalasHeaderProps> = ({ userRol, onOpenModal }) => {
             <Crosshair size={18} className="text-orange-500" />
           </div>
           <h2 className="text-3xl font-black tracking-tight text-white">
-            Salas de Apuestas
+            Salas Competitivas
           </h2>
         </div>
         <p className="text-gray-400 text-sm max-w-2xl">
-          Descubre salas activas para apostar tus créditos. Únete a un duelo 1v1
-          o arma tu equipo para partidas 5v5.
+          Descubre salas activas para competir con tus créditos. Únete a un
+          duelo 1v1 o arma tu equipo para partidas 5v5.
         </p>
       </div>
 

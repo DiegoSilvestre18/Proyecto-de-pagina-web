@@ -12,6 +12,7 @@ namespace SistemaApuestas.Application.Interfaces
         Task<Usuario?> ObtenerUsuarioPorIdAsync(int usuarioId);
 
         Task<SistemaApuestas.Domain.Entities.Gaming.GameAccount?> ObtenerGameAccountAsync(int gameAccountId, int usuarioId);
+        Task<Sala?> ObtenerSalaActivaPorCuentaJuegoAsync(int gameAccountId, int salaIdActual);
         Task<bool> ExisteInscripcionAsync(int salaId, int usuarioId);
         Task<Movimiento?> ObtenerReciboInscripcionAsync(int usuarioId, int salaId);
 

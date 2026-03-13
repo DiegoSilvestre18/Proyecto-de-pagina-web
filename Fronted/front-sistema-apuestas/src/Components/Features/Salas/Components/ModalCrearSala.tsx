@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, X } from 'lucide-react';
 
 interface FormDataSala {
   juego: string;
@@ -30,14 +30,19 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
   onClose,
 }) => {
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
       <div
         className="bg-[#141526] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Cerrar modal"
+        >
+          <X size={18} />
+        </button>
         <div className="text-center mb-6">
           <h3 className="text-2xl font-black text-white">
             {userRol === 'SUPERADMIN' || userRol === 'HOST'

@@ -63,7 +63,7 @@ const Salas: React.FC = () => {
   const handleSubmitSala = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.costo < 3) {
-      alert('La apuesta minima es de S/ 3.00');
+      alert('La cuota mínima es de S/ 3.00');
       return;
     }
     setIsSubmitting(true);

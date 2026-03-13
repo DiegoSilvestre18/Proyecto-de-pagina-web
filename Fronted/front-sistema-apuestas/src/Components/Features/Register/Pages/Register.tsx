@@ -4,10 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useRegister } from '../../../../Hooks/useRegister';
 import { postUser } from '../Services/ServiceRegister';
 import FormInput from '../../../Common/FormInput';
+import { TerminosCondiciones } from './TerminosCondiciones';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showTerminos, setShowTerminos] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const { formUsuario, handleFormUsuario, handleSubmit } = useRegister('USER');
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,8 +41,8 @@ const Register: React.FC = () => {
           Crea tu cuenta global
         </h2>
         <p className="text-gray-400 text-sm">
-          Una sola cuenta para recargar créditos, apostar y competir en todos
-          tus juegos favoritos.
+          Una sola cuenta para recargar créditos, jugar y competir en todos tus
+          juegos favoritos.
         </p>
       </div>
 
@@ -135,18 +138,20 @@ const Register: React.FC = () => {
           <input
             type="checkbox"
             className="accent-orange-500 mt-1 cursor-pointer"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
             required
           />
           <span>
             Acepto los{' '}
-            <a href="#" className="text-orange-500 hover:underline">
-              Términos de Servicio
-            </a>{' '}
-            y la{' '}
-            <a href="#" className="text-orange-500 hover:underline">
-              Política de Privacidad
-            </a>
-            .
+            <button
+              type="button"
+              onClick={() => setShowTerminos(true)}
+              className="text-orange-500 hover:underline font-semibold"
+            >
+              Términos y Condiciones
+            </button>{' '}
+            de ArenaGamer.
           </span>
         </div>
         {!loading ? (
@@ -166,6 +171,12 @@ const Register: React.FC = () => {
           </button>
         )}
       </form>
+
+      <TerminosCondiciones
+        isOpen={showTerminos}
+        onClose={() => setShowTerminos(false)}
+        onAccept={() => setTermsAccepted(true)}
+      />
 
       <p className="text-center text-xs text-gray-500 mt-6">
         ¿Ya tienes una cuenta?{' '}

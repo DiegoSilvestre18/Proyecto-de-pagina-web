@@ -119,10 +119,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           to="/main/salas"
           className={navLinkClass}
           onClick={onCloseMobileMenu}
-          title="Salas de Apuestas"
+          title="Salas Competitivas"
         >
           <Crosshair size={18} className="shrink-0" />{' '}
-          {!isCollapsed && 'Salas de Apuestas'}
+          {!isCollapsed && 'Salas Competitivas'}
         </NavLink>
         <NavLink
           to="/main/recarga"

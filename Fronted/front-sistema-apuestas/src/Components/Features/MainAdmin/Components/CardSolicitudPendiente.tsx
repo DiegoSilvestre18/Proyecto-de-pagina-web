@@ -24,6 +24,7 @@ const CardSolicitudPendiente: React.FC<{
   onAbrirModalGanador?: () => void;
 }> = ({ solicitud, onTomar, name, onAbrirModalGanador }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     aprobar: true,
@@ -43,6 +44,7 @@ const CardSolicitudPendiente: React.FC<{
   };
 
   const handleTomarSolicitud = async () => {
+    setLoading(true);
     try {
       if (isSala) {
         await tomarSala(solicitud.solicitudId);
@@ -53,13 +55,18 @@ const CardSolicitudPendiente: React.FC<{
         });
       }
       alert('Solicitud tomada exitosamente');
+      setShowDetails(false);
+      setStep(1);
       onTomar();
     } catch (error) {
       alert('Error al tomar la solicitud');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleProcesar = async () => {
+    setLoading(true);
     try {
       if (isSala) {
         await procesarSala(
@@ -95,6 +102,8 @@ const CardSolicitudPendiente: React.FC<{
       onTomar();
     } catch (error) {
       alert('Error al procesar la solicitud');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -168,9 +177,10 @@ const CardSolicitudPendiente: React.FC<{
                 </button>
                 <button
                   onClick={handleTomarSolicitud}
+                  disabled={loading}
                   className={`text-white text-xs font-bold px-4 py-1.5 rounded transition-colors shadow-lg ${isSala ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' : 'bg-orange-600 hover:bg-orange-500 shadow-orange-600/20'}`}
                 >
-                  TOMAR
+                  {loading ? 'CARGANDO...' : 'TOMAR'}
                 </button>
               </div>
             ) : // 👇 2. Lógica para mostrar el botón de GANADOR o GESTIONAR 👇
@@ -199,10 +209,12 @@ const CardSolicitudPendiente: React.FC<{
           <div className="bg-[#141526] border border-white/10 rounded-2xl max-w-sm w-full p-8 shadow-2xl relative">
             <button
               onClick={() => {
+                if (loading) return;
                 setShowDetails(false);
                 setStep(1);
               }}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+              disabled={loading}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <X size={20} />
             </button>
@@ -231,7 +243,7 @@ const CardSolicitudPendiente: React.FC<{
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      {isSala ? 'Apuesta:' : 'Monto:'}
+                      {isSala ? 'Cuota:' : 'Monto:'}
                     </span>
                     <span className="text-sm font-black text-white">
                       S/ {solicitud.monto?.toFixed(2)}
@@ -250,17 +262,16 @@ const CardSolicitudPendiente: React.FC<{
 
                 {name === 'pendientes' ? (
                   <button
-                    onClick={() => {
-                      handleTomarSolicitud();
-                      setShowDetails(false);
-                    }}
-                    className="w-full mt-3 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors"
+                    onClick={handleTomarSolicitud}
+                    disabled={loading}
+                    className="w-full mt-3 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Tomar Solicitud
+                    {loading ? 'Tomando solicitud...' : 'Tomar Solicitud'}
                   </button>
                 ) : (
                   <button
                     onClick={() => setStep(2)}
+                    disabled={loading}
                     className={`w-full mt-4 py-3 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors shadow-lg ${isSala ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' : 'bg-orange-600 hover:bg-orange-500 shadow-orange-600/20'}`}
                   >
                     Siguiente
@@ -288,6 +299,7 @@ const CardSolicitudPendiente: React.FC<{
                       onClick={() =>
                         setFormData({ ...formData, aprobar: true })
                       }
+                      disabled={loading}
                       className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
                         formData.aprobar
                           ? 'bg-green-600 border-green-500 text-white'
@@ -300,6 +312,7 @@ const CardSolicitudPendiente: React.FC<{
                       onClick={() =>
                         setFormData({ ...formData, aprobar: false })
                       }
+                      disabled={loading}
                       className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
                         !formData.aprobar
                           ? 'bg-red-600 border-red-500 text-white'
@@ -315,12 +328,13 @@ const CardSolicitudPendiente: React.FC<{
                     <div className="space-y-4 mb-8 mt-4">
                       <div>
                         <label className="text-[10px] font-bold text-orange-500 tracking-widest uppercase block mb-2">
-                          Modificar Apuesta Inicial (S/)
+                          Modificar Cuota Inicial (S/)
                         </label>
                         <input
                           type="number"
                           min="5"
                           value={formData.costoSala}
+                          disabled={loading}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -338,6 +352,7 @@ const CardSolicitudPendiente: React.FC<{
                         <input
                           type="text"
                           value={formData.nombreLobby}
+                          disabled={loading}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -356,6 +371,7 @@ const CardSolicitudPendiente: React.FC<{
                         <input
                           type="text"
                           value={formData.passwordLobby}
+                          disabled={loading}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -386,6 +402,7 @@ const CardSolicitudPendiente: React.FC<{
                         <input
                           type="text"
                           value={formData.nroOperacion}
+                          disabled={loading}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -402,6 +419,7 @@ const CardSolicitudPendiente: React.FC<{
                         <input
                           type="text"
                           value={formData.cuentaDestino}
+                          disabled={loading}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -419,15 +437,17 @@ const CardSolicitudPendiente: React.FC<{
                 <div className="flex gap-2 mt-6">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors"
+                    disabled={loading}
+                    className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs tracking-widest uppercase transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     Volver
                   </button>
                   <button
                     onClick={handleProcesar}
-                    className="flex-1 py-3 bg-white hover:bg-gray-200 text-black font-black rounded-lg text-xs tracking-widest uppercase transition-all shadow-lg"
+                    disabled={loading}
+                    className="flex-1 py-3 bg-white hover:bg-gray-200 text-black font-black rounded-lg text-xs tracking-widest uppercase transition-all shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    Confirmar Acción
+                    {loading ? 'Procesando...' : 'Confirmar Acción'}
                   </button>
                 </div>
               </div>
