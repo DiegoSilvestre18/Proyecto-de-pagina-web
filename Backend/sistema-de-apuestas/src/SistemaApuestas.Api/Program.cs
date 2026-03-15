@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using SistemaApuestas.Application.Hubs;
+using SistemaApuestas.Application.Interfaces;
+using SistemaApuestas.Application.Interfaces.Audit;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.Financial;
 using SistemaApuestas.Application.Interfaces.GameAccount;
@@ -19,8 +22,6 @@ using SistemaApuestas.Infrastructure.Repositories.Audit;
 using SistemaApuestas.Infrastructure.Repositories.Financial;
 using SistemaApuestas.Infrastructure.Repositories.Identity;
 using System.Text;
-using SistemaApuestas.Application.Interfaces.Audit;
-using SistemaApuestas.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,8 @@ builder.Services.AddScoped<IFinancialService, FinancialService>();
 builder.Services.AddScoped<ISalaService, SalaService>();
 // Si también tienes un repositorio para salas, agrégalo:
 builder.Services.AddScoped<ISalaRepository, SalaRepository>();
+
+builder.Services.AddSignalR();
 
 // Registro de Controllers
 builder.Services.AddControllers();
@@ -90,7 +93,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173") // El puerto de React
               .AllowAnyHeader()  // Permite enviar JSON y tokens de autorización
-              .AllowAnyMethod(); // Permite GET, POST, PUT, DELETE
+              .AllowAnyMethod() // Permite GET, POST, PUT, DELETE
+              .AllowCredentials();
     });
 });
 
@@ -102,11 +106,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("ReactFrontend"); // Aplica la política de CORS
+app.UseRouting(); // 👈 Es buena práctica agregarlo
+
+// Aplica la política de CORS (Solo deja la de "ReactFrontend" que ya tiene el AllowCredentials)
+app.UseCors("ReactFrontend");
 
 // ACTIVAR LA SEGURIDAD EN EL PIPELINE
-app.UseAuthentication(); // Primero identifica quién es el usuario (Lee el Token)
-app.UseAuthorization();  // Luego verifica si tiene permiso de entrar a la ruta
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapControllers(); // Mapea los controladores de la API
-app.Run(); // Inicia la aplicación
+// REGISTRAR RUTAS Y HUBS
+app.MapControllers();
+app.MapHub<SalaHub>("/salahub"); // 👈 AHORA SÍ, ANTES DEL RUN
+
+// INICIAR EL SERVIDOR (¡Siempre va al final de todo!)
+app.Run();
+
+// Recuerda importar el namespace arriba: using SistemaApuestas.Api.Hubs;
+app.MapHub<SalaHub>("/salahub");

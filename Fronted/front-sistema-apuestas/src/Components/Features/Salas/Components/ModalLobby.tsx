@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // 👈 ¡Aquí está el useEffect!
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'; // 👈 La antena de SignalR
 import { X, Swords } from 'lucide-react';
 import type { CuentaJuego, Sala } from '../types/types';
 import LobbyHeader from './LobbyHeader';
@@ -34,6 +35,7 @@ interface ModalLobbyProps {
   onPodio1Change: (val: number) => void;
   onPodio2Change: (val: number) => void;
   onPodio3Change: (val: number) => void;
+  onActualizarSala: () => void;
 }
 
 const ModalLobby: React.FC<ModalLobbyProps> = ({
@@ -63,7 +65,54 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   onPodio1Change,
   onPodio2Change,
   onPodio3Change,
+  onActualizarSala,
 }) => {
+  // =========================================================
+  // 👇 MAGIA MULTIJUGADOR: SignalR (Tiempo Real) 👇
+  // =========================================================
+  useEffect(() => {
+    // Solo nos conectamos a la radio si estamos en fase de Draft
+    const necesitaActualizacionEnVivo =
+      sala.estado === 'SORTEO' || sala.estado === 'DRAFTING';
+
+    if (!necesitaActualizacionEnVivo || !onActualizarSala) return;
+
+    // 1. Construimos la antena apuntando a tu Backend
+    const connection = new HubConnectionBuilder()
+      // 🔥 OJO: Asegúrate de que este sea el puerto real de tu backend (5127)
+      .withUrl('http://localhost:5127/salahub')
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    // 2. Encendemos la antena y nos sintonizamos en el canal de esta sala
+    const iniciarConexion = async () => {
+      try {
+        await connection.start();
+        console.log('⚡ SignalR Conectado al Hub!');
+
+        // Le decimos al backend: "Méteme al grupo de la Sala X"
+        await connection.invoke('UnirseASala', sala.id.toString());
+      } catch (error) {
+        console.error('Error al conectar con SignalR:', error);
+      }
+    };
+
+    // 3. Escuchamos el grito del servidor
+    connection.on('ActualizarPantalla', () => {
+      console.log(
+        '🔄 ¡Un capitán hizo un movimiento! Actualizando pantalla...',
+      );
+      onActualizarSala(); // Refrescamos los datos al instante
+    });
+
+    iniciarConexion();
+
+    // 4. Apagamos la antena si el usuario cierra el modal
+    return () => {
+      connection.stop();
+    };
+  }, [sala.id, sala.estado, onActualizarSala]);
+  // =========================================================
   const miParticipacion = sala.participantes?.find(
     (p: { username: string; equipo: string }) => p.username === username,
   );
@@ -149,6 +198,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
               jugadorConTurno={jugadorConTurno}
               onLanzarMoneda={onLanzarMoneda}
               onPickPlayer={onPickPlayer}
+              onActualizarSala={onActualizarSala}
             />
           ) : (
             <EquiposView sala={sala} />

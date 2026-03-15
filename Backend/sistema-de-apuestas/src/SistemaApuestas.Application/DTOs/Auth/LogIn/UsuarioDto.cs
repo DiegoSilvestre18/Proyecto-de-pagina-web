@@ -18,6 +18,8 @@ namespace SistemaApuestas.Application.DTOs.Auth.LogIn
         public decimal SaldoReal { get; set; }
         public decimal SaldoBono { get; set; }
 
+        public decimal SaldoRecarga { get; set; }
+
         public string? MmrDota { get; set; }
     }
 }

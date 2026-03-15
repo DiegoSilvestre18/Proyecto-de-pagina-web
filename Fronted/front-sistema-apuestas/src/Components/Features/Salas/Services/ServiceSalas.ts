@@ -103,13 +103,19 @@ export const empezarPartidaAdmin = async (salaId: number) => {
   });
 };
 
+// ✅ LO CORRECTO:
 export const finalizarSalaAdmin = async (
   salaId: number,
   equipoGanador: number,
 ) => {
-  return await apiFetch(`/api/Sala/${salaId}/finalizar`, {
+  // 1. Quitamos el ${salaId} de la URL
+  return await apiFetch('/api/Sala/finalizar', {
     method: 'POST',
-    body: JSON.stringify({ equipoGanador }),
+    // 2. Mandamos el salaId y el ganadorId dentro del body para que coincida con tu FinalizarSalaDto en C#
+    body: JSON.stringify({
+      salaId: salaId,
+      ganadorId: equipoGanador,
+    }),
   });
 };
 
@@ -123,4 +129,16 @@ export const finalizarAutoChessAdmin = async (
     method: 'POST',
     body: JSON.stringify({ podio1, podio2, podio3 }),
   });
+};
+
+export const forzarCapitanAdmin = async (
+  salaId: number,
+  nuevoCapitanId: number,
+) => {
+  return await apiFetch(
+    `/api/Sala/${salaId}/forzar-capitan/${nuevoCapitanId}`,
+    {
+      method: 'POST',
+    },
+  );
 };

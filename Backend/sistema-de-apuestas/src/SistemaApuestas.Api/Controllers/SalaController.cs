@@ -182,5 +182,17 @@ namespace SistemaApuestas.Api.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+        [HttpPost("{salaId}/forzar-capitan/{nuevoCapitanId}")]
+        [Authorize(Roles = "SUPERADMIN,ADMIN")]
+        public async Task<IActionResult> ForzarCapitan(int salaId, int nuevoCapitanId)
+        {
+            try
+            {
+                var mensaje = await _salaService.ForzarCapitanAsync(salaId, nuevoCapitanId);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
     }
 }

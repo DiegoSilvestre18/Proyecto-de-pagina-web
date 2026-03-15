@@ -3,6 +3,7 @@ export interface User {
   mmr: number;
   saldoReal: number;
   saldoBono: number;
+  saldoRecarga: number;
   avatar: string;
 }
 

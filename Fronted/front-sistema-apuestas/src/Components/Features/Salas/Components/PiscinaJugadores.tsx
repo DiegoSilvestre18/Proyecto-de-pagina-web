@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crown, Shield, Users, UserPlus } from 'lucide-react';
 import type { Sala } from '../types/types';
+import { forzarCapitanAdmin } from '../Services/ServiceSalas';
 
 interface PiscinaJugadoresProps {
   sala: Sala;
@@ -10,6 +11,7 @@ interface PiscinaJugadoresProps {
   jugadorConTurno?: { username: string } | null;
   onLanzarMoneda?: () => void;
   onPickPlayer?: (jugadorId: number) => void;
+  onActualizarSala?: () => void;
 }
 
 const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
@@ -20,6 +22,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
   jugadorConTurno,
   onLanzarMoneda,
   onPickPlayer,
+  onActualizarSala,
 }) => {
   const isAutoChess = sala.formato === 'Auto Chess';
   const esMiTurno = sala.turnoId === userId;
@@ -195,8 +198,30 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                   jugador &&
                   !isCapitan &&
                   !isAutoChess && (
-                    <button className="text-[10px] bg-[#0b0c1b] hover:bg-yellow-500/20 text-gray-400 hover:text-yellow-500 border border-white/10 hover:border-yellow-500/30 px-3 py-1.5 rounded transition-colors font-bold uppercase tracking-wider">
-                      Forzar Lider
+                    <button
+                      className="px-3 py-1 text-xs font-bold text-gray-400 border border-gray-600 rounded hover:text-yellow-400 hover:border-yellow-400 transition-colors"
+                      onClick={async () => {
+                        // 1. Validamos que el jugador exista y tenga un ID para calmar a TypeScript
+                        if (!jugador || !jugador.usuarioId) return;
+
+                        try {
+                          // 2. Usamos 'sala.id' (tu variable real) y le pasamos el ID del jugador
+                          await forzarCapitanAdmin(sala.id, jugador.usuarioId);
+
+                          alert('Líder cambiado con éxito');
+                          if (onActualizarSala) {
+                            onActualizarSala(); // 🚀 Esto viaja por el cable hasta el padre
+                          }
+                          // Opcional: Si tienes una función para recargar la página/sala, ponla aquí
+                          // window.location.reload();
+                        } catch (error) {
+                          // 3. Imprimimos el error en consola para que TypeScript no se queje de que no lo usamos
+                          console.error(error);
+                          alert('Error al forzar líder');
+                        }
+                      }}
+                    >
+                      FORZAR LIDER
                     </button>
                   )}
               </div>

@@ -19,6 +19,7 @@ export interface UserDto {
   rol: string;
   saldoReal: number;
   saldoBono: number;
+  saldoRecarga: number;
   mmrDota?: string;
 }
 
@@ -54,7 +55,11 @@ interface AuthContextType {
     rememberMe: boolean,
   ) => void;
   logout: () => void;
-  actualizarSaldo: (nuevoSaldoReal: number, nuevoSaldoBono: number) => void;
+  actualizarSaldo: (
+    nuevoSaldoReal: number,
+    nuevoSaldoBono: number,
+    nuevoSaldoRecarga: number,
+  ) => void;
   updateUserProfile: (userData: Partial<UserDto>) => void;
 }
 
@@ -155,7 +160,12 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // 1️⃣ PRIMERO declaramos la función
-  const actualizarSaldo = (nuevoSaldoReal: number, nuevoSaldoBono: number) => {
+  const actualizarSaldo = (
+    nuevoSaldoReal: number,
+    nuevoSaldoBono: number,
+    nuevoSaldoRecarga: number,
+  ) => {
+    // 👈 Agrega el tercer parámetro
     setAuth((prevAuth) => {
       if (!prevAuth || !prevAuth.usuario) return prevAuth;
 
@@ -163,6 +173,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         ...prevAuth.usuario,
         saldoReal: nuevoSaldoReal,
         saldoBono: nuevoSaldoBono,
+        saldoRecarga: nuevoSaldoRecarga, // 👈 Guárdalo aquí
       };
 
       const authActualizado: AuthState = {
@@ -196,7 +207,13 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         if (response.ok) {
           const usuarioFresco = await response.json();
           console.log('DATOS FRESCOS DEL BACKEND:', usuarioFresco);
-          actualizarSaldo(usuarioFresco.saldoReal, usuarioFresco.saldoBono);
+
+          // 👇 Le pasamos los 3 saldos 👇
+          actualizarSaldo(
+            usuarioFresco.saldoReal,
+            usuarioFresco.saldoBono,
+            usuarioFresco.saldoRecarga,
+          );
         }
       } catch (error) {
         console.error('Error refrescando el saldo:', error);

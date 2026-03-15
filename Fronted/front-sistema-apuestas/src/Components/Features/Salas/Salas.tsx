@@ -194,6 +194,7 @@ const Salas: React.FC = () => {
           actualizarSaldo(
             response.saldoRealRestante,
             response.saldoBonoRestante,
+            response.saldoRecargaRestante,
           );
       }
 
@@ -381,6 +382,22 @@ const Salas: React.FC = () => {
             onPodio1Change={setPodio1}
             onPodio2Change={setPodio2}
             onPodio3Change={setPodio3}
+            onActualizarSala={async () => {
+              // 1. Traemos las salas frescas del backend
+              const salasNuevas = await getSalas(); // (O como se llame tu función)
+
+              // 2. Buscamos nuestra sala específica en esa lista nueva
+              // (Asegúrate de cambiar "salaActual.id" por el nombre de la variable que usas en este archivo)
+              const salaFresca = salasNuevas.find(
+                (s) => s.id === salaSeleccionada.id,
+              );
+
+              if (salaFresca) {
+                // 3. ¡Actualizamos la "foto" del Modal!
+                // Cambia "setSalaActual" por la función que usas para abrir tu Modal
+                setSalaSeleccionada(salaFresca);
+              }
+            }}
           />,
           document.body,
         )}

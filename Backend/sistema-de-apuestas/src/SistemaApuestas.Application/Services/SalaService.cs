@@ -7,6 +7,8 @@ using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Domain.Entities.Audit;
 using SistemaApuestas.Domain.Entities.Betting;
 using SistemaApuestas.Domain.Entities.Identity;
+using Microsoft.AspNetCore.SignalR;
+using SistemaApuestas.Application.Hubs;
 
 namespace SistemaApuestas.Application.Services
 {
@@ -15,12 +17,14 @@ namespace SistemaApuestas.Application.Services
         private readonly ISalaRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IGameAccountRepository _gameAccountRepository;
+        private readonly IHubContext<SalaHub> _hubContext;
 
-        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser, IGameAccountRepository gameAccountRepository)
+        public SalaService(ISalaRepository repository, IUsuarioRepository repositoryUser, IGameAccountRepository gameAccountRepository, IHubContext<SalaHub> hubContext)
         {
             _repository = repository;
             _usuarioRepository = repositoryUser;
             _gameAccountRepository = gameAccountRepository;
+            _hubContext = hubContext;
         }
 
         public async Task<int> CrearSalaAsync(int creadorId, CrearSalaDto request)
@@ -109,25 +113,56 @@ namespace SistemaApuestas.Application.Services
                 throw new Exception("La sala ya está llena.");
             }
 
-            // --- LÓGICA DE COBRO INTACTA ---
+            // =========================================================
+            // 👇 NUEVA LÓGICA DE COBRO EN CASCADA (BONO -> RECARGA -> REAL) 👇
+            // =========================================================
             decimal costoEntrada = sala.CostoEntrada;
-            if ((jugador.SaldoBono + jugador.SaldoReal) < costoEntrada)
+
+            // 1. Verificamos si la suma de sus 3 bolsillos alcanza
+            if ((jugador.SaldoBono + jugador.SaldoRecarga + jugador.SaldoReal) < costoEntrada)
                 throw new Exception("Saldo insuficiente para unirte a esta sala.");
 
+            decimal porCobrar = costoEntrada;
             decimal montoBonoUsado = 0;
+            decimal montoRecargaUsado = 0;
             decimal montoRealUsado = 0;
 
-            if (jugador.SaldoBono >= costoEntrada)
+            // PASO 1: Exprimir el Saldo Bono (El dinero regalado)
+            if (jugador.SaldoBono >= porCobrar)
             {
-                jugador.SaldoBono -= costoEntrada;
-                montoBonoUsado = costoEntrada;
+                jugador.SaldoBono -= porCobrar;
+                montoBonoUsado = porCobrar;
+                porCobrar = 0;
             }
             else
             {
                 montoBonoUsado = jugador.SaldoBono;
-                montoRealUsado = costoEntrada - jugador.SaldoBono;
+                porCobrar -= jugador.SaldoBono;
                 jugador.SaldoBono = 0;
-                jugador.SaldoReal -= montoRealUsado;
+            }
+
+            // PASO 2: Exprimir el Saldo Recarga (El dinero depositado)
+            if (porCobrar > 0)
+            {
+                if (jugador.SaldoRecarga >= porCobrar)
+                {
+                    jugador.SaldoRecarga -= porCobrar;
+                    montoRecargaUsado = porCobrar;
+                    porCobrar = 0;
+                }
+                else
+                {
+                    montoRecargaUsado = jugador.SaldoRecarga;
+                    porCobrar -= jugador.SaldoRecarga;
+                    jugador.SaldoRecarga = 0;
+                }
+            }
+
+            // PASO 3: Exprimir el Saldo Real (Las ganancias retirables)
+            if (porCobrar > 0)
+            {
+                jugador.SaldoReal -= porCobrar;
+                montoRealUsado = porCobrar;
             }
 
             var nuevoParticipante = new ParticipanteSala
@@ -145,13 +180,16 @@ namespace SistemaApuestas.Application.Services
             sala.Participantes.Add(nuevoParticipante); // Si tienes la colección instanciada
             await _repository.AgregarParticipanteAsync(nuevoParticipante);
 
+            // Actualizamos el concepto del Movimiento para que el contador vea de dónde salió el dinero
             var movimiento = new Movimiento
             {
                 UsuarioId = jugador.UsuarioId,
                 Tipo = "EGRESO",
-                MontoReal = montoRealUsado,
-                MontoBono = montoBonoUsado,
-                Concepto = $"Inscripción a Sala {sala.SalaId}",
+                MontoReal = montoRealUsado, // Lo que dolió de verdad (Ganancias)
+                MontoBono = montoBonoUsado, // Lo que puso el admin (Regalo)
+                                            // OJO: Si luego quieres agregar MontoRecarga a tu tabla Movimientos, puedes hacerlo. 
+                                            // Por ahora lo ponemos en el concepto para que haya registro.
+                Concepto = $"Inscripción Sala {sala.SalaId}. Pagado con: S/{montoRecargaUsado} Recarga, S/{montoRealUsado} Ganancias, S/{montoBonoUsado} Bono.",
                 Fecha = DateTime.UtcNow
             };
             await _repository.AgregarMovimientoAsync(movimiento);
@@ -368,6 +406,27 @@ namespace SistemaApuestas.Application.Services
             return "La moneda ha hablado. ¡Que empiece el Draft!";
         }
 
+        public async Task<string> ForzarCapitanAsync(int salaId, int nuevoCapitanId)
+        {
+            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
+            if (sala == null) throw new Exception("Sala no encontrada.");
+
+            if (sala.Estado != "SORTEO" && sala.Estado != "ESPERANDO")
+                throw new Exception("No puedes cambiar capitanes en esta fase.");
+
+            // Evitar que pongan al mismo dos veces
+            if (sala.Capitan1Id == nuevoCapitanId || sala.Capitan2Id == nuevoCapitanId)
+                throw new Exception("Este jugador ya es capitán.");
+
+            // Lógica de reemplazo rotativo: El nuevo entra como Capitan 1, el viejo Capitan 1 pasa a ser Capitan 2, y el viejo Capitan 2 pierde la corona.
+            sala.Capitan2Id = sala.Capitan1Id;
+            sala.Capitan1Id = nuevoCapitanId;
+
+            await _repository.GuardarCambiosAsync();
+
+            return "Líder forzado con éxito por el Administrador.";
+        }
+
 
 
 
@@ -379,33 +438,82 @@ namespace SistemaApuestas.Application.Services
             if (sala.Estado == "FINALIZADA" || sala.Estado == "CANCELADA")
                 throw new Exception("La sala ya no está activa.");
 
-            var participanteGanador = sala.Participantes.FirstOrDefault(p => p.UsuarioId == request.GanadorId);
-            if (participanteGanador == null)
-                throw new Exception("El jugador indicado como ganador no participó en esta sala.");
-
-            var ganador = await _repository.ObtenerUsuarioPorIdAsync(request.GanadorId);
-            if (ganador == null) throw new Exception("Usuario ganador no encontrado.");
-
-            ganador.SaldoReal += sala.PremioARepartir;
-
-            var movimientoPremio = new Movimiento
+            // =========================================================
+            // 👇 NUEVA LÓGICA MAGICA PARA 5v5 (EQUIPOS) 👇
+            // =========================================================
+            if (sala.Formato != null && sala.Formato.Contains("5v5"))
             {
-                UsuarioId = ganador.UsuarioId,
-                Tipo = "INGRESO",
-                MontoReal = sala.PremioARepartir,
-                MontoBono = 0,
-                Concepto = $"Premio por ganar la Sala {sala.SalaId} de {sala.Juego}",
-                Fecha = DateTime.UtcNow
-            };
+                // Detectamos si el front nos mandó el número 1 o 2
+                string nombreEquipoGanador = request.GanadorId == 1 ? "EQUIPO1" : "EQUIPO2";
 
-            await _repository.AgregarMovimientoAsync(movimientoPremio);
+                // Filtramos a los 5 participantes ganadores
+                var ganadores = sala.Participantes.Where(p => p.Equipo == nombreEquipoGanador).ToList();
 
-            sala.Estado = "FINALIZADA";
-            sala.ResultadoGanador = ganador.Username;
+                if (!ganadores.Any()) throw new Exception($"Nadie del {nombreEquipoGanador} está en la sala.");
 
-            await _repository.GuardarCambiosAsync();
+                // Dividimos la torta (el premio)
+                decimal premioPorJugador = sala.PremioARepartir / ganadores.Count;
 
-            return $"¡Sala finalizada con éxito! Se han transferido S/ {sala.PremioARepartir} de Saldo Real a {ganador.Username}.";
+                foreach (var participante in ganadores)
+                {
+                    var jugadorGanador = await _repository.ObtenerUsuarioPorIdAsync(participante.UsuarioId);
+                    if (jugadorGanador != null)
+                    {
+                        jugadorGanador.SaldoReal += premioPorJugador; // 💰 ¡Dinero para cada uno!
+
+                        var movimientoPremio = new Movimiento
+                        {
+                            UsuarioId = jugadorGanador.UsuarioId,
+                            Tipo = "INGRESO",
+                            MontoReal = premioPorJugador,
+                            MontoBono = 0,
+                            Concepto = $"Premio por ganar la Sala {sala.SalaId} ({nombreEquipoGanador})",
+                            Fecha = DateTime.UtcNow
+                        };
+                        await _repository.AgregarMovimientoAsync(movimientoPremio);
+                    }
+                }
+
+                sala.Estado = "FINALIZADA";
+                sala.ResultadoGanador = nombreEquipoGanador;
+                await _repository.GuardarCambiosAsync();
+
+                return $"¡Partida 5v5 finalizada! Se han repartido S/ {premioPorJugador} a cada jugador del {nombreEquipoGanador}.";
+            }
+            // =========================================================
+            // 👇 LÓGICA ANTIGUA PARA 1v1 (INDIVIDUAL) 👇
+            // =========================================================
+            else
+            {
+                var participanteGanador = sala.Participantes.FirstOrDefault(p => p.UsuarioId == request.GanadorId);
+                if (participanteGanador == null)
+                    throw new Exception("El jugador indicado como ganador no participó en esta sala.");
+
+                var ganador = await _repository.ObtenerUsuarioPorIdAsync(request.GanadorId);
+                if (ganador == null) throw new Exception("Usuario ganador no encontrado.");
+
+                ganador.SaldoReal += sala.PremioARepartir;
+
+                var movimientoPremio = new Movimiento
+                {
+                    UsuarioId = ganador.UsuarioId,
+                    Tipo = "INGRESO",
+                    MontoReal = sala.PremioARepartir,
+                    MontoBono = 0,
+                    Concepto = $"Premio por ganar la Sala {sala.SalaId} de {sala.Juego}",
+                    Fecha = DateTime.UtcNow
+                };
+
+                await _repository.AgregarMovimientoAsync(movimientoPremio);
+
+                sala.Estado = "FINALIZADA";
+                sala.ResultadoGanador = ganador.Username;
+                await _repository.GuardarCambiosAsync();
+
+
+
+                return $"¡Sala finalizada con éxito! Se han transferido S/ {sala.PremioARepartir} a {ganador.Username}.";
+            }
         }
 
         public async Task<string> CambiarEquipoAsync(int usuarioId, int salaId, string nuevoEquipo)
@@ -432,6 +540,8 @@ namespace SistemaApuestas.Application.Services
 
             // 5. Guardar los cambios en PostgreSQL
             await _repository.GuardarCambiosAsync();
+
+            await _hubContext.Clients.Group(salaId.ToString()).SendAsync("ActualizarPantalla");
 
             return $"Te has cambiado al {(nuevoEquipo == "EQUIPO1" ? "Radiant/Atacantes" : "Dire/Defensores")} exitosamente.";
         }
@@ -480,6 +590,8 @@ namespace SistemaApuestas.Application.Services
             }
 
             await _repository.GuardarCambiosAsync();
+
+            await _hubContext.Clients.Group(salaId.ToString()).SendAsync("ActualizarPantalla");
 
             return !quedanLibres ? "¡Draft finalizado! La partida va a comenzar." : $"Jugador reclutado para el {equipoDelCapitan}.";
         }

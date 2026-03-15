@@ -89,6 +89,10 @@ const Header: React.FC<HeaderProps> = ({
             <span className="text-sm font-bold text-yellow-500">
               {showBalance ? `${user?.saldoBono} PEN` : '***.** PEN'}
             </span>
+            {/* 👇 LA NUEVA ESTRELLA: El Saldo de Recarga (Para jugar) 👇 */}
+            <span className="text-blue-400 flex items-center gap-2 border-l border-white/10 pl-4">
+              🎮 {(user?.saldoRecarga || 0).toFixed(2)} PEN
+            </span>
           </div>
           <div className="px-3 py-1.5 flex items-center gap-2">
             <Wallet size={14} className="text-green-500" />

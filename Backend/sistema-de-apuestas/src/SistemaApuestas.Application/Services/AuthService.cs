@@ -96,6 +96,7 @@ namespace SistemaApuestas.Application.Services
                     Rol = user.Rol,
                     SaldoReal = user.SaldoReal,
                     SaldoBono = user.SaldoBono,
+                    SaldoRecarga = user.SaldoRecarga,
 
                     MmrDota = cuentaDota != null ? cuentaDota.RangoActual : "Unranked"
                 }
@@ -152,6 +153,7 @@ namespace SistemaApuestas.Application.Services
                 Rol = user.Rol,
                 SaldoReal = user.SaldoReal,
                 SaldoBono = user.SaldoBono,
+                SaldoRecarga = user.SaldoRecarga,
 
                 // 👇 Y aquí agregamos el MMR fresco
                 MmrDota = cuentaDota != null ? cuentaDota.RangoActual : "Unranked"

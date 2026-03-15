@@ -5,8 +5,11 @@ import ListSolicitudes from '../Pages/ListSolicitudes';
 import ModalGestorUsuarios from '../Components/ModalGestorUsuarios';
 import ModalCrearSala from '../../Salas/Components/ModalCrearSala';
 import { solicitarSala } from '../../Salas/Services/ServiceSalas';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Home } from 'lucide-react'; // Puedes elegir la flecha o la casita
 
 const MainAdmin: React.FC = () => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -76,6 +79,18 @@ const MainAdmin: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Botón para volver al lado del cliente */}
+        <button
+          onClick={() => navigate('/main')} // 👈 Cambia '/main' por la ruta real de tu inicio si es diferente
+          className="flex items-center gap-2 px-4 py-2 mt-4 bg-gray-800/50 hover:bg-[#ea580c] text-gray-300 hover:text-white rounded-xl transition-all duration-300 border border-gray-700 hover:border-[#ea580c] group"
+        >
+          <ArrowLeft
+            size={18}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
+          <span className="font-medium tracking-wide">Volver a la Arena</span>
+        </button>
 
         <div className="flex items-center gap-4">
           <div className="text-right hidden md:block">

@@ -56,6 +56,7 @@ namespace SistemaApuestas.Application.Services.Financial
 
         public async Task<SolicitudResponseDto> SolicitarRetiroAsync(int usuarioId, SolicitudRetiroDto request)
         {
+            // 1. TODAS LAS VALIDACIONES PRIMERO
             if (request.Monto < 20)
                 throw new Exception("El retiro mínimo es de S/ 20.00");
 
@@ -63,14 +64,17 @@ namespace SistemaApuestas.Application.Services.Financial
             if (usuario == null)
                 throw new Exception("Usuario no encontrado.");
 
-            if (usuario.SaldoReal < request.Monto)
-                throw new Exception("No tienes saldo suficiente para este retiro.");
-
-            // Solo un retiro activo a la vez
             var tieneRetiroActivo = await _retiroRepo.TieneRetiroActivoAsync(usuarioId);
             if (tieneRetiroActivo)
                 throw new Exception("Ya tienes un retiro pendiente o en proceso. Espera a que se resuelva antes de solicitar otro.");
 
+            if (usuario.SaldoReal < request.Monto)
+                throw new Exception("Saldo retirable insuficiente. Recuerda que el dinero recargado (Saldo Recarga) debe ser jugado en torneos antes de poder retirarse como ganancia.");
+
+            // 2. APLICAMOS LOS CAMBIOS DE DINERO
+            usuario.SaldoReal -= request.Monto;
+
+            // 3. GUARDAMOS EN BASE DE DATOS
             var retiro = new Domain.Entities.Financial.SolicitudRetiro
             {
                 UsuarioId = usuarioId,
@@ -200,7 +204,7 @@ namespace SistemaApuestas.Application.Services.Financial
                 recarga.CuentaDestino = request.CuentaDestino; // EL ADMIN DEJA SU MARCA AQUÍ
 
                 // LE SUMAMOS EL DINERO AL JUGADOR
-                usuario.SaldoReal += recarga.Monto;
+                usuario.SaldoRecarga += recarga.Monto;
                 await _usuarioRepo.ActualizarAsync(usuario);
                 recarga.FechaCierre = DateTime.UtcNow;
 
