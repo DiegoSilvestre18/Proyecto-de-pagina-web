@@ -34,6 +34,7 @@ services:
       Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
       Jwt__Issuer: SistemaApuestasApi
       Jwt__Audience: ReactFrontend
+      Frontend__BaseUrl: ${FRONTEND_BASE_URL:-https://arenagamergg.com}
       Cors__AllowedOrigins__0: ${CORS_ORIGIN_1:-https://arenagamergg.com}
       Cors__AllowedOrigins__1: ${CORS_ORIGIN_2:-https://www.arenagamergg.com}
     depends_on:
