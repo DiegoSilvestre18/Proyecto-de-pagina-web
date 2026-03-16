@@ -1,0 +1,122 @@
+[
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto1",
+    "email": "sujeto1@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto2",
+    "email": "sujeto2@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto3",
+    "email": "sujeto3@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto4",
+    "email": "sujeto4@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto5",
+    "email": "sujeto5@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto6",
+    "email": "sujeto6@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto7",
+    "email": "sujeto7@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto8",
+    "email": "sujeto8@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto9",
+    "email": "sujeto9@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "caquin",
+    "apellidoPaterno": "gaelito",
+    "apellidoMaterno": "anuiel",
+    "telefono": "933933933",
+    "username": "sujeto10",
+    "email": "sujeto10@gmail.com",
+    "password": "diego123",
+    "rol": "USER"
+  },
+  {
+    "nombre": "admin",
+    "apellidoPaterno": "admin",
+    "apellidoMaterno": "admin",
+    "telefono": "933933933",
+    "username": "admin",
+    "email": "admin@gmail.com",
+    "password": "admin",
+    "rol": "SUPERADMIN"
+  },
+  {
+    "nombre": "host",
+    "apellidoPaterno": "host",
+    "apellidoMaterno": "host",
+    "telefono": "933933933",
+    "username": "host",
+    "email": "host@gmail.com",
+    "password": "host",
+    "rol": "HOST"
+  }
+]

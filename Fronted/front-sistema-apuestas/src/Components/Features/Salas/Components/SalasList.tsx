@@ -1,5 +1,6 @@
 import React from 'react';
 import { Coins, Users } from 'lucide-react';
+import { ESTADOS_SALA, getEstadoLabel } from '../constants/estados';
 import type { Sala } from '../types/types';
 
 interface SalasListProps {
@@ -48,11 +49,14 @@ const SalasList: React.FC<SalasListProps> = ({
                     className={`w-1.5 h-1.5 rounded-full ${
                       sala.estado === 'ESPERANDO'
                         ? 'bg-green-500 animate-pulse'
-                        : sala.estado === 'EN_CURSO'
-                          ? 'bg-blue-500 animate-pulse'
-                          : sala.estado === 'FINALIZADA'
-                            ? 'bg-red-500'
-                            : 'bg-gray-500'
+                        : sala.estado === ESTADOS_SALA.SORTEO ||
+                            sala.estado === ESTADOS_SALA.DRAFTING
+                          ? 'bg-orange-400 animate-pulse'
+                          : sala.estado === 'EN_CURSO'
+                            ? 'bg-blue-500 animate-pulse'
+                            : sala.estado === 'FINALIZADA'
+                              ? 'bg-red-500'
+                              : 'bg-gray-500'
                     }`}
                   ></span>
                   {sala.fecha}
@@ -61,20 +65,17 @@ const SalasList: React.FC<SalasListProps> = ({
                   className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider transition-all ${
                     sala.estado === 'ESPERANDO'
                       ? 'bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
-                      : sala.estado === 'EN_CURSO'
-                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
-                        : sala.estado === 'FINALIZADA'
-                          ? 'bg-red-500/10 text-red-500 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
-                          : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                      : sala.estado === ESTADOS_SALA.SORTEO ||
+                          sala.estado === ESTADOS_SALA.DRAFTING
+                        ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.2)]'
+                        : sala.estado === 'EN_CURSO'
+                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                          : sala.estado === 'FINALIZADA'
+                            ? 'bg-red-500/10 text-red-500 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
+                            : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                   }`}
                 >
-                  {sala.estado === 'ESPERANDO'
-                    ? 'Esperando'
-                    : sala.estado === 'EN_CURSO'
-                      ? 'En Curso'
-                      : sala.estado === 'FINALIZADA'
-                        ? 'Finalizada'
-                        : 'En Revision'}
+                  {getEstadoLabel(sala.estado)}
                 </span>
               </div>
               <h4 className="font-bold text-sm text-white truncate">

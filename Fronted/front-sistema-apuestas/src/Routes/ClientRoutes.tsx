@@ -14,6 +14,7 @@ import { ProtectedRoute } from './ProtectedRoutes';
 import SettingsLayout from '../Components/layout/SettingsLayout';
 import SolicitudRetiro from '../Components/Features/SolicitudDinero/pages/SolicitudRetiro';
 import ComoJugar from '../Components/Features/ComoJugar/Pages/ComoJugar';
+import MainHost from '../Components/Features/MainHost/Pages/MainHost';
 
 export const ClienteRoutes = () => {
   return (
@@ -55,8 +56,17 @@ export const ClienteRoutes = () => {
       <Route
         path="/main-admin"
         element={
-          <ProtectedRoute allowedRoles={['HOST', 'SUPERADMIN']}>
+          <ProtectedRoute allowedRoles={['SUPERADMIN', 'ADMIN']}>
             <MainAdmin />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/main-host"
+        element={
+          <ProtectedRoute allowedRoles={['HOST']}>
+            <MainHost />
           </ProtectedRoute>
         }
       />

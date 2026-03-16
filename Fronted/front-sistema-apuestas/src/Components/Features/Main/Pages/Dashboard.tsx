@@ -1,4 +1,5 @@
 import React from 'react';
+import SteamLogo from '../../../../assets/steam-1.svg';
 import {
   ArrowRight,
   CheckCircle2,
@@ -141,9 +142,9 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-red-600/10 border border-red-500/20 rounded-xl flex items-center justify-center">
                     <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Dota_2_icon.svg/1024px-Dota_2_icon.svg.png"
-                      alt="Dota 2"
-                      className="w-8 h-8 opacity-80"
+                      src={SteamLogo}
+                      alt="Steam"
+                      className="w-6 h-6 brightness-0 invert"
                     />
                   </div>
                   <div>

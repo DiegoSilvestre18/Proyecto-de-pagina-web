@@ -34,6 +34,9 @@ const Login: React.FC = () => {
       case 'user':
         navigate('/main');
         break;
+      case 'host':
+        navigate('/main-host');
+        break;
     }
   }
 

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Gavel, Play, LogOut, DollarSign, Search } from 'lucide-react';
+import { LogOut, Search } from 'lucide-react';
 import { useAuth } from '../../../../Context/AuthContext';
 import ListSolicitudes from '../Pages/ListSolicitudes';
 import ModalGestorUsuarios from '../Components/ModalGestorUsuarios';
 import ModalCrearSala from '../../Salas/Components/ModalCrearSala';
 import { solicitarSala } from '../../Salas/Services/ServiceSalas';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home } from 'lucide-react'; // Puedes elegir la flecha o la casita
+import { ArrowLeft } from 'lucide-react'; // Puedes elegir la flecha o la casita
 
 const MainAdmin: React.FC = () => {
   const navigate = useNavigate();

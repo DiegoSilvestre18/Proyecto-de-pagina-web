@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import type { CuentaJuego, Sala } from './types/types';
@@ -22,6 +22,23 @@ import SalasFilters from './Components/SalasFilters';
 import SalasList from './Components/SalasList';
 import ModalCrearSala from './Components/ModalCrearSala';
 import ModalLobby from './Components/ModalLobby';
+import {
+  ESTADOS_EN_CURSO_O_DRAFT,
+  ESTADOS_PRE_PARTIDA,
+  ESTADOS_SALA,
+} from './constants/estados';
+import { FORMATOS_VALIDOS, isFormatoValido } from './constants/formatos';
+
+interface FormDataSala {
+  juego: string;
+  formato: string;
+  costo: number;
+  tipoSala: string;
+  premioARepartir: number;
+  tipoPremio: string;
+  mmrMinimo: number;
+  mmrMaximo: number;
+}
 
 const Salas: React.FC = () => {
   const { user, gameAccounts, hasGameAccount, updateBalance, actualizarSaldo } =
@@ -39,9 +56,9 @@ const Salas: React.FC = () => {
   const [podio2, setPodio2] = useState<number>(0);
   const [podio3, setPodio3] = useState<number>(0);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataSala>({
     juego: 'DOTA2',
-    formato: '5v5 Captains Mode',
+    formato: FORMATOS_VALIDOS.ALL_PICK_5V5,
     costo: 6,
     tipoSala: 'BASICA',
     premioARepartir: 50,
@@ -56,12 +73,41 @@ const Salas: React.FC = () => {
   const [equipoSeleccionado, setEquipoSeleccionado] =
     useState<string>('EQUIPO1');
 
+  const refreshSalas = useCallback(async () => {
+    try {
+      const data = await getSalas();
+      setSalasReales(data);
+      setSalaSeleccionada((prev) => {
+        if (!prev) return prev;
+        return data.find((sala) => sala.id === prev.id) || null;
+      });
+    } catch (error) {
+      console.error('Error al traer salas del backend:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const closeSalaModal = () => {
     setSalaSeleccionada(null);
   };
 
   const handleSubmitSala = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isFormatoValido(formData.formato)) {
+      alert('Solo se permiten los formatos 5v5 All Pick y Auto Chess.');
+      return;
+    }
+
+    if (
+      formData.juego !== 'DOTA2' &&
+      formData.formato === FORMATOS_VALIDOS.AUTO_CHESS
+    ) {
+      alert('Auto Chess solo esta disponible para Dota 2.');
+      return;
+    }
+
     if (formData.costo < 3) {
       alert('La cuota mínima es de S/ 3.00');
       return;
@@ -85,6 +131,7 @@ const Salas: React.FC = () => {
           : '¡Sala creada con exito!',
       );
       setShowModal(false);
+      await refreshSalas();
     } catch (error) {
       alert('Hubo un error al procesar la solicitud.');
       console.error(error);
@@ -94,18 +141,8 @@ const Salas: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchSalasBD = async () => {
-      try {
-        const data = await getSalas();
-        if (data && data.length > 0) setSalasReales(data);
-      } catch (error) {
-        console.error('Error al traer salas del backend:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSalasBD();
-  }, []);
+    void refreshSalas();
+  }, [refreshSalas]);
 
   useEffect(() => {
     const fetchCuentas = async () => {
@@ -150,18 +187,72 @@ const Salas: React.FC = () => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [salaSeleccionada]);
 
-  const salasFiltradas = salasReales.filter((sala) => {
-    if (activeTab === 'MIS SALAS') {
-      const soyCreador = sala.creador === user?.username;
-      const soyParticipante = sala.participantes?.some(
-        (p) => p.username === user?.username,
-      );
-      if (!soyCreador && !soyParticipante) return false;
+  useEffect(() => {
+    if (!salaSeleccionada) return;
+
+    const estadoActual = salaSeleccionada.estado || ESTADOS_SALA.ESPERANDO;
+    if (
+      !ESTADOS_PRE_PARTIDA.includes(
+        estadoActual as (typeof ESTADOS_PRE_PARTIDA)[number],
+      )
+    ) {
+      return;
     }
-    if (filtroEstado !== 'TODAS' && sala.estado !== filtroEstado) {
+
+    const intervalId = window.setInterval(() => {
+      void refreshSalas();
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [salaSeleccionada, refreshSalas]);
+
+  const salasFiltradas = salasReales.filter((sala) => {
+    const soyCreador = sala.creador === user?.username;
+    const soyParticipante = sala.participantes?.some(
+      (p) => p.username === user?.username,
+    );
+    const tengoRelacionConSala = soyCreador || !!soyParticipante;
+
+    if (activeTab === 'MIS SALAS' && !tengoRelacionConSala) {
       return false;
     }
+
+    // EN_CURSO/FINALIZADA deben verse solo para usuarios inscritos (o creador).
+    if (
+      (filtroEstado === ESTADOS_SALA.EN_CURSO ||
+        filtroEstado === ESTADOS_SALA.FINALIZADA) &&
+      !tengoRelacionConSala
+    ) {
+      return false;
+    }
+
+    if (filtroEstado === ESTADOS_SALA.EN_CURSO) {
+      const estado = sala.estado || ESTADOS_SALA.ESPERANDO;
+      if (
+        !ESTADOS_EN_CURSO_O_DRAFT.includes(
+          estado as (typeof ESTADOS_EN_CURSO_O_DRAFT)[number],
+        )
+      ) {
+        return false;
+      }
+    } else if (filtroEstado !== 'TODAS' && sala.estado !== filtroEstado) {
+      return false;
+    }
+
     return true;
+  });
+
+  const salasOrdenadas = [...salasFiltradas].sort((a, b) => {
+    const relacionA =
+      a.creador === user?.username ||
+      a.participantes?.some((p) => p.username === user?.username);
+    const relacionB =
+      b.creador === user?.username ||
+      b.participantes?.some((p) => p.username === user?.username);
+
+    if (relacionA && !relacionB) return -1;
+    if (!relacionA && relacionB) return 1;
+    return 0;
   });
 
   const handleUnirseSala = async () => {
@@ -199,7 +290,7 @@ const Salas: React.FC = () => {
       }
 
       setSalaSeleccionada(null);
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(error.message);
@@ -216,7 +307,7 @@ const Salas: React.FC = () => {
     try {
       const response = await lanzarMonedaSala(salaSeleccionada.id);
       alert(response?.mensaje || '¡La moneda ha hablado!');
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert(error.message);
     }
@@ -230,7 +321,7 @@ const Salas: React.FC = () => {
         jugadorId,
       );
       alert(response?.mensaje || '¡Jugador reclutado!');
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert(error.message);
     }
@@ -245,7 +336,7 @@ const Salas: React.FC = () => {
     try {
       const response = await empezarPartidaAdmin(salaSeleccionada.id);
       alert(response?.mensaje || 'Partida iniciada.');
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert('Error al iniciar: ' + error.message);
     }
@@ -264,7 +355,7 @@ const Salas: React.FC = () => {
       );
       alert(response?.mensaje || 'Sala finalizada y dinero repartido.');
       setSalaSeleccionada(null);
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert('Error al finalizar: ' + error.message);
     }
@@ -291,7 +382,7 @@ const Salas: React.FC = () => {
       );
       alert(response?.mensaje || 'Auto Chess finalizado exitosamente.');
       setSalaSeleccionada(null);
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert('Error: ' + error.message);
     }
@@ -303,7 +394,7 @@ const Salas: React.FC = () => {
       alert(
         `¡Te has cambiado al ${nuevoEquipo === 'EQUIPO1' ? 'Radiant' : 'Dire'} exitosamente!`,
       );
-      window.location.reload();
+      await refreshSalas();
     } catch (error: unknown) {
       if (error instanceof Error) alert(error.message);
     }
@@ -333,7 +424,7 @@ const Salas: React.FC = () => {
       />
 
       <SalasList
-        salas={salasFiltradas}
+        salas={salasOrdenadas}
         isLoading={isLoading}
         onSelectSala={setSalaSeleccionada}
       />
@@ -382,21 +473,8 @@ const Salas: React.FC = () => {
             onPodio1Change={setPodio1}
             onPodio2Change={setPodio2}
             onPodio3Change={setPodio3}
-            onActualizarSala={async () => {
-              // 1. Traemos las salas frescas del backend
-              const salasNuevas = await getSalas(); // (O como se llame tu función)
-
-              // 2. Buscamos nuestra sala específica en esa lista nueva
-              // (Asegúrate de cambiar "salaActual.id" por el nombre de la variable que usas en este archivo)
-              const salaFresca = salasNuevas.find(
-                (s) => s.id === salaSeleccionada.id,
-              );
-
-              if (salaFresca) {
-                // 3. ¡Actualizamos la "foto" del Modal!
-                // Cambia "setSalaActual" por la función que usas para abrir tu Modal
-                setSalaSeleccionada(salaFresca);
-              }
+            onActualizarSala={() => {
+              void refreshSalas();
             }}
           />,
           document.body,

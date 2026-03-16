@@ -13,9 +13,10 @@ import {
   Settings,
   CircleUser,
   CircleDollarSign,
+  Shield,
 } from 'lucide-react';
 import { type UserDto } from '../../Context/AuthContext';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 
 interface HeaderProps {
@@ -37,6 +38,14 @@ const Header: React.FC<HeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const rol = user?.rol?.toUpperCase() ?? '';
+  const esControlAdmin = rol === 'SUPERADMIN' || rol === 'ADMIN';
+  const esControlHost = rol === 'HOST';
+  const mostrarBotonControl =
+    pathname === '/main' && (esControlAdmin || esControlHost);
+  const rutaControl = esControlAdmin ? '/main-admin' : '/main-host';
 
   // Cerrar el dropdown si se hace click fuera de él
   useEffect(() => {
@@ -81,6 +90,16 @@ const Header: React.FC<HeaderProps> = ({
         >
           <GraduationCap size={18} /> Cómo Jugar
         </NavLink>
+
+        {mostrarBotonControl && (
+          <button
+            onClick={() => navigate(rutaControl)}
+            className="hidden lg:flex items-center gap-2 text-sm font-bold text-orange-400 hover:text-white transition-colors border border-orange-500/30 hover:border-orange-400/50 px-3 py-1.5 rounded-lg bg-orange-500/5 hover:bg-orange-500/10"
+          >
+            <Shield size={16} />
+            {esControlAdmin ? 'Panel Admin' : 'Panel Host'}
+          </button>
+        )}
 
         {/* Saldos */}
         <div className="hidden md:flex items-center bg-[#1a1b2e] rounded-lg border border-white/5 p-1">

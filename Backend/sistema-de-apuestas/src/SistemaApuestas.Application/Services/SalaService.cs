@@ -105,8 +105,18 @@ namespace SistemaApuestas.Application.Services
             // O si ya tienes la colección Participantes cargada en 'sala', puedes usar sala.Participantes.Count
             int numParticipantesActuales = sala.Participantes?.Count ?? 0;
 
-            // Si la sala es de 5v5, el límite es 10. (Si es 1v1, el límite es 2).
-            int limiteJugadores = sala.Formato.Contains("5v5") ? 10 : 2;
+            // Límites por formato soportado actualmente:
+            // - 5v5 All Pick => 10
+            // - Auto Chess   => 8
+            // - fallback     => 2
+            string formato = sala.Formato ?? string.Empty;
+            bool es5v5 = formato.Contains("5v5", StringComparison.OrdinalIgnoreCase);
+            bool esAutoChess = formato.Contains("Auto Chess", StringComparison.OrdinalIgnoreCase);
+            // Aunque el nombre visible sea "All Pick", para 5v5 mantenemos el flujo de capitanes
+            // (SORTEO -> DRAFTING -> EN_CURSO).
+            bool usaFlujoCapitanes = es5v5 || formato.Contains("Captains", StringComparison.OrdinalIgnoreCase);
+
+            int limiteJugadores = es5v5 ? 10 : (esAutoChess ? 8 : 2);
 
             if (numParticipantesActuales >= limiteJugadores)
             {
@@ -170,8 +180,8 @@ namespace SistemaApuestas.Application.Services
                 SalaId = sala.SalaId,
                 UsuarioId = jugador.UsuarioId,
                 GameAccountId = gameAccount.GameAccountId,
-                // Al entrar en Captains Draft, todos entran sin equipo (o puedes ponerles "POOL" o algo genérico)
-                Equipo = (sala.Formato == "5v5 Captains Mode") ? "ESPERANDO_DRAFT" : request.Equipo
+                // En flujo de capitanes entran al pool de draft; en el resto conservan el equipo elegido.
+                Equipo = usaFlujoCapitanes ? "ESPERANDO_DRAFT" : request.Equipo
             };
 
             // Añadimos el participante (ya sea por repositorio o añadiéndolo a la colección de la sala)
@@ -202,34 +212,29 @@ namespace SistemaApuestas.Application.Services
             // Volvemos a contar, sumando al jugador actual
             numParticipantesActuales++;
 
-            if (numParticipantesActuales == limiteJugadores && sala.Formato == "5v5 Captains Mode")
+            if (numParticipantesActuales == limiteJugadores)
             {
-                // 1. Necesitamos cargar los datos completos de las cuentas de juego de los participantes
-                // para poder leer su MMR. (Asegúrate de que tu repositorio pueda traer esto)
-
-                // --- AQUÍ HAY UN RETO TÉCNICO ---
-                // Para ordenar por MMR, necesitamos que los 'Participantes' tengan acceso a su 'GameAccount'.
-                // Si tu modelo actual de 'ParticipanteSala' no tiene la propiedad de navegación hacia 'GameAccount' 
-                // o no está cargada (Include), tendrás que pedirle al repositorio la lista con los datos completos.
-
-                // Suponiendo que tienes un método que trae los participantes con su cuenta de juego:
-                var participantesConCuentas = await _repository.ObtenerParticipantesConCuentasAsync(sala.SalaId);
-
-                // Si no tienes ese método, tendrás que crearlo en tu repositorio o usar una consulta LINQ si usas DbContext directo.
-
-                // Una vez que tienes la lista, la ordenas de mayor a menor MMR
-                var participantesOrdenados = participantesConCuentas
-                    .OrderByDescending(p => int.TryParse(p.GameAccount?.RangoActual, out int mmr) ? mmr : 0)
-                    .ToList();
-
-                // 2. Asignamos a los capitanes (los dos con más MMR)
-                if (participantesOrdenados.Count >= 2)
+                if (usaFlujoCapitanes)
                 {
-                    sala.Capitan1Id = participantesOrdenados[0].UsuarioId;
-                    sala.Capitan2Id = participantesOrdenados[1].UsuarioId;
+                    // Flujo de capitanes: ESPERANDO -> SORTEO -> DRAFTING -> EN_CURSO
+                    var participantesConCuentas = await _repository.ObtenerParticipantesConCuentasAsync(sala.SalaId);
 
-                    // 3. Pasamos la sala a la fase de sorteo de moneda
-                    sala.Estado = "SORTEO";
+                    var participantesOrdenados = participantesConCuentas
+                        .OrderByDescending(p => int.TryParse(p.GameAccount?.RangoActual, out int mmr) ? mmr : 0)
+                        .ToList();
+
+                    if (participantesOrdenados.Count >= 2)
+                    {
+                        sala.Capitan1Id = participantesOrdenados[0].UsuarioId;
+                        sala.Capitan2Id = participantesOrdenados[1].UsuarioId;
+                        sala.Estado = "SORTEO";
+                    }
+                }
+                else
+                {
+                    // Flujo para formatos activos (5v5 All Pick y Auto Chess):
+                    // al completarse el aforo, la sala pasa a EN_CURSO.
+                    sala.Estado = "EN_CURSO";
                 }
             }
 

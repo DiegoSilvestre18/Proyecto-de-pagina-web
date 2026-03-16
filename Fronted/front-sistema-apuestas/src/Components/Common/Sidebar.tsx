@@ -4,9 +4,6 @@ import {
   Search,
   Play,
   Crosshair,
-  Trophy,
-  Gamepad2,
-  Users,
   Wallet,
   Settings,
   X,
@@ -106,6 +103,34 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navegación */}
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar">
+        {/* 👇 4. SECCIÓN EXCLUSIVA PARA EL ADMIN 👇 */}
+        {user?.rol === 'SUPERADMIN' && !isCollapsed && (
+          <>
+            <div className="pt-6 pb-2">
+              <p className="text-[10px] font-bold text-orange-500 tracking-widest uppercase px-3">
+                Administración
+              </p>
+            </div>
+            <NavLink
+              to="/main-admin" /* <--- Ajusta esta ruta si tu panel de admin tiene otra URL */
+              className={navLinkClass}
+              onClick={onCloseMobileMenu}
+            >
+              <Shield size={18} /> Panel de Control
+            </NavLink>
+          </>
+        )}
+        {user?.rol === 'SUPERADMIN' && isCollapsed && (
+          <>
+            <NavLink
+              to="/main-admin" /* <--- Ajusta esta ruta si tu panel de admin tiene otra URL */
+              className={navLinkClass}
+              onClick={onCloseMobileMenu}
+            >
+              <Shield size={18} />
+            </NavLink>
+          </>
+        )}
         <NavLink
           to="/main"
           end
@@ -133,25 +158,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Wallet size={18} className="shrink-0" />{' '}
           {!isCollapsed && 'Solicitar Recarga'}
         </NavLink>
-
-        {/* 👇 4. SECCIÓN EXCLUSIVA PARA EL ADMIN 👇 */}
-        {user?.rol === 'SUPERADMIN' && (
-          <>
-            <div className="pt-6 pb-2">
-              <p className="text-[10px] font-bold text-orange-500 tracking-widest uppercase px-3">
-                Administración
-              </p>
-            </div>
-            <NavLink
-              to="/main-admin" /* <--- Ajusta esta ruta si tu panel de admin tiene otra URL */
-              className={navLinkClass}
-              onClick={onCloseMobileMenu}
-            >
-              <Shield size={18} /> Panel de Control
-            </NavLink>
-          </>
-        )}
-        {/* 👆 FIN SECCIÓN ADMIN 👆 */}
 
         {!isCollapsed && (
           <div className="pt-6 pb-2">

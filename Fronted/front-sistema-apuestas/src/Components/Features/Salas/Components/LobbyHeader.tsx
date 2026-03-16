@@ -1,5 +1,6 @@
 import React from 'react';
 import { Coins, Users } from 'lucide-react';
+import { isAutoChess } from '../constants/formatos';
 import type { Sala } from '../types/types';
 
 interface LobbyHeaderProps {
@@ -7,6 +8,8 @@ interface LobbyHeaderProps {
 }
 
 const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
+  const maxJugadores = isAutoChess(sala.formato) ? 8 : sala.maxJugadores || 10;
+
   return (
     <div className="relative p-6 border-b border-white/5 shrink-0 bg-[#0b0c1b] z-30">
       <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-50"></div>
@@ -27,8 +30,8 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
           <div className="flex items-center gap-2">
             <Users size={16} className="text-blue-500" /> Jugadores:{' '}
             <span className="text-gray-400">
-              {sala.participantes?.length || 0} /{' '}
-              {sala.formato === 'Auto Chess' ? 8 : sala.maxJugadores || 10}
+              {sala.participantes?.length || sala.jugadores || 0} /{' '}
+              {maxJugadores}
             </span>
           </div>
         </div>

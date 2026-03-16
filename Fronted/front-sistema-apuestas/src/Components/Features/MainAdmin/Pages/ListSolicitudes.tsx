@@ -1,50 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, CheckCircle2, AlertCircle, Search } from 'lucide-react'; // 👈 Agregamos el ícono Search
+import { Clock, CheckCircle2, AlertCircle, Search } from 'lucide-react';
 import { type solicitudType } from '../Types/Types';
 import {
   getMisSolicitudes,
   getSolicitudesPendientes,
 } from '../Services/MainServices';
-import { getSalas } from '../../Salas/Services/ServiceSalas';
+import {
+  finalizarSalaAdmin,
+  getSalas,
+} from '../../Salas/Services/ServiceSalas';
 import CardSolicitudPendiente from '../Components/CardSolicitudPendiente';
 import { type Sala } from '../../Salas/types/types';
-import { useAuth } from '../../../../Context/AuthContext';
 
 interface ListType {
   name: 'pendientes' | 'mis-solicitudes';
   refreshKey: number;
   onRefresh: () => void;
   onAbrirModalGanador?: () => void;
+  soloSalas?: boolean;
 }
 
 export const ListSolicitudes: React.FC<ListType> = ({
   name,
   refreshKey,
   onRefresh,
+  soloSalas = false,
 }) => {
   const [loading, setLoading] = useState(true);
   const [solicitudes, setSolicitudes] = useState<solicitudType[]>([]);
-
-  // 👇 1. NUEVO ESTADO PARA LA BARRA DE BÚSQUEDA
   const [busqueda, setBusqueda] = useState('');
-
-  const { token } = useAuth();
   const [salaAFinalizar, setSalaAFinalizar] = useState<number | null>(null);
   const [procesandoGanador, setProcesandoGanador] = useState(false);
 
   useEffect(() => {
     if (name === 'pendientes') {
-      fetchSolicitudesPendientes();
+      void fetchSolicitudesPendientes();
     } else if (name === 'mis-solicitudes') {
-      fetchMisSolicitudes();
+      void fetchMisSolicitudes();
     }
-  }, [name, refreshKey]);
+  }, [name, refreshKey, soloSalas]);
 
   const fetchSolicitudesPendientes = async () => {
     setLoading(true);
     try {
-      const finanzasResp = await getSolicitudesPendientes();
-      const finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+      let finanzasArr: solicitudType[] = [];
+      if (!soloSalas) {
+        const finanzasResp = await getSolicitudesPendientes();
+        finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+      }
 
       const salasResp = await getSalas();
       const salasArr = Array.isArray(salasResp) ? salasResp : [];
@@ -77,8 +80,11 @@ export const ListSolicitudes: React.FC<ListType> = ({
   const fetchMisSolicitudes = async () => {
     setLoading(true);
     try {
-      const finanzasResp = await getMisSolicitudes();
-      const finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+      let finanzasArr: solicitudType[] = [];
+      if (!soloSalas) {
+        const finanzasResp = await getMisSolicitudes();
+        finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+      }
 
       const salasResp = await getSalas();
       const salasArr = Array.isArray(salasResp) ? salasResp : [];
@@ -110,46 +116,25 @@ export const ListSolicitudes: React.FC<ListType> = ({
     }
   };
 
-  const handleFinalizarPartida = async (
-    salaId: number,
-    equipoGanador: string,
-  ) => {
+  const handleFinalizarPartida = async (salaId: number, ganadorId: number) => {
     try {
       setProcesandoGanador(true);
-      const response = await fetch(
-        'https://localhost:5127/api/Sala/finalizar',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            salaId: salaId,
-            equipoGanador: equipoGanador,
-          }),
-        },
-      );
-
-      if (response.ok) {
-        alert('🏆 ¡Partida finalizada y premios repartidos a los ganadores!');
-        setSalaAFinalizar(null);
-        onRefresh();
-      } else {
-        const error = await response.json();
-        alert('Error: ' + error.mensaje);
-      }
+      await finalizarSalaAdmin(salaId, ganadorId);
+      alert('🏆 ¡Partida finalizada y premios repartidos a los ganadores!');
+      setSalaAFinalizar(null);
+      onRefresh();
     } catch (error) {
       console.error('Error al finalizar la partida:', error);
-      alert('Hubo un problema de conexión.');
+      const mensaje =
+        error instanceof Error ? error.message : 'Error desconocido';
+      alert('Error al finalizar: ' + mensaje);
     } finally {
       setProcesandoGanador(false);
     }
   };
 
-  // 👇 2. MOTOR DE BÚSQUEDA INSTANTÁNEO 👇
   const solicitudesFiltradas = solicitudes.filter((sol) => {
-    if (busqueda.trim() === '') return true; // Si no hay búsqueda, muestra todo
+    if (busqueda.trim() === '') return true;
     const termino = busqueda.toLowerCase();
 
     return (
@@ -164,7 +149,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
 
   return (
     <div className="bg-[#141526] border border-white/5 rounded-2xl p-6 h-full flex flex-col relative">
-      {/* Cabecera de la lista */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
@@ -190,7 +174,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
         </span>
       </div>
 
-      {/* 👇 3. BARRA DE BÚSQUEDA UI 👇 */}
       <div className="relative mb-6 pb-4 border-b border-white/5">
         <div className="absolute inset-y-0 left-0 pl-3 top-0 bottom-4 flex items-center pointer-events-none">
           <Search size={16} className="text-gray-500" />
@@ -204,7 +187,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
         />
       </div>
 
-      {/* Contenido de la lista */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-40 text-gray-500 space-y-3">
@@ -223,7 +205,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
             </p>
           </div>
         ) : (
-          // 👇 4. RENDERIZAMOS LA LISTA FILTRADA EN LUGAR DE LA ORIGINAL 👇
           solicitudesFiltradas.map((solicitud) => (
             <CardSolicitudPendiente
               name={name}
@@ -238,7 +219,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
         )}
       </div>
 
-      {/* AQUÍ ESTÁ EL MODAL FLOTANTE */}
       {salaAFinalizar !== null && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] flex items-center justify-center p-4">
           <div className="bg-[#1a1b2e] p-8 rounded-2xl border border-white/10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -252,9 +232,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() =>
-                  handleFinalizarPartida(salaAFinalizar, 'EQUIPO1')
-                }
+                onClick={() => handleFinalizarPartida(salaAFinalizar, 1)}
                 disabled={procesandoGanador}
                 className="flex flex-col items-center gap-4 p-6 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -267,9 +245,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
               </button>
 
               <button
-                onClick={() =>
-                  handleFinalizarPartida(salaAFinalizar, 'EQUIPO2')
-                }
+                onClick={() => handleFinalizarPartida(salaAFinalizar, 2)}
                 disabled={procesandoGanador}
                 className="flex flex-col items-center gap-4 p-6 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
               >

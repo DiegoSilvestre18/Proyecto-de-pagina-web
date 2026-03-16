@@ -1,4 +1,6 @@
 import React from 'react';
+import { ESTADOS_SALA } from '../constants/estados';
+import { isAutoChess } from '../constants/formatos';
 import type { CuentaJuego, Sala } from '../types/types';
 
 interface Participacion {
@@ -10,6 +12,7 @@ interface Participacion {
 
 interface LobbyFooterProps {
   sala: Sala;
+  userRol?: string;
   miParticipacion: Participacion | undefined;
   cuentasJuego: CuentaJuego[];
   selectedAccountId: number | '';
@@ -23,6 +26,7 @@ interface LobbyFooterProps {
 
 const LobbyFooter: React.FC<LobbyFooterProps> = ({
   sala,
+  userRol,
   miParticipacion,
   cuentasJuego,
   selectedAccountId,
@@ -33,7 +37,10 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
   onUnirseSala,
   onCambiarEquipo,
 }) => {
-  const isAutoChess = sala.formato === 'Auto Chess';
+  const isAutoChessFormat = isAutoChess(sala.formato);
+  const estaLlena = (sala.jugadores || 0) >= (sala.maxJugadores || 0);
+  const puedeInscribirse = sala.estado === ESTADOS_SALA.ESPERANDO && !estaLlena;
+  const esSuperAdmin = userRol === 'SUPERADMIN';
 
   return (
     <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4 bg-[#0b0c1b]/50 -mx-6 p-6">
@@ -62,7 +69,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
             </div>
           )}
           <div className="flex flex-col sm:flex-row w-full justify-between items-center gap-3">
-            {isAutoChess ? (
+            {isAutoChessFormat ? (
               <div className="flex w-full justify-center items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-2.5 rounded-lg text-sm font-bold">
                 Inscrito en la partida (FFA)
               </div>
@@ -90,7 +97,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
             )}
           </div>
         </div>
-      ) : sala.estado === 'ESPERANDO' ? (
+      ) : puedeInscribirse && !esSuperAdmin ? (
         <div className="flex flex-col sm:flex-row justify-between items-end gap-4 w-full">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <div>
@@ -111,7 +118,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
                 ))}
               </select>
             </div>
-            {!isAutoChess && (
+            {!isAutoChessFormat && (
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
                   Elige tu Bando
@@ -139,7 +146,9 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
         </div>
       ) : (
         <div className="w-full text-center py-2 text-gray-500 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-          Las inscripciones estan cerradas
+          {esSuperAdmin
+            ? 'Modo administrador: sin inscripcion de pago'
+            : 'Las inscripciones estan cerradas'}
         </div>
       )}
     </div>

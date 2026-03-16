@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shield, X } from 'lucide-react';
+import { FORMATOS_VALIDOS } from '../constants/formatos';
 
 interface FormDataSala {
   juego: string;
@@ -57,9 +58,25 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
             </label>
             <select
               value={formData.juego}
-              onChange={(e) =>
-                onFormChange({ ...formData, juego: e.target.value })
-              }
+              onChange={(e) => {
+                const nuevoJuego = e.target.value;
+                const autoChessNoPermitido =
+                  nuevoJuego !== 'DOTA2' &&
+                  formData.formato === FORMATOS_VALIDOS.AUTO_CHESS;
+
+                onFormChange({
+                  ...formData,
+                  juego: nuevoJuego,
+                  formato: autoChessNoPermitido
+                    ? FORMATOS_VALIDOS.ALL_PICK_5V5
+                    : formData.formato,
+                  tipoSala: autoChessNoPermitido ? 'BASICA' : formData.tipoSala,
+                  costo: autoChessNoPermitido ? 6 : formData.costo,
+                  premioARepartir: autoChessNoPermitido
+                    ? 50
+                    : formData.premioARepartir,
+                });
+              }}
               className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
             >
               <option value="DOTA2">Dota 2</option>
@@ -74,7 +91,7 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               value={formData.formato}
               onChange={(e) => {
                 const nuevoFormato = e.target.value;
-                if (nuevoFormato === 'Auto Chess') {
+                if (nuevoFormato === FORMATOS_VALIDOS.AUTO_CHESS) {
                   onFormChange({
                     ...formData,
                     formato: nuevoFormato,
@@ -94,11 +111,13 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               }}
               className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
             >
-              <option value="1v1">1 vs 1 (Duelo)</option>
-              <option value="5v5 All Pick">5 vs 5 (All Pick)</option>
-              <option value="5v5 Captains Mode">5 vs 5 (Captains Mode)</option>
+              <option value={FORMATOS_VALIDOS.ALL_PICK_5V5}>
+                5 vs 5 (All Pick)
+              </option>
               {formData.juego === 'DOTA2' && (
-                <option value="Auto Chess">Auto Chess (8 Jugadores)</option>
+                <option value={FORMATOS_VALIDOS.AUTO_CHESS}>
+                  Auto Chess (8 Jugadores)
+                </option>
               )}
             </select>
           </div>
@@ -140,7 +159,7 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
             <label className="block text-xs font-bold text-gray-500 mb-2">
               TIPO DE SALA Y PREMIOS
             </label>
-            {formData.formato === 'Auto Chess' ? (
+            {formData.formato === FORMATOS_VALIDOS.AUTO_CHESS ? (
               <div className="grid grid-cols-2 gap-3 mb-2">
                 {[
                   { id: 'AUTOCHESS_3', costo: 3, p1: 12, p2: 5, p3: 3 },

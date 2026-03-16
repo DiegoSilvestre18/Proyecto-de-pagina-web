@@ -1,9 +1,11 @@
 import React from 'react';
 import { Edit2 } from 'lucide-react';
+import { useAuth } from '../../Context/AuthContext';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 const SettingsLayout: React.FC = () => {
   const { pathname } = useLocation();
+  const { user } = useAuth();
   const tabs = [
     { id: 'cuenta', label: 'Cuenta', url: '/main/settings/cuenta' },
     {
@@ -24,7 +26,7 @@ const SettingsLayout: React.FC = () => {
           </div>
           <div>
             <div className="font-bold text-white text-lg leading-tight">
-              <h2>Diego</h2>
+              <h2>{user?.username}</h2>
             </div>
             <button className="text-xs text-gray-400 flex items-center gap-1 mt-1 hover:text-white transition-colors">
               Editar perfil <Edit2 size={10} />

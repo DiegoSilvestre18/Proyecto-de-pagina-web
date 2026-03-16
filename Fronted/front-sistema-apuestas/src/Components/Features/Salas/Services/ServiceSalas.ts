@@ -1,5 +1,31 @@
 import { apiFetch } from '../../../../Global/Api';
+import { ESTADOS_SALA } from '../constants/estados';
+import { FORMATOS_VALIDOS, isFormatoValido } from '../constants/formatos';
 import type { Sala } from '../types/types';
+
+const normalizarEstado = (estado?: string) => {
+  if (estado === 'EN JUEGO') return ESTADOS_SALA.EN_CURSO;
+  return estado || ESTADOS_SALA.ESPERANDO;
+};
+
+const normalizarSala = (sala: Sala): Sala => {
+  const formato = isFormatoValido(sala.formato)
+    ? sala.formato
+    : FORMATOS_VALIDOS.ALL_PICK_5V5;
+
+  const maxJugadoresDefecto = formato === FORMATOS_VALIDOS.AUTO_CHESS ? 8 : 10;
+  const maxJugadores = sala.maxJugadores || maxJugadoresDefecto;
+  const jugadores = sala.jugadores ?? sala.participantes?.length ?? 0;
+  const estadoNormalizado = normalizarEstado(sala.estado);
+
+  return {
+    ...sala,
+    formato,
+    maxJugadores,
+    jugadores,
+    estado: estadoNormalizado,
+  };
+};
 
 // Reemplaza "any" con la interfaz real de tu Sala si ya la tienes en types.ts
 export const getSalas = async (): Promise<Sala[]> => {
@@ -9,11 +35,8 @@ export const getSalas = async (): Promise<Sala[]> => {
 
     // Si tu API devuelve un objeto { response: [...] }, usa res.response
     // Si devuelve el arreglo directo [...], usa solo res
-    if (response && response.response) {
-      return response.response;
-    }
-
-    return response || [];
+    const rawSalas = response?.response || response || [];
+    return Array.isArray(rawSalas) ? rawSalas.map(normalizarSala) : [];
   } catch (error) {
     console.error('Error al obtener las salas:', error);
     throw error;

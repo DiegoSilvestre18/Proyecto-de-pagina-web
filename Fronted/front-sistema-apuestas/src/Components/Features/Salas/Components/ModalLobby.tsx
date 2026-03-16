@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react'; // 👈 ¡Aquí está el useEffect!
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'; // 👈 La antena de SignalR
 import { X, Swords } from 'lucide-react';
+import { ESTADOS_SALA, getEstadoLabel } from '../constants/estados';
+import { FORMATOS_VALIDOS } from '../constants/formatos';
 import type { CuentaJuego, Sala } from '../types/types';
 import LobbyHeader from './LobbyHeader';
 import PiscinaJugadores from './PiscinaJugadores';
@@ -71,9 +73,11 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   // 👇 MAGIA MULTIJUGADOR: SignalR (Tiempo Real) 👇
   // =========================================================
   useEffect(() => {
-    // Solo nos conectamos a la radio si estamos en fase de Draft
+    // Nos conectamos desde ESPERANDO para no perder el salto cuando la sala se llena.
     const necesitaActualizacionEnVivo =
-      sala.estado === 'SORTEO' || sala.estado === 'DRAFTING';
+      sala.estado === ESTADOS_SALA.ESPERANDO ||
+      sala.estado === ESTADOS_SALA.SORTEO ||
+      sala.estado === ESTADOS_SALA.DRAFTING;
 
     if (!necesitaActualizacionEnVivo || !onActualizarSala) return;
 
@@ -118,8 +122,10 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   );
 
   const isPoolView =
-    ['ESPERANDO', 'SORTEO', 'DRAFTING'].includes(sala.estado || '') ||
-    sala.formato === 'Auto Chess';
+    sala.estado === ESTADOS_SALA.ESPERANDO ||
+    sala.estado === ESTADOS_SALA.SORTEO ||
+    sala.estado === ESTADOS_SALA.DRAFTING ||
+    sala.formato === FORMATOS_VALIDOS.AUTO_CHESS;
 
   return (
     <div
@@ -144,11 +150,13 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
             className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg transition-all ${
               sala.estado === 'ESPERANDO'
                 ? 'bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
-                : sala.estado === 'EN_CURSO'
-                  ? 'bg-blue-900/40 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                  : sala.estado === 'FINALIZADA'
-                    ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-                    : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
+                : sala.estado === 'SORTEO' || sala.estado === 'DRAFTING'
+                  ? 'bg-orange-900/40 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.3)]'
+                  : sala.estado === 'EN_CURSO'
+                    ? 'bg-blue-900/40 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                    : sala.estado === 'FINALIZADA'
+                      ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                      : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
             }`}
           >
             {sala.estado === 'ESPERANDO' && (
@@ -157,23 +165,20 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
             {sala.estado === 'EN_CURSO' && (
               <Swords size={12} className="text-blue-400" />
             )}
+            {(sala.estado === 'SORTEO' || sala.estado === 'DRAFTING') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+            )}
             {sala.estado === 'FINALIZADA' && (
               <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
             )}
-            {sala.estado === 'ESPERANDO'
-              ? 'ESPERANDO'
-              : sala.estado === 'EN_CURSO'
-                ? 'EN CURSO'
-                : sala.estado === 'FINALIZADA'
-                  ? 'FINALIZADA'
-                  : sala.estado}
+            {(getEstadoLabel(sala.estado) || '').toUpperCase()}
           </span>
         </div>
 
         {/* Admin: Iniciar Partida button for Auto Chess ESPERANDO */}
         {sala.estado === 'ESPERANDO' &&
           userRol === 'SUPERADMIN' &&
-          sala.formato === 'Auto Chess' && (
+          sala.formato === FORMATOS_VALIDOS.AUTO_CHESS && (
             <div className="pt-4 px-6 shrink-0 flex justify-center z-40 relative bg-[#0b0c1b]">
               <button
                 onClick={onEmpezarPartida}
@@ -207,6 +212,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
           {/* Footer */}
           <LobbyFooter
             sala={sala}
+            userRol={userRol}
             miParticipacion={miParticipacion}
             cuentasJuego={cuentasJuego}
             selectedAccountId={selectedAccountId}
