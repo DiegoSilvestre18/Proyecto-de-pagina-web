@@ -8,8 +8,8 @@ Este repositorio ahora incluye:
 
 - `docker-compose.yml` en la raiz del proyecto.
 - `Backend/sistema-de-apuestas/src/SistemaApuestas.Api/Dockerfile`.
-- `Fronted/front-sistema-apuestas/Dockerfile`.
-- `Fronted/front-sistema-apuestas/nginx.conf`.
+- `Frontend/front-sistema-apuestas/Dockerfile`.
+- `Frontend/front-sistema-apuestas/nginx.conf`.
 - `.env.example` para variables de entorno.
 
 ### Pasos en servidor

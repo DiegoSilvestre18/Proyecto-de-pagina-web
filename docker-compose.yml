@@ -46,7 +46,7 @@ services:
 
   frontend:
     build:
-      context: ./Fronted/front-sistema-apuestas
+      context: ./Frontend/front-sistema-apuestas
       dockerfile: ./Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-/}
