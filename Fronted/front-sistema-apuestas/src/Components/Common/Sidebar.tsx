@@ -11,6 +11,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+import Logo from '../../assets/Logo.png';
 
 // 👇 2. Importa tu useAuth (asegúrate de que la ruta sea correcta hacia tu AuthContext)
 import { useAuth } from '../../Context/AuthContext';
@@ -57,9 +58,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center gap-3 cursor-pointer group overflow-hidden"
           onClick={onCloseMobileMenu}
         >
-          <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center group-hover:bg-orange-500 transition-colors shadow-lg shadow-orange-600/20 shrink-0">
-            <span className="font-bold text-xs italic text-white">A</span>
-          </div>
+          <img
+            src={Logo}
+            alt="Arena Gamer"
+            className="w-8 h-8 rounded object-cover shadow-lg shadow-orange-600/20 shrink-0"
+          />
           {!isCollapsed && (
             <h1 className="text-xl font-black tracking-tighter leading-none text-white">
               ARENA

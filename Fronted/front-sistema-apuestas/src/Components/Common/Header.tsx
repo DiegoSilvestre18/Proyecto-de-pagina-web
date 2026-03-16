@@ -16,7 +16,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { type UserDto } from '../../Context/AuthContext';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 
 interface HeaderProps {
@@ -38,13 +38,11 @@ const Header: React.FC<HeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   const rol = user?.rol?.toUpperCase() ?? '';
-  const esControlAdmin = rol === 'SUPERADMIN' || rol === 'ADMIN';
+  const esControlAdmin = rol === 'SUPERADMIN';
   const esControlHost = rol === 'HOST';
-  const mostrarBotonControl =
-    pathname === '/main' && (esControlAdmin || esControlHost);
+  const mostrarBotonControl = esControlAdmin || esControlHost;
   const rutaControl = esControlAdmin ? '/main-admin' : '/main-host';
 
   // Cerrar el dropdown si se hace click fuera de él
