@@ -36,7 +36,7 @@ export async function apiFetch(path: string, options: FetchOptions = {}) {
     ...getAuthHeader(),
     ...(options.headers || {}),
   };
-  console.log(getAuthHeader());
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers,
