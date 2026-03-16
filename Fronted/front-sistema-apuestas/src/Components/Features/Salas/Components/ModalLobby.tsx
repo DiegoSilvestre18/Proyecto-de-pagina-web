@@ -4,6 +4,7 @@ import { X, Swords } from 'lucide-react';
 import { ESTADOS_SALA, getEstadoLabel } from '../constants/estados';
 import { FORMATOS_VALIDOS } from '../constants/formatos';
 import type { CuentaJuego, Sala } from '../types/types';
+import { SIGNALR_URL } from '../../../../Global/Api';
 import LobbyHeader from './LobbyHeader';
 import PiscinaJugadores from './PiscinaJugadores';
 import EquiposView from './EquiposView';
@@ -83,8 +84,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
 
     // 1. Construimos la antena apuntando a tu Backend
     const connection = new HubConnectionBuilder()
-      // 🔥 OJO: Asegúrate de que este sea el puerto real de tu backend (5127)
-      .withUrl('http://localhost:5127/salahub')
+      .withUrl(SIGNALR_URL)
       .configureLogging(LogLevel.Information)
       .build();
 

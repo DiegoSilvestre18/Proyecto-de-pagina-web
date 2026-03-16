@@ -6,7 +6,7 @@ import {
   createContext,
   type ReactNode,
 } from 'react';
-import { apiFetch } from '../Global/Api';
+import { BASE_URL, apiFetch } from '../Global/Api';
 
 export interface UserDto {
   id: number;
@@ -197,8 +197,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
       if (!auth || !auth.token) return;
 
       try {
-        // 🔥 RECUERDA CAMBIAR "PUERTO" POR TU PUERTO REAL (ej. localhost:5000) 🔥
-        const response = await fetch('http://localhost:5127/api/auth/me', {
+        const response = await fetch(`${BASE_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${auth.token}`,
           },

@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sistema-apuestas-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-db_proyecto}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-db_proyecto}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+
+  backend:
+    build:
+      context: ./Backend/sistema-de-apuestas
+      dockerfile: ./src/SistemaApuestas.Api/Dockerfile
+    container_name: sistema-apuestas-backend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-db_proyecto};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres123}
+      Jwt__Key: ${JWT_KEY:-CAMBIA_ESTA_CLAVE_POR_UNA_SUPER_SECRETA_EN_PRODUCCION_123456789}
+      Jwt__Issuer: SistemaApuestasApi
+      Jwt__Audience: ReactFrontend
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8080"
+    networks:
+      - appnet
+
+  frontend:
+    build:
+      context: ./Fronted/front-sistema-apuestas
+      dockerfile: ./Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/}
+        VITE_SIGNALR_URL: ${VITE_SIGNALR_URL:-/salahub}
+    container_name: sistema-apuestas-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - appnet
+
+volumes:
+  db_data:
+
+networks:
+  appnet:
+    driver: bridge

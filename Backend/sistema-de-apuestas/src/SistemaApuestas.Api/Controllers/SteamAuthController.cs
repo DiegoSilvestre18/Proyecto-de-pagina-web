@@ -17,6 +17,12 @@ namespace SistemaApuestas.Api.Controllers
         private readonly IGameAccountService _gameAccountService;
         private readonly IConfiguration _config;
 
+        private string FrontendIntegracionesUrl(string query)
+        {
+            var baseUrl = _config["Frontend:BaseUrl"] ?? "http://localhost:5173";
+            return $"{baseUrl.TrimEnd('/')}/main/settings/integraciones?{query}";
+        }
+
         public SteamAuthController(IGameAccountService gameAccountService, IConfiguration config)
         {
             _gameAccountService = gameAccountService;
@@ -46,11 +52,11 @@ namespace SistemaApuestas.Api.Controllers
 
                 var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!int.TryParse(idClaim, out usuarioId))
-                    return Redirect("http://localhost:5173/main/settings/integraciones?error=token_invalido");
+                    return Redirect(FrontendIntegracionesUrl("error=token_invalido"));
             }
             catch
             {
-                return Redirect("http://localhost:5173/main/settings/integraciones?error=token_invalido");
+                return Redirect(FrontendIntegracionesUrl("error=token_invalido"));
             }
 
             var properties = new AuthenticationProperties
@@ -69,11 +75,11 @@ namespace SistemaApuestas.Api.Controllers
             var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             if (!result.Succeeded)
-                return Redirect("http://localhost:5173/main/settings/integraciones?error=autenticacion_fallida");
+                return Redirect(FrontendIntegracionesUrl("error=autenticacion_fallida"));
 
             result.Properties!.Items.TryGetValue("usuarioId", out string? usuarioIdStr);
             if (!int.TryParse(usuarioIdStr, out int usuarioId))
-                return Redirect("http://localhost:5173/main/settings/integraciones?error=usuario_invalido");
+                return Redirect(FrontendIntegracionesUrl("error=usuario_invalido"));
 
             var claim = result.Principal!.FindFirst(ClaimTypes.NameIdentifier);
             string steam64Url = claim!.Value;
@@ -92,12 +98,12 @@ namespace SistemaApuestas.Api.Controllers
             {
                 await _gameAccountService.VincularCuentaAsync(usuarioId, dto);
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Redirect("http://localhost:5173/main/settings/integraciones?vinculacion=exito");
+                return Redirect(FrontendIntegracionesUrl("vinculacion=exito"));
             }
             catch (Exception ex)
             {
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Redirect($"http://localhost:5173/main/settings/integraciones?error={Uri.EscapeDataString(ex.Message)}");
+                return Redirect(FrontendIntegracionesUrl($"error={Uri.EscapeDataString(ex.Message)}"));
             }
         }
     }

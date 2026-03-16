@@ -87,11 +87,16 @@ builder.Services.AddAuthentication(options =>
     });
 
 // Configuración de CORS para permitir solicitudes desde el frontend React
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()
+    ?? ["http://localhost:5173", "https://arenagamergg.com", "https://www.arenagamergg.com"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // El puerto de React
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()  // Permite enviar JSON y tokens de autorización
               .AllowAnyMethod() // Permite GET, POST, PUT, DELETE
               .AllowCredentials();
@@ -121,6 +126,3 @@ app.MapHub<SalaHub>("/salahub"); // 👈 AHORA SÍ, ANTES DEL RUN
 
 // INICIAR EL SERVIDOR (¡Siempre va al final de todo!)
 app.Run();
-
-// Recuerda importar el namespace arriba: using SistemaApuestas.Api.Hubs;
-app.MapHub<SalaHub>("/salahub");

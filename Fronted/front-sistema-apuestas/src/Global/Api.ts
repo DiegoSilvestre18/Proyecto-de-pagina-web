@@ -1,4 +1,15 @@
-export const BASE_URL = 'http://localhost:5127';
+const apiUrlFromEnv = (
+  import.meta.env.VITE_API_URL as string | undefined
+)?.trim();
+const signalrUrlFromEnv = (
+  import.meta.env.VITE_SIGNALR_URL as string | undefined
+)?.trim();
+
+export const BASE_URL = apiUrlFromEnv ? apiUrlFromEnv.replace(/\/$/, '') : '';
+
+export const SIGNALR_URL = signalrUrlFromEnv
+  ? signalrUrlFromEnv
+  : `${BASE_URL}/salahub`;
 
 // Obtiene el token del almacenamiento (guardado dentro del objeto "auth")
 function getAuthHeader(): Record<string, string> {
