@@ -8,48 +8,53 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.FinancialCon
     {
         public void Configure(EntityTypeBuilder<SolicitudRecarga> builder)
         {
-            builder.ToTable("SOLICITUD_RECARGA");
+            builder.ToTable("solicitud_recarga");
             builder.HasKey(r => r.RecargaId);
 
             builder.Property(r => r.RecargaId)
-                .HasColumnName("RECARGA_ID")
+                .HasColumnName("recarga_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(r => r.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .IsRequired();
 
             builder.Property(r => r.Monto)
-                .HasColumnName("MONTO")
+                .HasColumnName("monto")
                 .HasPrecision(10, 2)
                 .IsRequired();
 
+            builder.Property(r => r.Moneda)
+                .HasColumnName("moneda")
+                .HasMaxLength(10)
+                .HasDefaultValue("PEN");
+
             builder.Property(r => r.Metodo)
-                .HasColumnName("METODO")
+                .HasColumnName("metodo")
                 .HasMaxLength(50);
 
-            builder.Property(r => r.CodigoOperacion)
-                .HasColumnName("CODIGO_OPERACION")
+            builder.Property(r => r.CuentaDestino)
+                .HasColumnName("cuenta_destino")
                 .HasMaxLength(100);
 
-            builder.Property(r => r.FotoVoucherUrl)
-                .HasColumnName("FOTO_VOUCHER_URL")
-                .HasColumnType("text");
+            builder.Property(r => r.NroOperacion)
+                .HasColumnName("nro_operacion")
+                .HasMaxLength(100);
 
             builder.Property(r => r.Estado)
-                .HasColumnName("ESTADO")
+                .HasColumnName("estado")
                 .HasMaxLength(20)
                 .HasDefaultValue("PENDIENTE");
 
             builder.Property(r => r.AdminAtendiendoId)
-                .HasColumnName("ADMIN_ATENDIENDO_ID");
+                .HasColumnName("admin_atendiendo_id");
 
             builder.Property(r => r.FechaEmision)
-                .HasColumnName("FECHA_EMISION")
+                .HasColumnName("fecha_emision")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Property(r => r.FechaCierre)
-                .HasColumnName("FECHA_CIERRE");
+                .HasColumnName("fecha_cierre");
 
             // RELACIÓN: Usuario que solicita
             builder.HasOne(r => r.Usuario)

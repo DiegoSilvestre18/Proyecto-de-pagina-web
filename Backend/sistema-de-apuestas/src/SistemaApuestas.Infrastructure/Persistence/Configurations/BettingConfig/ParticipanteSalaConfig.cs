@@ -8,50 +8,50 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
     {
         public void Configure(EntityTypeBuilder<ParticipanteSala> builder)
         {
-            builder.ToTable("PARTICIPANTE_SALA");
+            builder.ToTable("participante_sala");
             builder.HasKey(p => p.ParticipacionId);
 
             builder.Property(p => p.ParticipacionId)
-                .HasColumnName("PARTICIPACION_ID")
+                .HasColumnName("participacion_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(p => p.SalaId)
-                .HasColumnName("SALA_ID")
+                .HasColumnName("sala_id")
                 .IsRequired();
 
             builder.Property(p => p.UsuarioId)
-                .HasColumnName("USUARIO_ID")
+                .HasColumnName("usuario_id")
                 .IsRequired();
 
             builder.Property(p => p.GameAccountId)
-                .HasColumnName("GAME_ACCOUNT_ID")
+                .HasColumnName("game_account_id")
                 .IsRequired();
 
             builder.Property(p => p.Equipo)
-                .HasColumnName("EQUIPO")
+                .HasColumnName("equipo")
                 .HasMaxLength(10)
                 .IsRequired();
 
             builder.Property(p => p.EsCapitan)
-                .HasColumnName("ES_CAPITAN")
+                .HasColumnName("es_capitan")
                 .HasDefaultValue(false);
 
             builder.Property(p => p.SlotIndex)
-                .HasColumnName("SLOT_INDEX");
+                .HasColumnName("slot_index");
 
             builder.Property(p => p.PagoConBono)
-                .HasColumnName("PAGO_CON_BONO")
+                .HasColumnName("pago_con_bono")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0m);
 
             builder.Property(p => p.PagoConReal)
-                .HasColumnName("PAGO_CON_REAL")
+                .HasColumnName("pago_con_real")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0m);
 
             builder.HasIndex(p => new { p.SalaId, p.SlotIndex })
                 .IsUnique()
-                .HasDatabaseName("UQ_SALA_SLOT");
+                .HasDatabaseName("uq_sala_slot");
 
             // RELACIÓN: Participante en una Sala
             builder.HasOne(p => p.Sala)

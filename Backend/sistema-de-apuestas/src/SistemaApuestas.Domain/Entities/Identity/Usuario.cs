@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaApuestas.Domain.Entities.Identity
 {
@@ -7,6 +8,10 @@ namespace SistemaApuestas.Domain.Entities.Identity
     {
         public int UsuarioId { get; set; }
         public int? ClanId { get; set; }
+        public string Nombre { get; set; }
+        public string ApellidoPaterno { get; set; }
+        public string ApellidoMaterno { get; set; }
+        public string Telefono { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
         public string PassHash { get; set; }
@@ -16,12 +21,16 @@ namespace SistemaApuestas.Domain.Entities.Identity
         public int PartidasJugadas { get; set; } = 0;
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
+        [Column("saldo_recarga")]
+        public decimal SaldoRecarga { get; set; }
+
         // Navegación
         public Gaming.Clan? Clan { get; set; }
         public ICollection<Gaming.GameAccount> GameAccounts { get; set; } = [];
         public ICollection<Gaming.UsuarioStat> UsuarioStats { get; set; } = [];
         public ICollection<Betting.Sala> SalasCreadas { get; set; } = [];
         public ICollection<Betting.ParticipanteSala> Participaciones { get; set; } = [];
+
         public ICollection<Financial.SolicitudRecarga> SolicitudesRecarga { get; set; } = [];
         public ICollection<Financial.SolicitudRetiro> SolicitudesRetiro { get; set; } = [];
         public ICollection<Audit.Movimiento> Movimientos { get; set; } = [];

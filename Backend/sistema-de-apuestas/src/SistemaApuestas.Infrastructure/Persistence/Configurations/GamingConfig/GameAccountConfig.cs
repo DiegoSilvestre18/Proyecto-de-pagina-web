@@ -8,45 +8,45 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.GamingConfig
     {
         public void Configure(EntityTypeBuilder<GameAccount> builder)
         {
-            builder.ToTable("GAME_ACCOUNT");
+            builder.ToTable("game_account");
             builder.HasKey(g => g.GameAccountId);
 
             builder.Property(g => g.GameAccountId)
-                .HasColumnName("GAME_ACCOUNT_ID")
+                .HasColumnName("game_account_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(g => g.UsuarioId)
-                .HasColumnName("USUARIO_ID");
+                .HasColumnName("usuario_id");
 
             builder.Property(g => g.Juego)
-                .HasColumnName("JUEGO")
+                .HasColumnName("juego")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(g => g.IdExterno)
-                .HasColumnName("ID_EXTERNO")
+                .HasColumnName("id_externo")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(g => g.IdVisible)
-                .HasColumnName("ID_VISIBLE")
+                .HasColumnName("id_visible")
                 .HasMaxLength(100);
 
             builder.Property(g => g.RangoActual)
-                .HasColumnName("RANGO_ACTUAL")
+                .HasColumnName("rango_actual")
                 .HasMaxLength(50);
 
             builder.Property(g => g.EsRangoManual)
-                .HasColumnName("ES_RANGO_MANUAL")
+                .HasColumnName("es_rango_manual")
                 .HasDefaultValue(false);
 
             builder.Property(g => g.FechaVinculacion)
-                .HasColumnName("FECHA_VINCULACION")
+                .HasColumnName("fecha_vinculacion")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.HasIndex(g => new { g.UsuarioId, g.Juego })
                 .IsUnique()
-                .HasDatabaseName("UQ_USUARIO_JUEGO");
+                .HasDatabaseName("uq_usuario_juego");
 
             // RELACIÓN: Cuenta pertenece a un Usuario
             builder.HasOne(g => g.Usuario)

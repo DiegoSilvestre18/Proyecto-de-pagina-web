@@ -8,26 +8,26 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
     {
         public void Configure(EntityTypeBuilder<LogAccion> builder)
         {
-            builder.ToTable("LOG_ACCIONES");
+            builder.ToTable("log_acciones");
             builder.HasKey(l => l.LogId);
 
             builder.Property(l => l.LogId)
-                .HasColumnName("LOG_ID")
+                .HasColumnName("log_id")
                 .ValueGeneratedOnAdd();
 
             builder.Property(l => l.UsuarioId)
-                .HasColumnName("USUARIO_ID");
+                .HasColumnName("usuario_id");
 
             builder.Property(l => l.Accion)
-                .HasColumnName("ACCION")
+                .HasColumnName("accion")
                 .HasMaxLength(50);
 
             builder.Property(l => l.Detalle)
-                .HasColumnName("DETALLE")
+                .HasColumnName("detalle")
                 .HasColumnType("jsonb");
 
             builder.Property(l => l.Fecha)
-                .HasColumnName("FECHA")
+                .HasColumnName("fecha")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // RELACIÓN: Usuario que realizó la acción
