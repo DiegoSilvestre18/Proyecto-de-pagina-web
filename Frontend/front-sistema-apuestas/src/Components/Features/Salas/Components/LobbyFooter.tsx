@@ -20,6 +20,7 @@ interface LobbyFooterProps {
   isJoining: boolean;
   onUnirseSala: () => void;
   onCambiarEquipo: (salaId: number, nuevoEquipo: string) => void;
+  onRetirarseSala: () => void;
 }
 
 const LobbyFooter: React.FC<LobbyFooterProps> = ({
@@ -32,6 +33,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
   isJoining,
   onUnirseSala,
   onCambiarEquipo,
+  onRetirarseSala,
 }) => {
   const isAutoChessFormat = isAutoChess(sala.formato);
   const estaLlena = (sala.jugadores || 0) >= (sala.maxJugadores || 0);
@@ -70,8 +72,18 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
               </div>
             ) : miParticipacion.equipo !== 'EQUIPO1' &&
               miParticipacion.equipo !== 'EQUIPO2' ? (
-              <div className="flex w-full justify-center items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-4 py-2.5 rounded-lg text-sm font-bold">
-                Inscrito. Esperando sorteo para asignar equipo
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex w-full justify-center items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-4 py-2.5 rounded-lg text-sm font-bold">
+                  Inscrito. Esperando sorteo para asignar equipo
+                </div>
+                {sala.estado === ESTADOS_SALA.ESPERANDO && (
+                  <button
+                    onClick={onRetirarseSala}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 font-bold rounded-lg text-sm transition-colors"
+                  >
+                    Retirarme y reembolsar
+                  </button>
+                )}
               </div>
             ) : (
               <>

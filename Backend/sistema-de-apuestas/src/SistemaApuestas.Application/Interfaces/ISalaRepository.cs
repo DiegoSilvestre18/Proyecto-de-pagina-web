@@ -15,6 +15,9 @@ namespace SistemaApuestas.Application.Interfaces
         Task<Sala?> ObtenerSalaActivaPorCuentaJuegoAsync(int gameAccountId, int salaIdActual);
         Task<bool> ExisteInscripcionAsync(int salaId, int usuarioId);
         Task<Movimiento?> ObtenerReciboInscripcionAsync(int usuarioId, int salaId);
+        Task<ParticipanteSala?> ObtenerParticipanteAsync(int salaId, int usuarioId);
+        Task EliminarParticipanteAsync(ParticipanteSala participante);
+        Task<Movimiento?> ObtenerMovimientoInscripcionAsync(int usuarioId, int salaId);
 
         Task AgregarSalaAsync(Sala sala);
         Task AgregarParticipanteAsync(ParticipanteSala participante);

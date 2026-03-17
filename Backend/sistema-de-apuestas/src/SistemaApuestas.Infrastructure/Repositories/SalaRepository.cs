@@ -76,6 +76,33 @@ namespace SistemaApuestas.Infrastructure.Repositories
         public async Task<Movimiento?> ObtenerReciboInscripcionAsync(int usuarioId, int salaId) =>
             await _context.Movimientos.FirstOrDefaultAsync(m => m.UsuarioId == usuarioId && m.Concepto == $"Inscripción a Sala {salaId}" && m.Tipo == "EGRESO");
 
+        public async Task<ParticipanteSala?> ObtenerParticipanteAsync(int salaId, int usuarioId)
+        {
+            return await _context.ParticipanteSalas
+                .FirstOrDefaultAsync(p => p.SalaId == salaId && p.UsuarioId == usuarioId);
+        }
+
+        public async Task EliminarParticipanteAsync(ParticipanteSala participante)
+        {
+            _context.ParticipanteSalas.Remove(participante);
+            await Task.CompletedTask;
+        }
+
+        public async Task<Movimiento?> ObtenerMovimientoInscripcionAsync(int usuarioId, int salaId)
+        {
+            return await _context.Movimientos
+                .Where(m =>
+                    m.UsuarioId == usuarioId &&
+                    m.Tipo == "EGRESO" &&
+                    (
+                        m.SalaId == salaId ||
+                        m.Concepto.Contains($"Sala {salaId}")
+                    )
+                )
+                .OrderByDescending(m => m.Fecha)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task AgregarSalaAsync(Sala sala) => _context.Salas.Add(sala);
 
         public async Task AgregarParticipanteAsync(ParticipanteSala participante) => _context.ParticipanteSalas.Add(participante);

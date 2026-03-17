@@ -6,6 +6,8 @@ namespace SistemaApuestas.Application.Interfaces.Salas
     {
         Task<int> CrearSalaAsync(int creadorId, CrearSalaDto request);
         Task<UnirseSalaResponseDto> UnirseASalaAsync(int jugadorId, InscripcionSalaDto request);
+        Task<UnirseSalaResponseDto> RetirarseDeSalaAsync(int usuarioId, int salaId);
+        Task<UnirseSalaResponseDto> ExpulsarUsuarioPorAdminAsync(int salaId, int usuarioId);
         Task<string> CancelarSalaAsync(int salaId);
         Task<SugerenciaGanadorResponseDto> SugerirGanadorAsync(int salaId);
         Task<string> FinalizarSalaAsync(FinalizarSalaDto request);

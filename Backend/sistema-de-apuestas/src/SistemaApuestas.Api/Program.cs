@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SistemaApuestas.Api.BackgroundServices;
 using SistemaApuestas.Application.Hubs;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Audit;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<ISalaService, SalaService>();
 builder.Services.AddScoped<ISalaRepository, SalaRepository>();
 
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<SalaInactivityCleanupService>();
 
 // Registro de Controllers
 builder.Services.AddControllers();

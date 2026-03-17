@@ -9,6 +9,8 @@ using SistemaApuestas.Domain.Entities.Betting;
 using SistemaApuestas.Domain.Entities.Identity;
 using Microsoft.AspNetCore.SignalR;
 using SistemaApuestas.Application.Hubs;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace SistemaApuestas.Application.Services
 {
@@ -194,6 +196,7 @@ namespace SistemaApuestas.Application.Services
             var movimiento = new Movimiento
             {
                 UsuarioId = jugador.UsuarioId,
+                SalaId = sala.SalaId,
                 Tipo = "EGRESO",
                 MontoReal = montoRealUsado, // Lo que dolió de verdad (Ganancias)
                 MontoBono = montoBonoUsado, // Lo que puso el admin (Regalo)
@@ -246,8 +249,160 @@ namespace SistemaApuestas.Application.Services
             {
                 Mensaje = $"Inscripción exitosa. Se cobraron S/ {montoRealUsado} (Real) y S/ {montoBonoUsado} (Bono).",
                 SaldoRealRestante = jugador.SaldoReal,
-                SaldoBonoRestante = jugador.SaldoBono
+                SaldoBonoRestante = jugador.SaldoBono,
+                SaldoRecargaRestante = jugador.SaldoRecarga
             };
+        }
+
+        public async Task<UnirseSalaResponseDto> RetirarseDeSalaAsync(int usuarioId, int salaId)
+        {
+            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
+            if (sala == null) throw new Exception("La sala no existe.");
+
+            if (sala.Estado != "ESPERANDO")
+                throw new Exception("Solo puedes retirarte cuando la sala aún está en estado ESPERANDO.");
+
+            string formato = sala.Formato ?? string.Empty;
+            bool es5v5 = formato.Contains("5v5", StringComparison.OrdinalIgnoreCase);
+            bool esAutoChess = formato.Contains("Auto Chess", StringComparison.OrdinalIgnoreCase);
+            int limiteJugadores = es5v5 ? 10 : (esAutoChess ? 8 : 2);
+            int participantesActuales = sala.Participantes?.Count ?? 0;
+
+            if (participantesActuales >= limiteJugadores)
+                throw new Exception("La sala ya se llenó. No es posible retirarse con reembolso.");
+
+            var participante = await _repository.ObtenerParticipanteAsync(salaId, usuarioId);
+            if (participante == null)
+                throw new Exception("No estás inscrito en esta sala.");
+
+            var movimientoInscripcion = await _repository.ObtenerMovimientoInscripcionAsync(usuarioId, salaId);
+            if (movimientoInscripcion == null)
+                throw new Exception("No se encontró el registro de inscripción para calcular reembolso.");
+
+            var minutosTranscurridos = (DateTime.UtcNow - movimientoInscripcion.Fecha).TotalMinutes;
+            if (minutosTranscurridos < 8)
+            {
+                var restante = Math.Max(0, 8 - (int)Math.Floor(minutosTranscurridos));
+                throw new Exception($"Debes esperar {restante} minuto(s) más para retirarte con reembolso.");
+            }
+
+            var usuario = await _repository.ObtenerUsuarioPorIdAsync(usuarioId);
+            if (usuario == null) throw new Exception("Usuario no encontrado.");
+
+            decimal montoReal = movimientoInscripcion.MontoReal;
+            decimal montoBono = movimientoInscripcion.MontoBono;
+            decimal montoRecarga = ExtraerMontoRecarga(movimientoInscripcion.Concepto);
+
+            usuario.SaldoRecarga += montoRecarga;
+            usuario.SaldoReal += montoReal;
+            usuario.SaldoBono += montoBono;
+
+            await _repository.EliminarParticipanteAsync(participante);
+
+            var movimientoReembolso = new Movimiento
+            {
+                UsuarioId = usuarioId,
+                SalaId = salaId,
+                Tipo = "INGRESO",
+                MontoReal = montoReal,
+                MontoBono = montoBono,
+                Concepto = $"Reembolso por retiro voluntario de Sala {salaId}. Devuelto: S/{montoRecarga} Recarga, S/{montoReal} Ganancias, S/{montoBono} Bono.",
+                Fecha = DateTime.UtcNow
+            };
+
+            await _repository.AgregarMovimientoAsync(movimientoReembolso);
+            await _repository.GuardarCambiosAsync();
+
+            return new UnirseSalaResponseDto
+            {
+                Mensaje = "Te retiraste de la sala y se reembolsó tu inscripción.",
+                SaldoRealRestante = usuario.SaldoReal,
+                SaldoBonoRestante = usuario.SaldoBono,
+                SaldoRecargaRestante = usuario.SaldoRecarga
+            };
+        }
+
+        public async Task<UnirseSalaResponseDto> ExpulsarUsuarioPorAdminAsync(int salaId, int usuarioId)
+        {
+            var sala = await _repository.ObtenerSalaPorIdAsync(salaId);
+            if (sala == null) throw new Exception("La sala no existe.");
+
+            if (sala.Estado == "FINALIZADA" || sala.Estado == "CANCELADA" || sala.Estado == "RECHAZADA")
+                throw new Exception("No se puede expulsar jugadores en una sala cerrada.");
+
+            var participante = await _repository.ObtenerParticipanteAsync(salaId, usuarioId);
+            if (participante == null)
+                throw new Exception("El usuario no está inscrito en esta sala.");
+
+            var movimientoInscripcion = await _repository.ObtenerMovimientoInscripcionAsync(usuarioId, salaId);
+            if (movimientoInscripcion == null)
+                throw new Exception("No se encontró el movimiento de inscripción para reembolsar.");
+
+            var usuario = await _repository.ObtenerUsuarioPorIdAsync(usuarioId);
+            if (usuario == null) throw new Exception("Usuario no encontrado.");
+
+            decimal montoReal = movimientoInscripcion.MontoReal;
+            decimal montoBono = movimientoInscripcion.MontoBono;
+            decimal montoRecarga = ExtraerMontoRecarga(movimientoInscripcion.Concepto);
+
+            usuario.SaldoRecarga += montoRecarga;
+            usuario.SaldoReal += montoReal;
+            usuario.SaldoBono += montoBono;
+
+            await _repository.EliminarParticipanteAsync(participante);
+
+            if (sala.Capitan1Id == usuarioId) sala.Capitan1Id = null;
+            if (sala.Capitan2Id == usuarioId) sala.Capitan2Id = null;
+            if (sala.GanadorSorteoId == usuarioId) sala.GanadorSorteoId = null;
+            if (sala.TurnoActualId == usuarioId) sala.TurnoActualId = null;
+
+            if (sala.Estado == "SORTEO" || sala.Estado == "DRAFTING")
+            {
+                if (sala.Capitan1Id == null || sala.Capitan2Id == null)
+                {
+                    sala.Estado = "ESPERANDO";
+                }
+            }
+
+            var movimientoReembolso = new Movimiento
+            {
+                UsuarioId = usuarioId,
+                SalaId = salaId,
+                Tipo = "INGRESO",
+                MontoReal = montoReal,
+                MontoBono = montoBono,
+                Concepto = $"Reembolso por retiro administrativo de Sala {salaId}. Devuelto: S/{montoRecarga} Recarga, S/{montoReal} Ganancias, S/{montoBono} Bono.",
+                Fecha = DateTime.UtcNow
+            };
+
+            await _repository.AgregarMovimientoAsync(movimientoReembolso);
+            await _repository.GuardarCambiosAsync();
+
+            return new UnirseSalaResponseDto
+            {
+                Mensaje = "Jugador retirado de la sala por administración y reembolso aplicado.",
+                SaldoRealRestante = usuario.SaldoReal,
+                SaldoBonoRestante = usuario.SaldoBono,
+                SaldoRecargaRestante = usuario.SaldoRecarga
+            };
+        }
+
+        private static decimal ExtraerMontoRecarga(string? concepto)
+        {
+            var matchRecarga = Regex.Match(
+                concepto ?? string.Empty,
+                @"Pagado con:\s*S/(?<recarga>[0-9]+(?:[\.,][0-9]+)?)\s+Recarga",
+                RegexOptions.IgnoreCase);
+
+            if (!matchRecarga.Success)
+            {
+                return 0m;
+            }
+
+            var recargaText = matchRecarga.Groups["recarga"].Value.Replace(',', '.');
+            return decimal.TryParse(recargaText, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+                ? parsed
+                : 0m;
         }
 
         public async Task<string> TomarSalaAsync(int salaId, int adminId)

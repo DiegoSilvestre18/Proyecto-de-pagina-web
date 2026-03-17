@@ -22,6 +22,7 @@ interface ModalLobbyProps {
   isJoining: boolean;
   onUnirseSala: () => void;
   onCambiarEquipo: (salaId: number, nuevoEquipo: string) => void;
+  onRetirarseSala: () => void;
   onClose: () => void;
   onLanzarMoneda: () => void;
   onPickPlayer: (jugadorId: number) => void;
@@ -50,6 +51,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   isJoining,
   onUnirseSala,
   onCambiarEquipo,
+  onRetirarseSala,
   onClose,
   onLanzarMoneda,
   onPickPlayer,
@@ -216,6 +218,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
             isJoining={isJoining}
             onUnirseSala={onUnirseSala}
             onCambiarEquipo={onCambiarEquipo}
+            onRetirarseSala={onRetirarseSala}
           />
 
           {/* Admin Panel (EN_CURSO only) */}

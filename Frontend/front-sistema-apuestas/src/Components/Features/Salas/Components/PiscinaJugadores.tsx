@@ -2,6 +2,7 @@ import React from 'react';
 import { Crown, Shield, Users, UserPlus } from 'lucide-react';
 import type { Sala } from '../types/types';
 import { forzarCapitanAdmin } from '../Services/ServiceSalas';
+import { expulsarUsuarioSala } from '../Services/ServiceSalas';
 
 interface PiscinaJugadoresProps {
   sala: Sala;
@@ -199,36 +200,66 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                       Reclutar
                     </button>
                   )}
-                {userRol === 'SUPERADMIN' &&
-                  jugador &&
-                  !isCapitan &&
-                  !isAutoChess && (
+                {userRol === 'SUPERADMIN' && jugador && (
+                  <>
+                    {!isCapitan && !isAutoChess && (
+                      <button
+                        className="px-3 py-1 text-xs font-bold text-gray-400 border border-gray-600 rounded hover:text-yellow-400 hover:border-yellow-400 transition-colors"
+                        onClick={async () => {
+                          if (!jugador || !jugador.usuarioId) return;
+
+                          try {
+                            await forzarCapitanAdmin(
+                              sala.id,
+                              jugador.usuarioId,
+                            );
+
+                            alert('Líder cambiado con éxito');
+                            if (onActualizarSala) {
+                              onActualizarSala();
+                            }
+                          } catch (error) {
+                            console.error(error);
+                            alert('Error al forzar líder');
+                          }
+                        }}
+                      >
+                        FORZAR LIDER
+                      </button>
+                    )}
+
                     <button
-                      className="px-3 py-1 text-xs font-bold text-gray-400 border border-gray-600 rounded hover:text-yellow-400 hover:border-yellow-400 transition-colors"
+                      className="px-3 py-1 text-xs font-bold text-red-300 border border-red-500/60 rounded hover:text-red-200 hover:border-red-400 transition-colors"
                       onClick={async () => {
-                        // 1. Validamos que el jugador exista y tenga un ID para calmar a TypeScript
                         if (!jugador || !jugador.usuarioId) return;
 
-                        try {
-                          // 2. Usamos 'sala.id' (tu variable real) y le pasamos el ID del jugador
-                          await forzarCapitanAdmin(sala.id, jugador.usuarioId);
+                        const confirmar = window.confirm(
+                          `¿Retirar a ${jugador.username} de la sala y reembolsar su inscripción?`,
+                        );
+                        if (!confirmar) return;
 
-                          alert('Líder cambiado con éxito');
+                        try {
+                          const respuesta = await expulsarUsuarioSala(
+                            sala.id,
+                            jugador.usuarioId,
+                          );
+                          alert(
+                            respuesta?.mensaje ||
+                              'Jugador retirado y reembolso aplicado.',
+                          );
                           if (onActualizarSala) {
-                            onActualizarSala(); // 🚀 Esto viaja por el cable hasta el padre
+                            onActualizarSala();
                           }
-                          // Opcional: Si tienes una función para recargar la página/sala, ponla aquí
-                          // window.location.reload();
                         } catch (error) {
-                          // 3. Imprimimos el error en consola para que TypeScript no se queje de que no lo usamos
                           console.error(error);
-                          alert('Error al forzar líder');
+                          alert('Error al retirar al jugador de la sala');
                         }
                       }}
                     >
-                      FORZAR LIDER
+                      RETIRAR JUGADOR
                     </button>
-                  )}
+                  </>
+                )}
               </div>
             </div>
           );

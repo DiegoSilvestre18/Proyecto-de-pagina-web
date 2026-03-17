@@ -8,6 +8,7 @@ import {
   unirseASala,
   getMisCuentasJuego,
   cambiarEquipoSala,
+  retirarseDeSala,
   finalizarSalaAdmin,
   finalizarAutoChessAdmin,
   empezarPartidaAdmin,
@@ -311,6 +312,43 @@ const Salas: React.FC = () => {
     }
   };
 
+  const handleRetirarseSala = async () => {
+    if (!salaSeleccionada) return;
+
+    const confirmar = window.confirm(
+      '¿Deseas retirarte de esta sala? Si ya pasaron 8 minutos y la sala no está llena, se reembolsará tu inscripción.',
+    );
+    if (!confirmar) return;
+
+    try {
+      const response = await retirarseDeSala(salaSeleccionada.id);
+      alert(response?.mensaje || 'Te retiraste de la sala.');
+
+      if (
+        response?.saldoRealRestante !== undefined &&
+        response?.saldoBonoRestante !== undefined &&
+        response?.saldoRecargaRestante !== undefined
+      ) {
+        if (updateBalance)
+          updateBalance(response.saldoRealRestante, response.saldoBonoRestante);
+        if (actualizarSaldo)
+          actualizarSaldo(
+            response.saldoRealRestante,
+            response.saldoBonoRestante,
+            response.saldoRecargaRestante,
+          );
+      }
+
+      await refreshSalas();
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('No fue posible retirarte de la sala.');
+      }
+    }
+  };
+
   const handlePickPlayer = async (jugadorId: number) => {
     if (!salaSeleccionada) return;
     try {
@@ -455,6 +493,7 @@ const Salas: React.FC = () => {
             isJoining={isJoining}
             onUnirseSala={handleUnirseSala}
             onCambiarEquipo={handleCambiarEquipo}
+            onRetirarseSala={handleRetirarseSala}
             onClose={closeSalaModal}
             onLanzarMoneda={handleLanzarMoneda}
             onPickPlayer={handlePickPlayer}

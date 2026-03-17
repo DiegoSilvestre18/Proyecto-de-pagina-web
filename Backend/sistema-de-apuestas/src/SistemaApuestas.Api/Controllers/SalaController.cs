@@ -92,6 +92,30 @@ namespace SistemaApuestas.Api.Controllers
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
         }
 
+        [HttpPost("{salaId}/retirarse")]
+        [Authorize]
+        public async Task<IActionResult> RetirarseDeSala(int salaId)
+        {
+            try
+            {
+                var resultado = await _salaService.RetirarseDeSalaAsync(ObtenerUsuarioId(), salaId);
+                return Ok(resultado);
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
+        [HttpPost("{salaId}/expulsar/{usuarioId}")]
+        [Authorize(Roles = "SUPERADMIN")]
+        public async Task<IActionResult> ExpulsarUsuarioDeSala(int salaId, int usuarioId)
+        {
+            try
+            {
+                var resultado = await _salaService.ExpulsarUsuarioPorAdminAsync(salaId, usuarioId);
+                return Ok(resultado);
+            }
+            catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
         [HttpPost("cancelar/{id}")]
         [Authorize(Roles = "SUPERADMIN")]
         public async Task<IActionResult> CancelarSala(int id)

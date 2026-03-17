@@ -52,6 +52,13 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
             </span>
           </div>
         )}
+
+        {sala.estado === 'ESPERANDO' && (
+          <p className="mt-3 text-[11px] text-yellow-300/90 font-semibold tracking-wide">
+            Si la sala no se llena en 8 minutos, puedes retirarte y solicitar
+            reembolso desde el lobby.
+          </p>
+        )}
       </div>
     </div>
   );

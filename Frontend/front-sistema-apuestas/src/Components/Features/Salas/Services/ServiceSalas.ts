@@ -91,6 +91,21 @@ export const unirseASala = async (data: UnirseSalaRequest) => {
   }
 };
 
+export const retirarseDeSala = async (salaId: number) => {
+  return await apiFetch(`/api/Sala/${salaId}/retirarse`, {
+    method: 'POST',
+  });
+};
+
+export const expulsarUsuarioSala = async (
+  salaId: number,
+  usuarioId: number,
+) => {
+  return await apiFetch(`/api/Sala/${salaId}/expulsar/${usuarioId}`, {
+    method: 'POST',
+  });
+};
+
 export const getMisCuentasJuego = async () => {
   return await apiFetch('/api/GameAccount/mis-cuentas');
 };

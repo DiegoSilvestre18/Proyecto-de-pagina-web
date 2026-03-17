@@ -36,6 +36,7 @@
         public string Mensaje { get; set; } = string.Empty;
         public decimal SaldoRealRestante { get; set; }
         public decimal SaldoBonoRestante { get; set; }
+        public decimal SaldoRecargaRestante { get; set; }
     }
 
     public class SugerenciaGanadorResponseDto

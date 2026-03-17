@@ -7,7 +7,6 @@ import {
   Eye,
   EyeOff,
   Plus,
-  Bell,
   ChevronDown,
   LogOut,
   Settings,
@@ -132,10 +131,10 @@ const Header: React.FC<HeaderProps> = ({
           Recargar <Plus size={16} />
         </button>
 
-        <button className="text-gray-400 hover:text-white relative transition-colors">
+        {/* <button className="text-gray-400 hover:text-white relative transition-colors">
           <Bell size={20} />
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        </button> */}
 
         {/* Perfil */}
         <div
