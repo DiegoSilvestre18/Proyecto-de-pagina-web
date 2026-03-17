@@ -17,8 +17,6 @@ interface LobbyFooterProps {
   cuentasJuego: CuentaJuego[];
   selectedAccountId: number | '';
   onSelectedAccountChange: (id: number) => void;
-  equipoSeleccionado: string;
-  onEquipoChange: (equipo: string) => void;
   isJoining: boolean;
   onUnirseSala: () => void;
   onCambiarEquipo: (salaId: number, nuevoEquipo: string) => void;
@@ -31,8 +29,6 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
   cuentasJuego,
   selectedAccountId,
   onSelectedAccountChange,
-  equipoSeleccionado,
-  onEquipoChange,
   isJoining,
   onUnirseSala,
   onCambiarEquipo,
@@ -71,6 +67,11 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
             {isAutoChessFormat ? (
               <div className="flex w-full justify-center items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-2.5 rounded-lg text-sm font-bold">
                 Inscrito en la partida (FFA)
+              </div>
+            ) : miParticipacion.equipo !== 'EQUIPO1' &&
+              miParticipacion.equipo !== 'EQUIPO2' ? (
+              <div className="flex w-full justify-center items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-4 py-2.5 rounded-lg text-sm font-bold">
+                Inscrito. Esperando sorteo para asignar equipo
               </div>
             ) : (
               <>
@@ -117,21 +118,6 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
                 ))}
               </select>
             </div>
-            {!isAutoChessFormat && (
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                  Elige tu Bando
-                </label>
-                <select
-                  value={equipoSeleccionado}
-                  onChange={(e) => onEquipoChange(e.target.value)}
-                  className="w-full sm:w-48 bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-orange-500 outline-none"
-                >
-                  <option value="EQUIPO1">Radiant / Atacantes</option>
-                  <option value="EQUIPO2">Dire / Defensores</option>
-                </select>
-              </div>
-            )}
           </div>
           <button
             onClick={onUnirseSala}

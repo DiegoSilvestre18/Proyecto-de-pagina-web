@@ -308,6 +308,8 @@ namespace SistemaApuestas.Application.Services
                 maxJugadores = (s.Formato ?? "").Contains("5v5") ? 10 : ((s.Formato ?? "").Contains("Auto Chess") ? 8 : 2),
                 mmrMinimo = s.MmrMinimo,
                 mmrMaximo = s.MmrMaximo,
+                nombreLobby = s.NombreLobby,
+                passwordLobby = s.PasswordLobby,
 
                 // 👇 1. MANDAMOS LOS DATOS DEL DRAFT AL FRONTEND 👇
                 capitan1Id = s.Capitan1Id,
@@ -321,6 +323,7 @@ namespace SistemaApuestas.Application.Services
                     usuarioId = p.UsuarioId,
                     username = p.Usuario != null ? p.Usuario.Username : "Desconocido",
                     steamName = p.GameAccount != null ? p.GameAccount.IdVisible : "Sin cuenta",
+                    mmr = p.GameAccount != null ? p.GameAccount.RangoActual : "N/A",
                     equipo = p.Equipo,
                     nombreLobby = s.NombreLobby,
                     passwordLobby = s.PasswordLobby

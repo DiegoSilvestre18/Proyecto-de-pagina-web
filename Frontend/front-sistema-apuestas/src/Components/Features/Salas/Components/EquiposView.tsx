@@ -49,6 +49,11 @@ const EquiposView: React.FC<EquiposViewProps> = ({ sala }) => {
                     Usuario: {jugador.username}
                   </p>
                 )}
+                {jugador?.mmr && (
+                  <p className="text-[10px] text-orange-400 truncate mt-0.5 font-semibold">
+                    MMR: {jugador.mmr}
+                  </p>
+                )}
               </div>
             </div>
           );
@@ -90,6 +95,11 @@ const EquiposView: React.FC<EquiposViewProps> = ({ sala }) => {
                 {jugador && (
                   <p className="text-[10px] text-gray-400 truncate mt-0.5">
                     Usuario: {jugador.username}
+                  </p>
+                )}
+                {jugador?.mmr && (
+                  <p className="text-[10px] text-orange-400 truncate mt-0.5 font-semibold">
+                    MMR: {jugador.mmr}
                   </p>
                 )}
               </div>

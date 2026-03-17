@@ -84,8 +84,8 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                 </span>
               </h4>
               <p className="text-xs text-orange-400/80 mt-0.5">
-                Modo Espectador. Esperando a que se llene la sala. Puedes forzar
-                lideres.
+                Puedes supervisar el draft, forzar lideres y ver el MMR de cada
+                jugador.
               </p>
             </div>
           </div>
@@ -176,6 +176,11 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                           : !isEsperando
                             ? `Elegido por ${jugador.equipo}`
                             : 'Disponible para Draft'}
+                    </p>
+                  )}
+                  {jugador?.mmr && (
+                    <p className="text-[10px] text-orange-400 truncate mt-0.5 font-semibold">
+                      MMR: {jugador.mmr}
                     </p>
                   )}
                 </div>

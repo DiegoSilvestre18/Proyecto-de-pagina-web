@@ -70,8 +70,6 @@ const Salas: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [, setCuentasJuego] = useState<CuentaJuego[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<number | ''>('');
-  const [equipoSeleccionado, setEquipoSeleccionado] =
-    useState<string>('EQUIPO1');
 
   const refreshSalas = useCallback(async () => {
     try {
@@ -270,7 +268,7 @@ const Salas: React.FC = () => {
       const response = await unirseASala({
         salaId: salaSeleccionada.id,
         gameAccountId: Number(selectedAccountId),
-        equipo: equipoSeleccionado,
+        equipo: 'ESPERANDO_DRAFT',
       });
 
       alert(response?.mensaje || '¡Te has unido a la sala con exito!');
@@ -454,8 +452,6 @@ const Salas: React.FC = () => {
             cuentasJuego={cuentasParaSala}
             selectedAccountId={selectedAccountId}
             onSelectedAccountChange={(id) => setSelectedAccountId(id)}
-            equipoSeleccionado={equipoSeleccionado}
-            onEquipoChange={setEquipoSeleccionado}
             isJoining={isJoining}
             onUnirseSala={handleUnirseSala}
             onCambiarEquipo={handleCambiarEquipo}

@@ -19,8 +19,6 @@ interface ModalLobbyProps {
   cuentasJuego: CuentaJuego[];
   selectedAccountId: number | '';
   onSelectedAccountChange: (id: number) => void;
-  equipoSeleccionado: string;
-  onEquipoChange: (equipo: string) => void;
   isJoining: boolean;
   onUnirseSala: () => void;
   onCambiarEquipo: (salaId: number, nuevoEquipo: string) => void;
@@ -49,8 +47,6 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   cuentasJuego,
   selectedAccountId,
   onSelectedAccountChange,
-  equipoSeleccionado,
-  onEquipoChange,
   isJoining,
   onUnirseSala,
   onCambiarEquipo,
@@ -190,7 +186,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
           )}
 
         {/* Header */}
-        <LobbyHeader sala={sala} />
+        <LobbyHeader sala={sala} userRol={userRol} />
 
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto min-h-0 bg-[#141526] p-6 relative z-10">
@@ -217,8 +213,6 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
             cuentasJuego={cuentasJuego}
             selectedAccountId={selectedAccountId}
             onSelectedAccountChange={onSelectedAccountChange}
-            equipoSeleccionado={equipoSeleccionado}
-            onEquipoChange={onEquipoChange}
             isJoining={isJoining}
             onUnirseSala={onUnirseSala}
             onCambiarEquipo={onCambiarEquipo}

@@ -25,6 +25,7 @@ export interface Sala {
   participantes?: {
     username: string;
     steamName: string;
+    mmr?: string;
     equipo: string;
     nombreLobby?: string;
     passwordLobby?: string;
