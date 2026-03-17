@@ -6,7 +6,7 @@ import {
   createContext,
   type ReactNode,
 } from 'react';
-import { BASE_URL, apiFetch } from '../Global/Api';
+import { apiFetch } from '../Global/Api';
 
 export interface UserDto {
   id: number;
@@ -61,6 +61,7 @@ interface AuthContextType {
     nuevoSaldoRecarga: number,
   ) => void;
   updateUserProfile: (userData: Partial<UserDto>) => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -193,33 +194,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
   // 2️⃣ SEGUNDO ponemos el useEffect que usa la función
   useEffect(() => {
-    const refrescarDatos = async () => {
-      if (!auth || !auth.token) return;
-
-      try {
-        const response = await fetch(`${BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
-        });
-
-        if (response.ok) {
-          const usuarioFresco = await response.json();
-          console.log('DATOS FRESCOS DEL BACKEND:', usuarioFresco);
-
-          // 👇 Le pasamos los 3 saldos 👇
-          actualizarSaldo(
-            usuarioFresco.saldoReal,
-            usuarioFresco.saldoBono,
-            usuarioFresco.saldoRecarga,
-          );
-        }
-      } catch (error) {
-        console.error('Error refrescando el saldo:', error);
-      }
-    };
-    refrescarDatos();
-  }, []); // <-- El corchete vacío asegura que solo se ejecute al dar F5
+    void refreshProfile();
+  }, [refreshProfile]);
 
   // 3️⃣ TERCERO tus otras funciones
   const login = (
@@ -269,6 +245,32 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (!auth?.token) return;
+
+    try {
+      const usuarioFresco = await apiFetch('/api/auth/me');
+      if (!usuarioFresco) return;
+
+      updateUserProfile({
+        id: usuarioFresco.id,
+        username: usuarioFresco.username,
+        nombre: usuarioFresco.nombre,
+        apellidoPaterno: usuarioFresco.apellidoPaterno,
+        apellidoMaterno: usuarioFresco.apellidoMaterno,
+        telefono: usuarioFresco.telefono,
+        email: usuarioFresco.email,
+        rol: usuarioFresco.rol,
+        saldoReal: usuarioFresco.saldoReal,
+        saldoBono: usuarioFresco.saldoBono,
+        saldoRecarga: usuarioFresco.saldoRecarga,
+        mmrDota: usuarioFresco.mmrDota,
+      });
+    } catch (error) {
+      console.error('Error refrescando el perfil:', error);
+    }
+  }, [auth?.token]);
+
   const value = {
     user: auth ? auth.usuario : null,
     token: auth ? auth.token : null,
@@ -281,6 +283,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     logout,
     actualizarSaldo,
     updateUserProfile,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

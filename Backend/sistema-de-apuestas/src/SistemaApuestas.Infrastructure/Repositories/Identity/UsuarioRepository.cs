@@ -98,5 +98,27 @@ namespace SistemaApuestas.Infrastructure.Repositories.Identity
             // Aquí sí podemos usar _context porque estamos en la Infraestructura
             return await _context.Baneos.AnyAsync(b => b.UsuarioId == usuarioId);
         }
+
+        public async Task<IEnumerable<Usuario>> BuscarPorUsernameOEmailAsync(string query, int limite = 20)
+        {
+            var usuarios = _context.Usuarios.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var termino = query.Trim().ToLower();
+                usuarios = usuarios.Where(u => u.Username.ToLower().Contains(termino) || u.Email.ToLower().Contains(termino));
+            }
+
+            return await usuarios
+                .OrderByDescending(u => u.UsuarioId)
+                .Take(limite)
+                .ToListAsync();
+        }
+
+        public async Task AgregarBaneoAsync(Baneo baneo)
+        {
+            await _context.Baneos.AddAsync(baneo);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -40,7 +40,6 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
   const isAutoChessFormat = isAutoChess(sala.formato);
   const estaLlena = (sala.jugadores || 0) >= (sala.maxJugadores || 0);
   const puedeInscribirse = sala.estado === ESTADOS_SALA.ESPERANDO && !estaLlena;
-  const esSuperAdmin = userRol === 'SUPERADMIN';
 
   return (
     <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4 bg-[#0b0c1b]/50 -mx-6 p-6">
@@ -97,7 +96,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
             )}
           </div>
         </div>
-      ) : puedeInscribirse && !esSuperAdmin ? (
+      ) : puedeInscribirse ? (
         <div className="flex flex-col sm:flex-row justify-between items-end gap-4 w-full">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <div>
@@ -146,9 +145,7 @@ const LobbyFooter: React.FC<LobbyFooterProps> = ({
         </div>
       ) : (
         <div className="w-full text-center py-2 text-gray-500 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-          {esSuperAdmin
-            ? 'Modo administrador: sin inscripcion de pago'
-            : 'Las inscripciones estan cerradas'}
+          Las inscripciones estan cerradas
         </div>
       )}
     </div>

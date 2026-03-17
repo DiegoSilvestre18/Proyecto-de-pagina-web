@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using SistemaApuestas.Application.Hubs;
 using SistemaApuestas.Application.Interfaces;
 using SistemaApuestas.Application.Interfaces.Audit;
+using SistemaApuestas.Application.Interfaces.Admin;
 using SistemaApuestas.Application.Interfaces.Auth;
 using SistemaApuestas.Application.Interfaces.Financial;
 using SistemaApuestas.Application.Interfaces.GameAccount;
@@ -15,6 +16,7 @@ using SistemaApuestas.Application.Repositories.Financial;
 using SistemaApuestas.Application.Repositories.GameAccount;
 using SistemaApuestas.Application.Repositories.Identity;
 using SistemaApuestas.Application.Services;
+using SistemaApuestas.Application.Services.Admin;
 using SistemaApuestas.Application.Services.Audit;
 using SistemaApuestas.Application.Services.Financial;
 using SistemaApuestas.Infrastructure.Persistence;
@@ -29,6 +31,7 @@ var builder = WebApplication.CreateBuilder(args);
 // INYECCIÓN DE DEPENDENCIAS (El puente entre capas)
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 builder.Services.AddScoped<IGameAccountRepository, GameAccountRepository>();
 builder.Services.AddHttpClient<IGameAccountService, GameAccountService>();

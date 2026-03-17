@@ -26,5 +26,8 @@ namespace SistemaApuestas.Application.Repositories.Identity
         Task IncrementarPartidasJugadasAsync(int usuarioId);
 
         Task<bool> EstaBaneadoAsync(int usuarioId);
+
+        Task<IEnumerable<Usuario>> BuscarPorUsernameOEmailAsync(string query, int limite = 20);
+        Task AgregarBaneoAsync(Baneo baneo);
     }
 }

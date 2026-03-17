@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaApuestas.Domain.Entities.Gaming;
-using SistemaApuestas.Domain.Entities.Identity;
-using SistemaApuestas.Infrastructure.Persistence;
+using SistemaApuestas.Application.Interfaces.Admin;
 using System.Security.Claims;
 
 namespace SistemaApuestas.API.Controllers
@@ -13,11 +10,11 @@ namespace SistemaApuestas.API.Controllers
     [Authorize(Roles = "SUPERADMIN")]
     public class AdminController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAdminService _adminService;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(IAdminService adminService)
         {
-            _context = context;
+            _adminService = adminService;
         }
 
         // ==========================================
@@ -26,32 +23,15 @@ namespace SistemaApuestas.API.Controllers
         [HttpGet("usuarios/buscar")]
         public async Task<IActionResult> BuscarUsuarios([FromQuery] string q = "")
         {
-            var query = _context.Usuarios.AsQueryable();
-
-            // Si el Admin escribió algo, filtramos por nombre o email
-            if (!string.IsNullOrWhiteSpace(q))
+            try
             {
-                var termino = q.ToLower();
-                query = query.Where(u => u.Username.ToLower().Contains(termino) ||
-                                         u.Email.ToLower().Contains(termino));
+                var usuarios = await _adminService.BuscarUsuariosAsync(q);
+                return Ok(usuarios);
             }
-
-            // Ordenamos por los más nuevos y sacamos máximo 20
-            var usuarios = await query
-                .OrderByDescending(u => u.UsuarioId)
-                .Take(20)
-                .Select(u => new
-                {
-                    id = u.UsuarioId,
-                    username = u.Username,
-                    email = u.Email,
-                    estado = "ACTIVO",
-                    rangoDota = "N/A",
-                    rangoValorant = "N/A"
-                })
-                .ToListAsync();
-
-            return Ok(usuarios);
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // Herramienta interna para saber qué Admin está ejecutando la acción
@@ -67,21 +47,15 @@ namespace SistemaApuestas.API.Controllers
         [HttpPost("usuarios/{id}/forzar-mmr")]
         public async Task<IActionResult> ForzarMmr(int id, [FromBody] UpdateMmrDto request)
         {
-            // Busca en la tabla game_account
-            var cuenta = await _context.GameAccounts
-                .FirstOrDefaultAsync(c => c.UsuarioId == id && c.Juego == request.Juego.ToUpper());
-
-            if (cuenta == null)
+            try
             {
-                return BadRequest(new { mensaje = $"El usuario no tiene una cuenta vinculada de {request.Juego}." });
+                var mensaje = await _adminService.ForzarMmrAsync(id, request.Juego, request.NuevoMmr);
+                return Ok(new { mensaje });
             }
-
-            // Actualizamos rango_actual y encendemos es_rango_manual = true
-            cuenta.RangoActual = request.NuevoMmr;
-            cuenta.EsRangoManual = true;
-
-            await _context.SaveChangesAsync();
-            return Ok(new { mensaje = $"MMR forzado a {request.NuevoMmr}." });
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // ==========================================
@@ -90,25 +64,15 @@ namespace SistemaApuestas.API.Controllers
         [HttpPost("usuarios/{id}/banear")]
         public async Task<IActionResult> BanearUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado." });
-
-            int idDelAdmin = GetAdminId(); // Sacamos tu ID del token
-
-            // Insertamos directamente en tu tabla 'baneo'
-            var nuevoBaneo = new Baneo
+            try
             {
-                UsuarioId = id,           // usuario_id
-                AdminId = idDelAdmin,     // admin_id
-                Motivo = "Baneado desde el Panel de Administración", // motivo
-                Tiempo = 9999,            // tiempo (9999 = Permanente)
-                FechaBaneo = DateTime.UtcNow // fecha_baneo
-            };
-
-            _context.Baneos.Add(nuevoBaneo);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { mensaje = $"El usuario {usuario.Username} ha sido baneado permanentemente." });
+                var mensaje = await _adminService.BanearUsuarioAsync(id, GetAdminId());
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 

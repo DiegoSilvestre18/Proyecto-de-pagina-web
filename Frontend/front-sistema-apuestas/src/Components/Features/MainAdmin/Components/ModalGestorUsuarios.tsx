@@ -13,6 +13,7 @@ import {
   Crosshair,
   UserX,
 } from 'lucide-react';
+import { useAuth } from '../../../../Context/AuthContext';
 // Importa tus servicios (tendrás que crearlos en MainServices o AdminServices)
 // import { buscarUsuariosAdmin, cambiarMmrManual, banearUsuario, darBono } from '../Services/AdminServices';
 
@@ -33,6 +34,7 @@ interface UserAdminView {
 const ModalGestorUsuarios: React.FC<ModalGestorUsuariosProps> = ({
   onClose,
 }) => {
+  const { user, refreshProfile } = useAuth();
   const [busqueda, setBusqueda] = useState('');
   const [usuarios, setUsuarios] = useState<UserAdminView[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,6 +86,44 @@ const ModalGestorUsuarios: React.FC<ModalGestorUsuariosProps> = ({
           juegoSeleccionado,
           nuevoMmr,
         );
+
+        setUsuarios((prev) =>
+          prev.map((u) =>
+            u.id === usuarioSeleccionado.id
+              ? {
+                  ...u,
+                  rangoDota:
+                    juegoSeleccionado.toUpperCase() === 'DOTA2'
+                      ? nuevoMmr
+                      : u.rangoDota,
+                  rangoValorant:
+                    juegoSeleccionado.toUpperCase() === 'VALORANT'
+                      ? nuevoMmr
+                      : u.rangoValorant,
+                }
+              : u,
+          ),
+        );
+
+        setUsuarioSeleccionado((prev) => {
+          if (!prev || prev.id !== usuarioSeleccionado.id) return prev;
+          return {
+            ...prev,
+            rangoDota:
+              juegoSeleccionado.toUpperCase() === 'DOTA2'
+                ? nuevoMmr
+                : prev.rangoDota,
+            rangoValorant:
+              juegoSeleccionado.toUpperCase() === 'VALORANT'
+                ? nuevoMmr
+                : prev.rangoValorant,
+          };
+        });
+
+        if (user?.id === usuarioSeleccionado.id) {
+          await refreshProfile();
+        }
+
         alert(`✅ ${res.mensaje}`);
         setNuevoMmr('');
       } else if (accionActiva === 'BONO') {
