@@ -5,10 +5,9 @@ import type { Sala } from '../types/types';
 
 interface LobbyHeaderProps {
   sala: Sala;
-  userRol?: string;
 }
 
-const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala, userRol }) => {
+const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
   const maxJugadores = isAutoChess(sala.formato) ? 8 : sala.maxJugadores || 10;
 
   return (
@@ -37,7 +36,7 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala, userRol }) => {
           </div>
         </div>
 
-        {userRol === 'SUPERADMIN' && sala.nombreLobby && sala.passwordLobby && (
+        {sala.nombreLobby && sala.passwordLobby && (
           <div className="mt-4 inline-flex flex-col sm:flex-row items-center gap-3 px-4 py-2 bg-red-950/30 border border-red-500/30 rounded-xl">
             <span className="text-[10px] tracking-widest uppercase text-red-300 font-black">
               Lobby:

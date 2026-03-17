@@ -186,7 +186,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
           )}
 
         {/* Header */}
-        <LobbyHeader sala={sala} userRol={userRol} />
+        <LobbyHeader sala={sala} />
 
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto min-h-0 bg-[#141526] p-6 relative z-10">
