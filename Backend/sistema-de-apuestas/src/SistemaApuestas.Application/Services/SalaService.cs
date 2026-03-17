@@ -34,6 +34,15 @@ namespace SistemaApuestas.Application.Services
             // 1. Buscamos quién está creando la sala para saber su ROL
             var creador = await _repository.ObtenerUsuarioPorIdAsync(creadorId);
             bool esAdmin = creador != null && (creador.Rol == "SUPERADMIN" || creador.Rol == "ADMIN");
+            bool esSuperAdmin = creador != null && creador.Rol == "SUPERADMIN";
+
+            if (esSuperAdmin)
+            {
+                if (string.IsNullOrWhiteSpace(request.NombreLobby) || string.IsNullOrWhiteSpace(request.PasswordLobby))
+                {
+                    throw new Exception("Para salas creadas por SUPERADMIN, el nombre y la contraseña del lobby son obligatorios.");
+                }
+            }
 
             var nuevaSala = new Sala
             {
@@ -47,6 +56,8 @@ namespace SistemaApuestas.Application.Services
                 FechaCreacion = DateTime.UtcNow,
                 MmrMinimo = request.MmrMinimo,
                 MmrMaximo = request.MmrMaximo,
+                NombreLobby = esSuperAdmin ? request.NombreLobby?.Trim() : null,
+                PasswordLobby = esSuperAdmin ? request.PasswordLobby?.Trim() : null,
 
                 // 👇 LA MAGIA: Si es admin, sale pública al instante. Si es usuario, va a revisión.
                 Estado = esAdmin ? "ESPERANDO" : "PENDIENTE_APROBACION"

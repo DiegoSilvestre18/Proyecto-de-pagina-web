@@ -11,6 +11,8 @@ interface FormDataSala {
   tipoPremio: string;
   mmrMinimo: number;
   mmrMaximo: number;
+  nombreLobby: string;
+  passwordLobby: string;
 }
 
 interface ModalCrearSalaProps {
@@ -154,6 +156,45 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               />
             </div>
           </div>
+
+          {userRol === 'SUPERADMIN' && (
+            <div className="grid grid-cols-1 gap-3 p-3 bg-orange-950/20 rounded-xl border border-orange-500/20">
+              <div>
+                <label className="block text-xs font-bold text-orange-400 mb-1">
+                  Nombre del Lobby en Dota
+                </label>
+                <input
+                  type="text"
+                  value={formData.nombreLobby}
+                  onChange={(e) =>
+                    onFormChange({
+                      ...formData,
+                      nombreLobby: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: ArenaGG 5v5 #12"
+                  className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-orange-400 mb-1">
+                  Contraseña del Lobby
+                </label>
+                <input
+                  type="text"
+                  value={formData.passwordLobby}
+                  onChange={(e) =>
+                    onFormChange({
+                      ...formData,
+                      passwordLobby: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: ARENA2026"
+                  className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-bold text-gray-500 mb-2">

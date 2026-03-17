@@ -11,6 +11,9 @@
 
         public string? TipoSala { get; set; }
 
+        public string? NombreLobby { get; set; }
+        public string? PasswordLobby { get; set; }
+
         public int MmrMinimo { get; set; }
         public int MmrMaximo { get; set; }
 

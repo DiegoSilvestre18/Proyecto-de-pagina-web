@@ -24,6 +24,8 @@ const MainAdmin: React.FC = () => {
     tipoPremio: 'REAL',
     mmrMinimo: 0,
     mmrMaximo: 10000,
+    nombreLobby: '',
+    passwordLobby: '',
   });
 
   useEffect(() => {
@@ -32,6 +34,15 @@ const MainAdmin: React.FC = () => {
 
   const handleSubmitSalaAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (
+      !formDataSala.nombreLobby.trim() ||
+      !formDataSala.passwordLobby.trim()
+    ) {
+      alert('Debes ingresar nombre y contraseña del lobby para crear la sala.');
+      return;
+    }
+
     setIsSubmittingSala(true);
     try {
       await solicitarSala({
@@ -43,6 +54,8 @@ const MainAdmin: React.FC = () => {
         premioARepartir: formDataSala.premioARepartir,
         mmrMinimo: formDataSala.mmrMinimo,
         mmrMaximo: formDataSala.mmrMaximo,
+        nombreLobby: formDataSala.nombreLobby,
+        passwordLobby: formDataSala.passwordLobby,
       });
       alert('¡Sala oficial creada y publicada con éxito!');
       setShowModalSala(false);

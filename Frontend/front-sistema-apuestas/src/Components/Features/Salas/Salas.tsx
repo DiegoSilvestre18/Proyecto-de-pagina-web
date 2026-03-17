@@ -39,6 +39,8 @@ interface FormDataSala {
   tipoPremio: string;
   mmrMinimo: number;
   mmrMaximo: number;
+  nombreLobby: string;
+  passwordLobby: string;
 }
 
 const Salas: React.FC = () => {
@@ -66,6 +68,8 @@ const Salas: React.FC = () => {
     tipoPremio: 'REAL',
     mmrMinimo: 0,
     mmrMaximo: 10000,
+    nombreLobby: '',
+    passwordLobby: '',
   });
 
   const [isJoining, setIsJoining] = useState(false);
@@ -111,6 +115,15 @@ const Salas: React.FC = () => {
       alert('La cuota mínima es de S/ 3.00');
       return;
     }
+
+    if (
+      user?.rol?.toUpperCase() === 'SUPERADMIN' &&
+      (!formData.nombreLobby.trim() || !formData.passwordLobby.trim())
+    ) {
+      alert('Como SUPERADMIN debes ingresar nombre y contraseña del lobby.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await solicitarSala({
@@ -122,6 +135,8 @@ const Salas: React.FC = () => {
         premioARepartir: formData.premioARepartir,
         mmrMinimo: formData.mmrMinimo,
         mmrMaximo: formData.mmrMaximo,
+        nombreLobby: formData.nombreLobby,
+        passwordLobby: formData.passwordLobby,
       });
 
       alert(

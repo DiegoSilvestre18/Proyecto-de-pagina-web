@@ -16,6 +16,8 @@ interface FormDataSala {
   tipoPremio: string;
   mmrMinimo: number;
   mmrMaximo: number;
+  nombreLobby: string;
+  passwordLobby: string;
 }
 
 const MainHost: React.FC = () => {
@@ -35,6 +37,8 @@ const MainHost: React.FC = () => {
     tipoPremio: 'REAL',
     mmrMinimo: 0,
     mmrMaximo: 10000,
+    nombreLobby: '',
+    passwordLobby: '',
   });
 
   const handleSubmitSalaHost = async (e: React.FormEvent) => {
@@ -50,6 +54,8 @@ const MainHost: React.FC = () => {
         premioARepartir: formDataSala.premioARepartir,
         mmrMinimo: formDataSala.mmrMinimo,
         mmrMaximo: formDataSala.mmrMaximo,
+        nombreLobby: formDataSala.nombreLobby,
+        passwordLobby: formDataSala.passwordLobby,
       });
       alert('¡Sala creada con éxito!');
       setShowModalSala(false);

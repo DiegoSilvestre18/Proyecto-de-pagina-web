@@ -55,6 +55,8 @@ export interface CrearSalaRequest {
   premioARepartir: number;
   mmrMinimo: number;
   mmrMaximo: number;
+  nombreLobby?: string;
+  passwordLobby?: string;
 }
 
 export const solicitarSala = async (data: CrearSalaRequest) => {
