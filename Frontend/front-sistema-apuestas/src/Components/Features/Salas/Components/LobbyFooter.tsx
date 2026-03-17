@@ -26,7 +26,7 @@ interface LobbyFooterProps {
 
 const LobbyFooter: React.FC<LobbyFooterProps> = ({
   sala,
-  userRol,
+  userRol: _userRol,
   miParticipacion,
   cuentasJuego,
   selectedAccountId,

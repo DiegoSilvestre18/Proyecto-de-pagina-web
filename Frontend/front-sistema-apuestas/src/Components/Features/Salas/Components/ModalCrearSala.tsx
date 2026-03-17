@@ -80,7 +80,7 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               className="w-full bg-[#1a1b2e] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-orange-500"
             >
               <option value="DOTA2">Dota 2</option>
-              <option value="VALORANT">Valorant</option>
+              {/* <option value="VALORANT">Valorant</option> */}
             </select>
           </div>
           <div>

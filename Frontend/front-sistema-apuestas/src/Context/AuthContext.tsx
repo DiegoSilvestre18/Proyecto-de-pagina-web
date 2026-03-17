@@ -192,12 +192,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // 2️⃣ SEGUNDO ponemos el useEffect que usa la función
-  useEffect(() => {
-    void refreshProfile();
-  }, [refreshProfile]);
-
-  // 3️⃣ TERCERO tus otras funciones
+  // 2️⃣ SEGUNDO tus otras funciones
   const login = (
     token: string,
     expiracion: number,
@@ -269,7 +264,12 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error refrescando el perfil:', error);
     }
-  }, [auth?.token]);
+  }, [auth?.token, updateUserProfile]);
+
+  // 3️⃣ TERCERO ponemos el useEffect que usa la función
+  useEffect(() => {
+    void refreshProfile();
+  }, [refreshProfile]);
 
   const value = {
     user: auth ? auth.usuario : null,
