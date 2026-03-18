@@ -103,7 +103,7 @@ builder.Services.AddAuthentication(options =>
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>()
-    ?? ["http://localhost:5173", "https://arenagamergg.com", "https://www.arenagamergg.com"];
+    ?? ["https://localhost:7137", "https://arenagamergg.com", "https://www.arenagamergg.com"];
 
 builder.Services.AddCors(options =>
 {

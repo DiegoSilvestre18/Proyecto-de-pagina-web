@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CreditCard, DollarSign, QrCode, X } from 'lucide-react';
+import { CreditCard, DollarSign, QrCode, X, Info } from 'lucide-react';
 import qrPlin from '../../../../assets/QR_PLIN.png';
-import { Metodos, Monedas } from '../data/mockData';
+import qrPayPal from '../../../../assets/QR_PAYPAL.jpg'; // 👈 1. Importamos tu nuevo QR
+// import qrYape from '../../../../assets/QR_YAPE.png'; // 👈 Descomenta esto si también tienes una imagen para Yape
+
+import { Monedas } from '../data/mockData';
 import { postSolicitarRecarga } from '../Services/ServiceRecarga';
 import { type RecargaForm } from '../types/types';
 import FormInput from '../../../Common/FormInput';
@@ -11,37 +14,72 @@ import FormSelect from '../../../Common/FormSelect';
 const SolicitudRecarga: React.FC = () => {
   const [formData, setFormData] = useState<RecargaForm>({
     monto: 0,
-    moneda: Monedas[0],
-    metodo: Metodos[0],
+    moneda: 'PEN',
+    metodo: 'Yape',
   });
   const [showQrModal, setShowQrModal] = useState(false);
+
+  // Opciones dinámicas de método de pago
+  const opcionesMetodo =
+    formData.moneda === 'USD'
+      ? [{ value: 'PayPal', label: 'PayPal' }]
+      : [
+          { value: 'Yape', label: 'Yape' },
+          { value: 'Plin', label: 'Plin' },
+        ];
 
   const handlerChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'monto' ? Number(value) : value,
-    }));
+    
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: name === 'monto' ? Number(value) : value };
+      if (name === 'moneda') {
+        newData.metodo = value === 'USD' ? 'PayPal' : 'Yape';
+      }
+      return newData;
+    });
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.monto <= 0) {
-      alert('El monto debe ser mayor a 0');
+    if (formData.moneda === 'PEN' && formData.monto < 10) {
+      alert('El monto mínimo de recarga es de 10 PEN');
+      return;
+    }
+    if (formData.moneda === 'USD' && formData.monto < 4) {
+      alert('El monto mínimo de recarga es de 4 USD');
       return;
     }
     setShowQrModal(true);
   };
 
   const handleConfirmPayment = async () => {
-    const response = await postSolicitarRecarga(formData);
+    // 👈 2. LA MAGIA DE LA CONVERSIÓN AQUÍ
+    const dataParaAdmin = {
+      ...formData,
+      // Si eligió USD, multiplicamos por 3. Si es PEN, se queda igual.
+      monto: formData.moneda === 'USD' ? formData.monto * 3 : formData.monto,
+      // Forzamos a PEN para que en tu base de datos todo llegue estandarizado como Saldo
+      moneda: 'PEN', 
+      metodo: formData.metodo 
+    };
+
+    const response = await postSolicitarRecarga(dataParaAdmin);
     console.log(response);
+    
     setShowQrModal(false);
-    setFormData({ monto: 0, moneda: Monedas[0], metodo: Metodos[0] });
+    setFormData({ monto: 0, moneda: 'PEN', metodo: 'Yape' });
     alert('¡Solicitud de recarga enviada con éxito! La validaremos en breve.');
   };
+
+  // 👈 3. Lógica para saber qué QR mostrar
+  let qrActual = qrPlin; // Por defecto Plin (o puedes poner el de Yape si lo tienes)
+  if (formData.metodo === 'PayPal') {
+    qrActual = qrPayPal;
+  }
+  // if (formData.metodo === 'Yape') { qrActual = qrYape; } // Descomenta si tienes QR de Yape
 
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-500 pb-20 px-4 lg:px-12 pt-8 max-w-3xl mx-auto">
@@ -59,19 +97,32 @@ const SolicitudRecarga: React.FC = () => {
         className="bg-[#141526] border border-white/5 rounded-2xl p-6 lg:p-10 shadow-2xl"
         onSubmit={handleFormSubmit}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Monto */}
-          <FormInput
-            icon={DollarSign}
-            type="number"
-            label="Monto a Recargar"
-            placeholder="0.00"
-            name="monto"
-            value={formData.monto ? String(formData.monto) : ''}
-            onChange={handlerChange}
-          />
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-8 flex items-start gap-3">
+          <Info className="text-blue-400 shrink-0 mt-0.5" size={20} />
+          <div>
+            <p className="text-blue-100 font-bold text-sm mb-1">Información importante</p>
+            <p className="text-blue-200/80 text-xs">
+              El tipo de cambio actual es: <strong className="text-white">1 dólar = 3 soles de saldo</strong>.
+            </p>
+          </div>
+        </div>
 
-          {/* Moneda */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+          <div>
+            <FormInput
+              icon={DollarSign}
+              type="number"
+              label="Monto a Recargar"
+              placeholder="0.00"
+              name="monto"
+              value={formData.monto ? String(formData.monto) : ''}
+              onChange={handlerChange}
+            />
+            <p className="text-[10px] text-gray-500 mt-1.5 ml-1 font-bold">
+              MÍNIMO: {formData.moneda === 'PEN' ? '10 PEN' : '4 USD'}
+            </p>
+          </div>
+
           <FormSelect
             icon={DollarSign}
             label="Moneda"
@@ -81,7 +132,6 @@ const SolicitudRecarga: React.FC = () => {
             options={Monedas.map((m) => ({ value: m, label: m }))}
           />
 
-          {/* Método */}
           <div className="md:col-span-2">
             <FormSelect
               icon={CreditCard}
@@ -89,9 +139,15 @@ const SolicitudRecarga: React.FC = () => {
               name="metodo"
               value={formData.metodo}
               onChange={handlerChange}
-              options={Metodos.map((m) => ({ value: m, label: m }))}
+              options={opcionesMetodo}
             />
           </div>
+        </div>
+
+        <div className="text-center mt-8 mb-6">
+          <p className="text-sm text-[#25D366] font-bold bg-[#25D366]/10 py-2 px-4 rounded-lg inline-block border border-[#25D366]/20">
+            📱 Nuestro equipo se mantendrá en contacto contigo por WhatsApp
+          </p>
         </div>
 
         <button
@@ -132,9 +188,9 @@ const SolicitudRecarga: React.FC = () => {
                 </p>
               </div>
 
-              {/* Contenedor del QR */}
+              {/* 👈 4. Contenedor del QR dinámico */}
               <div className="bg-white p-3 rounded-xl mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(116,34,132,0.15)]">
-                <img src={qrPlin} alt="QR Yape" className="w-40 h-40 rounded" />
+                <img src={qrActual} alt={`QR ${formData.metodo}`} className="w-40 h-40 rounded object-contain" />
               </div>
 
               {/* Resumen del Pago */}
@@ -144,7 +200,8 @@ const SolicitudRecarga: React.FC = () => {
                     MONTO A TRANSFERIR:
                   </span>
                   <span className="text-base font-black text-[#742284]">
-                    S/ {formData.monto ? formData.monto.toFixed(2) : '0.00'}
+                    {formData.moneda === 'PEN' ? 'S/ ' : '$ '}
+                    {formData.monto ? formData.monto.toFixed(2) : '0.00'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-1.5">

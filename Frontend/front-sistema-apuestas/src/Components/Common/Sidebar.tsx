@@ -59,10 +59,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={onCloseMobileMenu}
         >
           <img
-            src={Logo}
-            alt="Arena Gamer"
-            className="w-8 h-8 rounded object-cover shadow-lg shadow-orange-600/20 shrink-0"
-          />
+              src="/logoArena.png" // Apuntamos directamente a public/logo_arenagamer.png
+              alt="Arena Gamer GG"
+              // Ajustamos h-10 w-auto para que el logo se vea legible con su texto
+              // Quitamos 'rounded' y 'object-cover' que no sirven para un logo con texto
+              className="h-10 w-auto object-contain shrink-0"
+            />
           {!isCollapsed && (
             <h1 className="text-xl font-black tracking-tighter leading-none text-white">
               ARENA

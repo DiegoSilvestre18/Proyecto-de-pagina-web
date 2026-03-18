@@ -1,2 +1,2 @@
-export const Metodos: string[] = ['Yape', 'Plin', 'Transferencia', 'PayPal'];
-export const Monedas: string[] = ['PEN', 'USD', 'EUR'];
+export const Metodos: string[] = ['Yape', 'Plin', 'PayPal'];
+export const Monedas: string[] = ['PEN', 'USD'];

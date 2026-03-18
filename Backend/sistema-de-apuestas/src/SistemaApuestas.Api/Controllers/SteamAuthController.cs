@@ -19,7 +19,7 @@ namespace SistemaApuestas.Api.Controllers
 
         private string FrontendIntegracionesUrl(string query)
         {
-            var baseUrl = _config["Frontend:BaseUrl"] ?? "http://localhost:5173";
+            var baseUrl = _config["Frontend:BaseUrl"] ?? "https://localhost:7137";
             return $"{baseUrl.TrimEnd('/')}/main/settings/integraciones?{query}";
         }
 
