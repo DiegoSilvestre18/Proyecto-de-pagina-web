@@ -60,7 +60,8 @@ namespace SistemaApuestas.Application.Services
                 PasswordLobby = esSuperAdmin ? request.PasswordLobby?.Trim() : null,
 
                 // 👇 LA MAGIA: Si es admin, sale pública al instante. Si es usuario, va a revisión.
-                Estado = esAdmin ? "ESPERANDO" : "PENDIENTE_APROBACION"
+                Estado = esAdmin ? "ESPERANDO" : "PENDIENTE_APROBACION",
+                FechaQuedoVacia = esAdmin ? DateTime.UtcNow : null
             };
 
             await _repository.AgregarSalaAsync(nuevaSala);
@@ -202,6 +203,7 @@ namespace SistemaApuestas.Application.Services
             // para que la lógica de abajo funcione correctamente.
             sala.Participantes.Add(nuevoParticipante); // Si tienes la colección instanciada
             await _repository.AgregarParticipanteAsync(nuevoParticipante);
+            sala.FechaQuedoVacia = null;
 
             // Actualizamos el concepto del Movimiento para que el contador vea de dónde salió el dinero
             var movimiento = new Movimiento
@@ -310,6 +312,16 @@ namespace SistemaApuestas.Application.Services
 
             await _repository.EliminarParticipanteAsync(participante);
 
+            if (sala.Participantes != null)
+            {
+                sala.Participantes.Remove(participante);
+            }
+
+            if (sala.Estado == "ESPERANDO" && (sala.Participantes?.Count ?? 0) == 0)
+            {
+                sala.FechaQuedoVacia = DateTime.UtcNow;
+            }
+
             var movimientoReembolso = new Movimiento
             {
                 UsuarioId = usuarioId,
@@ -362,6 +374,11 @@ namespace SistemaApuestas.Application.Services
 
             await _repository.EliminarParticipanteAsync(participante);
 
+            if (sala.Participantes != null)
+            {
+                sala.Participantes.Remove(participante);
+            }
+
             if (sala.Capitan1Id == usuarioId) sala.Capitan1Id = null;
             if (sala.Capitan2Id == usuarioId) sala.Capitan2Id = null;
             if (sala.GanadorSorteoId == usuarioId) sala.GanadorSorteoId = null;
@@ -373,6 +390,15 @@ namespace SistemaApuestas.Application.Services
                 {
                     sala.Estado = "ESPERANDO";
                 }
+            }
+
+            if (sala.Estado == "ESPERANDO" && (sala.Participantes?.Count ?? 0) == 0)
+            {
+                sala.FechaQuedoVacia = DateTime.UtcNow;
+            }
+            else
+            {
+                sala.FechaQuedoVacia = null;
             }
 
             var movimientoReembolso = new Movimiento
@@ -424,6 +450,7 @@ namespace SistemaApuestas.Application.Services
 
             // Pasamos la sala a la columna verde de "Mis Tareas Activas"
             sala.Estado = "EN_REVISION";
+            sala.FechaQuedoVacia = null;
 
             await _repository.GuardarCambiosAsync();
 
@@ -439,6 +466,9 @@ namespace SistemaApuestas.Application.Services
             {
                 sala.Estado = "ESPERANDO";
                 sala.CostoEntrada = costo;
+                sala.FechaQuedoVacia = (sala.Participantes?.Count ?? 0) == 0
+                    ? DateTime.UtcNow
+                    : null;
 
                 // 👇 ¡AQUÍ ESTÁ LA MAGIA QUE FALTABA! 👇
                 sala.NombreLobby = nombreLobby;
@@ -447,6 +477,7 @@ namespace SistemaApuestas.Application.Services
             else
             {
                 sala.Estado = "RECHAZADA";
+                sala.FechaQuedoVacia = null;
             }
 
             await _repository.GuardarCambiosAsync();
@@ -506,6 +537,7 @@ namespace SistemaApuestas.Application.Services
             if (sala.Estado == "CANCELADA") throw new Exception("La sala ya está cancelada.");
 
             sala.Estado = "CANCELADA";
+            sala.FechaQuedoVacia = null;
             int jugadoresReembolsados = 0;
 
             foreach (var participante in sala.Participantes)

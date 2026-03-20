@@ -21,12 +21,13 @@ namespace SistemaApuestas.Infrastructure.Repositories
         {
             return await _context.Salas
                 .Include(s => s.Participantes) // 👈 ¡ESTO ES VITAL PARA QUE PUEDA CONTARLOS!
-                .FirstOrDefaultAsync(s => s.SalaId == salaId);
+                .FirstOrDefaultAsync(s => s.SalaId == salaId && s.Activa);
         }
 
         public async Task<IEnumerable<Sala>> ObtenerTodasAsync()
         {
             return await _context.Salas
+                .Where(s => s.Activa)
                 .Include(s => s.Creador)              // Trae el nombre del creador
                 .Include(s => s.Participantes)
                     .ThenInclude(p => p.Usuario)      // Trae los datos del jugador
@@ -39,7 +40,7 @@ namespace SistemaApuestas.Infrastructure.Repositories
             await _context.Salas
                 .Include(s => s.Participantes)
                 .ThenInclude(p => p.GameAccount) // Útil para la sugerencia del ganador
-                .FirstOrDefaultAsync(s => s.SalaId == salaId);
+                .FirstOrDefaultAsync(s => s.SalaId == salaId && s.Activa);
 
         public async Task<Usuario?> ObtenerUsuarioPorIdAsync(int usuarioId) =>
             await _context.Usuarios.FindAsync(usuarioId);
@@ -55,7 +56,7 @@ namespace SistemaApuestas.Infrastructure.Repositories
             return await _context.ParticipanteSalas
                 .Where(p => p.GameAccountId == gameAccountId && p.SalaId != salaIdActual)
                 .Select(p => p.Sala)
-                .Where(s => s.Estado != "FINALIZADA" && s.Estado != "CANCELADA" && s.Estado != "RECHAZADA")
+                .Where(s => s.Activa && s.Estado != "FINALIZADA" && s.Estado != "CANCELADA" && s.Estado != "RECHAZADA")
                 .OrderByDescending(s => s.FechaCreacion)
                 .FirstOrDefaultAsync();
         }

@@ -215,7 +215,7 @@ const Salas: React.FC = () => {
 
     const intervalId = window.setInterval(() => {
       void refreshSalas();
-    }, 4000);
+    }, 10000);
 
     return () => window.clearInterval(intervalId);
   }, [salaSeleccionada, refreshSalas]);

@@ -11,8 +11,12 @@ export const ProtectedRoute = ({
   children,
   allowedRoles,
 }: ProtectedRouteProps) => {
-  const { user } = useAuth();
+  const { user, isAuthReady } = useAuth();
   const location = useLocation();
+
+  if (!isAuthReady) {
+    return null;
+  }
 
   // Si no hay usuario, lo manda al login
   if (!user) {

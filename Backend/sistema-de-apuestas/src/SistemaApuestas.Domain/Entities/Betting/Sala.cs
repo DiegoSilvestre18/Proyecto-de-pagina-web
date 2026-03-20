@@ -27,6 +27,8 @@ namespace SistemaApuestas.Domain.Entities.Betting
         public string? VetoLog { get; set; }
         public string? ResultadoGanador { get; set; }
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public DateTime? FechaQuedoVacia { get; set; }
+        public bool Activa { get; set; } = true;
 
         // =========================================================
         // 👇 NUEVAS PROPIEDADES PARA EL DRAFT DE CAPITANES 👇
