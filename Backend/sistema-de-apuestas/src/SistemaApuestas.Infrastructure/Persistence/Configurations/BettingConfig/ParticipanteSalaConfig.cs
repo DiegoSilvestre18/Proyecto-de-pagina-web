@@ -29,7 +29,7 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
 
             builder.Property(p => p.Equipo)
                 .HasColumnName("equipo")
-                .HasMaxLength(10)
+                .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(p => p.EsCapitan)
@@ -48,6 +48,15 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
                 .HasColumnName("pago_con_real")
                 .HasPrecision(10, 2)
                 .HasDefaultValue(0m);
+
+            builder.Property(p => p.PagoConRecarga)
+                .HasColumnName("pago_con_recarga")
+                .HasPrecision(10, 2)
+                .HasDefaultValue(0m);
+
+            builder.Property(p => p.FechaInscripcion)
+                .HasColumnName("fecha_inscripcion")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.HasIndex(p => new { p.SalaId, p.SlotIndex })
                 .IsUnique()

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaApuestas.Domain.Entities.Betting
 {
@@ -13,6 +14,11 @@ namespace SistemaApuestas.Domain.Entities.Betting
         public int? SlotIndex { get; set; }
         public decimal PagoConBono { get; set; } = 0;
         public decimal PagoConReal { get; set; } = 0;
+        public decimal PagoConRecarga { get; set; } = 0;
+        public DateTime FechaInscripcion { get; set; } = DateTime.UtcNow;
+        
+        [Column("rol_juego")]
+        public string? RolJuego { get; set; }
 
         // Navegación
         public Sala Sala { get; set; } = null!;

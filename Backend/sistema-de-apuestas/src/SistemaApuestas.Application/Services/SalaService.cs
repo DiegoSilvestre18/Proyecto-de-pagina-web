@@ -138,6 +138,23 @@ namespace SistemaApuestas.Application.Services
             }
 
             // =========================================================
+            // 👇 NUEVA LÓGICA: ROLE QUEUE PARA DOTA 2 (5v5) 👇
+            // =========================================================
+            if (es5v5 && sala.Juego.Equals("DOTA2", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(request.RolJuego))
+                {
+                    throw new Exception("Debes seleccionar un rol para unirte a esta sala de Dota 2.");
+                }
+
+                int inscritosConEseRol = sala.Participantes?.Count(p => p.RolJuego == request.RolJuego) ?? 0;
+                if (inscritosConEseRol >= 2)
+                {
+                    throw new Exception($"El cupo para el rol {request.RolJuego} ya está lleno en esta sala.");
+                }
+            }
+
+            // =========================================================
             // 👇 NUEVA LÓGICA DE COBRO EN CASCADA (BONO -> RECARGA -> REAL) 👇
             // =========================================================
             decimal costoEntrada = sala.CostoEntrada;
@@ -195,7 +212,12 @@ namespace SistemaApuestas.Application.Services
                 UsuarioId = jugador.UsuarioId,
                 GameAccountId = gameAccount.GameAccountId,
                 // En flujo de capitanes entran al pool de draft; en el resto conservan el equipo elegido.
-                Equipo = usaFlujoCapitanes ? "ESPERANDO_DRAFT" : request.Equipo
+                Equipo = usaFlujoCapitanes ? "ESPERANDO_DRAFT" : request.Equipo,
+                RolJuego = request.RolJuego,
+                PagoConBono = montoBonoUsado,
+                PagoConReal = montoRealUsado,
+                PagoConRecarga = montoRecargaUsado,
+                FechaInscripcion = DateTime.UtcNow
             };
 
             // Añadimos el participante (ya sea por repositorio o añadiéndolo a la colección de la sala)
@@ -213,8 +235,7 @@ namespace SistemaApuestas.Application.Services
                 Tipo = "EGRESO",
                 MontoReal = montoRealUsado, // Lo que dolió de verdad (Ganancias)
                 MontoBono = montoBonoUsado, // Lo que puso el admin (Regalo)
-                                            // OJO: Si luego quieres agregar MontoRecarga a tu tabla Movimientos, puedes hacerlo. 
-                                            // Por ahora lo ponemos en el concepto para que haya registro.
+                MontoRecarga = montoRecargaUsado, // Lo depositado
                 Concepto = $"Inscripción Sala {sala.SalaId}. Pagado con: S/{montoRecargaUsado} Recarga, S/{montoRealUsado} Ganancias, S/{montoBonoUsado} Bono.",
                 Fecha = DateTime.UtcNow
             };
@@ -288,23 +309,44 @@ namespace SistemaApuestas.Application.Services
             if (participante == null)
                 throw new Exception("No estás inscrito en esta sala.");
 
-            var movimientoInscripcion = await _repository.ObtenerMovimientoInscripcionAsync(usuarioId, salaId);
-            if (movimientoInscripcion == null)
-                throw new Exception("No se encontró el registro de inscripción para calcular reembolso.");
-
-            var minutosTranscurridos = (DateTime.UtcNow - movimientoInscripcion.Fecha).TotalMinutes;
-            if (minutosTranscurridos < 8)
+            // ✅ SOLUCIÓN ROBUSTA: Validación de Anti-Dodging y bloqueos estratégicos
+            var ahora = DateTime.UtcNow;
+            var fechaInscripcion = DateTime.SpecifyKind(participante.FechaInscripcion, DateTimeKind.Utc);
+            
+            // Prevenir bugs de zona horaria si la BD guardó en local time por error (ej. desfase de horas)
+            var diferenciaSegundos = (ahora - fechaInscripcion).TotalSeconds;
+            if (diferenciaSegundos < 0 || diferenciaSegundos > 36000) // Desfase masivo detectado
             {
-                var restante = Math.Max(0, 8 - (int)Math.Floor(minutosTranscurridos));
-                throw new Exception($"Debes esperar {restante} minuto(s) más para retirarte con reembolso.");
+                var diffLocal = (DateTime.Now - participante.FechaInscripcion).TotalSeconds;
+                if (diffLocal >= 0 && diffLocal < 36000) diferenciaSegundos = diffLocal;
+                else diferenciaSegundos = 0; // Fallback seguro para forzar el anti-dodging si hay anomalía
+            }
+
+            // 1. Regla "Casi Llena": Bloquear salida si la partida está a punto de empezar
+            int umbralBloqueo = limiteJugadores > 2 ? limiteJugadores - 2 : limiteJugadores;
+            if (participantesActuales >= umbralBloqueo && limiteJugadores > 2)
+            {
+                throw new Exception($"La sala está casi llena ({participantesActuales}/{limiteJugadores}). Retiro bloqueado para no arruinar el inicio de la partida.");
+            }
+
+            // 2. Regla "Anti-Dodging": Evitar que entren y salgan al ver a los rivales
+            // Solo aplicamos la restricción de tiempo si hay más de 1 persona. 
+            // Si es el único (o el primero en unirse), puede irse sin esperar.
+            if (participantesActuales > 1 && diferenciaSegundos < 480) // 8 minutos = 480 segundos
+            {
+                var faltante = 480 - diferenciaSegundos;
+                int minutos = (int)(faltante / 60);
+                int segundos = (int)(faltante % 60);
+                throw new Exception($"Anti-Dodging activo: Para evitar abusos debes esperar {minutos}m {segundos}s más para retirarte con reembolso.");
             }
 
             var usuario = await _repository.ObtenerUsuarioPorIdAsync(usuarioId);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
 
-            decimal montoReal = movimientoInscripcion.MontoReal;
-            decimal montoBono = movimientoInscripcion.MontoBono;
-            decimal montoRecarga = ExtraerMontoRecarga(movimientoInscripcion.Concepto);
+            // ✅ NUEVA LÓGICA: Usar los montos guardados en el participante
+            decimal montoReal = participante.PagoConReal;
+            decimal montoBono = participante.PagoConBono;
+            decimal montoRecarga = participante.PagoConRecarga;
 
             usuario.SaldoRecarga += montoRecarga;
             usuario.SaldoReal += montoReal;
@@ -329,6 +371,7 @@ namespace SistemaApuestas.Application.Services
                 Tipo = "INGRESO",
                 MontoReal = montoReal,
                 MontoBono = montoBono,
+                MontoRecarga = montoRecarga,
                 Concepto = $"Reembolso por retiro voluntario de Sala {salaId}. Devuelto: S/{montoRecarga} Recarga, S/{montoReal} Ganancias, S/{montoBono} Bono.",
                 Fecha = DateTime.UtcNow
             };
@@ -357,16 +400,13 @@ namespace SistemaApuestas.Application.Services
             if (participante == null)
                 throw new Exception("El usuario no está inscrito en esta sala.");
 
-            var movimientoInscripcion = await _repository.ObtenerMovimientoInscripcionAsync(usuarioId, salaId);
-            if (movimientoInscripcion == null)
-                throw new Exception("No se encontró el movimiento de inscripción para reembolsar.");
-
             var usuario = await _repository.ObtenerUsuarioPorIdAsync(usuarioId);
             if (usuario == null) throw new Exception("Usuario no encontrado.");
 
-            decimal montoReal = movimientoInscripcion.MontoReal;
-            decimal montoBono = movimientoInscripcion.MontoBono;
-            decimal montoRecarga = ExtraerMontoRecarga(movimientoInscripcion.Concepto);
+            // ✅ NUEVA LÓGICA: Usar montos guardados en ParticipanteSala
+            decimal montoReal = participante.PagoConReal;
+            decimal montoBono = participante.PagoConBono;
+            decimal montoRecarga = participante.PagoConRecarga;
 
             usuario.SaldoRecarga += montoRecarga;
             usuario.SaldoReal += montoReal;
@@ -408,6 +448,7 @@ namespace SistemaApuestas.Application.Services
                 Tipo = "INGRESO",
                 MontoReal = montoReal,
                 MontoBono = montoBono,
+                MontoRecarga = montoRecarga,
                 Concepto = $"Reembolso por retiro administrativo de Sala {salaId}. Devuelto: S/{montoRecarga} Recarga, S/{montoReal} Ganancias, S/{montoBono} Bono.",
                 Fecha = DateTime.UtcNow
             };
@@ -522,6 +563,8 @@ namespace SistemaApuestas.Application.Services
                     steamName = p.GameAccount != null ? p.GameAccount.IdVisible : "Sin cuenta",
                     mmr = p.GameAccount != null ? p.GameAccount.RangoActual : "N/A",
                     equipo = p.Equipo,
+                    rolJuego = p.RolJuego,
+                    fechaInscripcion = p.FechaInscripcion,
                     nombreLobby = s.NombreLobby,
                     passwordLobby = s.PasswordLobby
                 }).ToList()

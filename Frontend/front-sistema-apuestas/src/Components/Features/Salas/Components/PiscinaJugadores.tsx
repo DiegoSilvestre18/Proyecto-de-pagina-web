@@ -43,13 +43,13 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
           {soyCapitanGlobal ? (
             <button
               onClick={onLanzarMoneda}
-              className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(234,179,8,0.4)] transition-all transform hover:scale-105 text-sm"
             >
               Lanzar Moneda
             </button>
           ) : (
-            <div className="flex items-center justify-center gap-2 text-yellow-500 font-bold uppercase tracking-widest text-xs animate-pulse">
-              <Crown size={16} /> Esperando a los capitanes...
+            <div className="flex items-center justify-center gap-2 text-yellow-500 font-bold uppercase tracking-widest text-sm animate-pulse">
+              <Crown size={18} /> Esperando a los capitanes...
             </div>
           )}
         </div>
@@ -58,7 +58,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
       {/* BANNER DE TURNO DE DRAFT */}
       {sala.estado === 'DRAFTING' && (
         <div className="bg-gradient-to-r from-blue-900/40 via-[#1a1b2e] to-green-900/40 border border-green-500/30 rounded-xl p-4 text-center shadow-[0_0_20px_rgba(34,197,94,0.1)]">
-          <h3 className="text-xl font-black text-white uppercase tracking-widest mb-1 flex items-center justify-center gap-2">
+          <h3 className="text-xl font-black text-white uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
             Turno de Seleccion
           </h3>
           <p className="text-green-400 font-bold text-sm">
@@ -73,7 +73,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
       {/* PANEL ADMIN */}
       {userRol === 'SUPERADMIN' && (
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(249,115,22,0.1)]">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <Shield className="text-orange-500" size={24} />
             </div>
@@ -84,7 +84,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                   ADMIN
                 </span>
               </h4>
-              <p className="text-xs text-orange-400/80 mt-0.5">
+              <p className="text-xs text-orange-400/80 mt-1">
                 Puedes supervisar el draft, forzar lideres y ver el MMR de cada
                 jugador.
               </p>
@@ -97,7 +97,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
         Piscina de Jugadores
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {Array.from({ length: totalSlots }).map((_, index) => {
           const jugador = sala.participantes?.[index];
           const idDelJugador = jugador?.id || jugador?.usuarioId;
@@ -120,7 +120,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
           return (
             <div
               key={`pool-${index}`}
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-500 ${
+              className={`flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all duration-500 ${
                 !jugador
                   ? 'bg-[#0b0c1b] border-white/5 border-dashed'
                   : isAutoChess
@@ -128,15 +128,15 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                     : isCapitan
                       ? 'bg-yellow-500/10 border-yellow-500/50'
                       : isEsperando
-                        ? 'bg-[#1a1b2e] border-white/10'
+                        ? 'bg-[#1a1b2e] border-white/10 hover:border-white/20'
                         : jugador.equipo === 'EQUIPO1'
                           ? 'bg-blue-500/5 border-blue-500/30'
                           : 'bg-red-500/5 border-red-500/30'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className={`w-10 h-10 rounded flex items-center justify-center relative ${jugador && isAutoChess ? 'bg-green-500/20' : 'bg-white/5'}`}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center relative ${jugador && isAutoChess ? 'bg-green-500/20' : 'bg-white/5'}`}
                 >
                   {jugador ? (
                     <Users
@@ -147,7 +147,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                           : isCapitan
                             ? 'text-yellow-500'
                             : isEsperando
-                              ? 'text-gray-500'
+                              ? 'text-gray-400'
                               : jugador.equipo === 'EQUIPO1'
                                 ? 'text-blue-500'
                                 : 'text-red-500'
@@ -164,12 +164,12 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <p
-                    className={`text-sm font-bold truncate transition-colors ${jugador ? (isCapitan ? 'text-yellow-400' : isAutoChess ? 'text-green-400' : 'text-white') : 'text-gray-600'}`}
+                    className={`text-sm sm:text-base font-bold truncate transition-colors ${jugador ? (isCapitan ? 'text-yellow-400' : isAutoChess ? 'text-green-400' : 'text-white') : 'text-gray-600'}`}
                   >
                     {jugador ? jugador.username : 'Esperando jugador...'}
                   </p>
                   {jugador && (
-                    <p className="text-[10px] text-gray-400 truncate mt-0.5 uppercase tracking-tighter">
+                    <p className="text-[11px] sm:text-xs text-gray-400 truncate mt-0.5 uppercase tracking-tighter">
                       {isAutoChess
                         ? 'Listo en Sala'
                         : isCapitan
@@ -179,8 +179,13 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                             : 'Disponible para Draft'}
                     </p>
                   )}
+                  {jugador?.rolJuego && (
+                    <p className="text-[11px] sm:text-xs text-blue-400 truncate mt-0.5 font-bold uppercase">
+                      Rol: {jugador.rolJuego}
+                    </p>
+                  )}
                   {jugador?.mmr && (
-                    <p className="text-[10px] text-orange-400 truncate mt-0.5 font-semibold">
+                    <p className="text-[11px] sm:text-xs text-orange-400 truncate mt-0.5 font-semibold">
                       MMR: {jugador.mmr}
                     </p>
                   )}
@@ -195,7 +200,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                   onPickPlayer && (
                     <button
                       onClick={() => onPickPlayer(idDelJugador as number)}
-                      className="text-[10px] bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded transition-all font-black uppercase shadow-[0_0_10px_rgba(34,197,94,0.3)]"
+                      className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg transition-all font-black uppercase shadow-[0_0_10px_rgba(34,197,94,0.3)]"
                     >
                       Reclutar
                     </button>
@@ -204,7 +209,7 @@ const PiscinaJugadores: React.FC<PiscinaJugadoresProps> = ({
                   <>
                     {!isCapitan && !isAutoChess && (
                       <button
-                        className="px-3 py-1 text-xs font-bold text-gray-400 border border-gray-600 rounded hover:text-yellow-400 hover:border-yellow-400 transition-colors"
+                        className="px-2.5 py-1 text-[10px] sm:text-xs font-bold text-gray-400 border border-gray-600 rounded-lg hover:text-yellow-400 hover:border-yellow-400 transition-colors"
                         onClick={async () => {
                           if (!jugador || !jugador.usuarioId) return;
 

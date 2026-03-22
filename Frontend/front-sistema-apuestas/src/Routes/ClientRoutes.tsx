@@ -9,6 +9,7 @@ import MainAdmin from '../Components/Features/MainAdmin/Pages/MainAdmin';
 import AccountSettings from '../Components/Features/Settings/Pages/AccountSettings';
 import IntegrationsSettings from '../Components/Features/Settings/Pages/IntegrationsSettings';
 import Salas from '../Components/Features/Salas/Salas';
+import SalaDetallePage from '../Components/Features/Salas/Pages/SalaDetallePage';
 import SolicitudRecarga from '../Components/Features/SolicitudDinero/pages/SolicitudRecarga';
 import { ProtectedRoute } from './ProtectedRoutes';
 import SettingsLayout from '../Components/layout/SettingsLayout';
@@ -36,6 +37,7 @@ export const ClienteRoutes = () => {
         <Route path="/main" element={<Dashboard />} />
         <Route path="/main/como-jugar" element={<ComoJugar />} />
         <Route path="/main/salas" element={<Salas />} />
+        <Route path="/main/salas/:salaId" element={<SalaDetallePage />} />
         <Route path="/main/recarga" element={<SolicitudRecarga />} />
         <Route path="/main/retiro" element={<SolicitudRetiro />} />
         <Route
