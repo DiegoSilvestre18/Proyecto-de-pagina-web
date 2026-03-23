@@ -28,6 +28,8 @@ export interface Sala {
     steamName: string;
     mmr?: string;
     equipo: string;
+    rolJuego?: string; // Rol del jugador (Pos 1-5)
+    fechaInscripcion?: string;
     nombreLobby?: string;
     passwordLobby?: string;
     id?: number;

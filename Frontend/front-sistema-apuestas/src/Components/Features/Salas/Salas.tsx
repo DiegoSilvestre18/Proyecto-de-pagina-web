@@ -1,20 +1,11 @@
 ﻿import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 
-import type { CuentaJuego, Sala } from './types/types';
+import type { Sala } from './types/types';
 import {
   getSalas,
   solicitarSala,
-  unirseASala,
-  getMisCuentasJuego,
-  cambiarEquipoSala,
-  retirarseDeSala,
-  finalizarSalaAdmin,
-  finalizarAutoChessAdmin,
-  empezarPartidaAdmin,
-  lanzarMonedaSala,
-  reclutarJugadorDraft,
-  cancelarSalaAdmin,
 } from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
@@ -23,10 +14,8 @@ import SalasTabs from './Components/SalasTabs';
 import SalasFilters from './Components/SalasFilters';
 import SalasList from './Components/SalasList';
 import ModalCrearSala from './Components/ModalCrearSala';
-import ModalLobby from './Components/ModalLobby';
 import {
   ESTADOS_EN_CURSO_O_DRAFT,
-  ESTADOS_PRE_PARTIDA,
   ESTADOS_SALA,
 } from './constants/estados';
 import { FORMATOS_VALIDOS, isFormatoValido } from './constants/formatos';
@@ -45,20 +34,15 @@ interface FormDataSala {
 }
 
 const Salas: React.FC = () => {
-  const { user, gameAccounts, hasGameAccount, updateBalance, actualizarSaldo } =
-    useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('NAVEGAR');
 
   const [salasReales, setSalasReales] = useState<Sala[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [salaSeleccionada, setSalaSeleccionada] = useState<Sala | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState<string>('ESPERANDO');
-
-  const [podio1, setPodio1] = useState<number>(0);
-  const [podio2, setPodio2] = useState<number>(0);
-  const [podio3, setPodio3] = useState<number>(0);
 
   const [formData, setFormData] = useState<FormDataSala>({
     juego: 'DOTA2',
@@ -73,28 +57,16 @@ const Salas: React.FC = () => {
     passwordLobby: '',
   });
 
-  const [isJoining, setIsJoining] = useState(false);
-  const [, setCuentasJuego] = useState<CuentaJuego[]>([]);
-  const [selectedAccountId, setSelectedAccountId] = useState<number | ''>('');
-
   const refreshSalas = useCallback(async () => {
     try {
       const data = await getSalas();
       setSalasReales(data);
-      setSalaSeleccionada((prev) => {
-        if (!prev) return prev;
-        return data.find((sala) => sala.id === prev.id) || null;
-      });
     } catch (error) {
       console.error('Error al traer salas del backend:', error);
     } finally {
       setIsLoading(false);
     }
   }, []);
-
-  const closeSalaModal = () => {
-    setSalaSeleccionada(null);
-  };
 
   const handleSubmitSala = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,67 +131,14 @@ const Salas: React.FC = () => {
     void refreshSalas();
   }, [refreshSalas]);
 
+  // Polling to keep the list fresh
   useEffect(() => {
-    const fetchCuentas = async () => {
-      try {
-        const cuentas = await getMisCuentasJuego();
-        if (Array.isArray(cuentas)) {
-          setCuentasJuego(cuentas);
-          if (cuentas.length > 0) setSelectedAccountId(cuentas[0].id);
-        }
-      } catch (error) {
-        console.error('Error al traer las cuentas de juego', error);
-      }
-    };
-    fetchCuentas();
-  }, []);
-
-  // Filtrar cuentas de juego segun la sala seleccionada
-  const normalizeJuego = (s: string) =>
-    s?.toUpperCase().replace(/\d+$/, '') || '';
-  const cuentasParaSala = salaSeleccionada
-    ? (gameAccounts || []).filter(
-      (acc) =>
-        normalizeJuego(acc.juego) ===
-        normalizeJuego(salaSeleccionada.juego || ''),
-    )
-    : gameAccounts || [];
-
-  useEffect(() => {
-    if (cuentasParaSala.length > 0) {
-      setSelectedAccountId(cuentasParaSala[0].id);
-    } else {
-      setSelectedAccountId('');
-    }
-  }, [salaSeleccionada, cuentasParaSala.length]);
-
-  useEffect(() => {
-    if (!salaSeleccionada) return;
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeSalaModal();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [salaSeleccionada]);
-
-  useEffect(() => {
-    if (!salaSeleccionada) return;
-
-    const estadoActual = salaSeleccionada.estado || ESTADOS_SALA.ESPERANDO;
-    if (
-      !ESTADOS_PRE_PARTIDA.includes(
-        estadoActual as (typeof ESTADOS_PRE_PARTIDA)[number],
-      )
-    ) {
-      return;
-    }
-
     const intervalId = window.setInterval(() => {
       void refreshSalas();
-    }, 4000);
+    }, 10000);
 
     return () => window.clearInterval(intervalId);
-  }, [salaSeleccionada, refreshSalas]);
+  }, [refreshSalas]);
 
   const salasFiltradas = salasReales.filter((sala) => {
     const soyCreador = sala.creador === user?.username;
@@ -270,211 +189,9 @@ const Salas: React.FC = () => {
     return 0;
   });
 
-  const handleUnirseSala = async () => {
-    if (!salaSeleccionada) return;
-
-    if (hasGameAccount && !hasGameAccount(salaSeleccionada.juego || '')) {
-      alert(
-        `Necesitas vincular una cuenta de ${salaSeleccionada.juego} para unirte a esta sala.`,
-      );
-      return;
-    }
-
-    setIsJoining(true);
-    try {
-      const response = await unirseASala({
-        salaId: salaSeleccionada.id,
-        gameAccountId: Number(selectedAccountId),
-        equipo: 'ESPERANDO_DRAFT',
-      });
-
-      alert(response?.mensaje || '¡Te has unido a la sala con exito!');
-
-      if (
-        response?.saldoRealRestante !== undefined &&
-        response?.saldoBonoRestante !== undefined
-      ) {
-        if (updateBalance)
-          updateBalance(response.saldoRealRestante, response.saldoBonoRestante);
-        if (actualizarSaldo)
-          actualizarSaldo(
-            response.saldoRealRestante,
-            response.saldoBonoRestante,
-            response.saldoRecargaRestante,
-          );
-      }
-
-      setSalaSeleccionada(null);
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert('Hubo un error al intentar unirte a la sala.');
-      }
-    } finally {
-      setIsJoining(false);
-    }
+  const handleSelectSala = (sala: Sala) => {
+    navigate(`/main/salas/${sala.id}`);
   };
-
-  const handleLanzarMoneda = async () => {
-    if (!salaSeleccionada) return;
-    try {
-      const response = await lanzarMonedaSala(salaSeleccionada.id);
-      alert(response?.mensaje || '¡La moneda ha hablado!');
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert(error.message);
-    }
-  };
-
-  const handleRetirarseSala = async () => {
-    if (!salaSeleccionada) return;
-
-    const confirmar = window.confirm(
-      '¿Deseas retirarte de esta sala? Si ya pasaron 8 minutos y la sala no está llena, se reembolsará tu inscripción.',
-    );
-    if (!confirmar) return;
-
-    try {
-      const response = await retirarseDeSala(salaSeleccionada.id);
-      alert(response?.mensaje || 'Te retiraste de la sala.');
-
-      if (
-        response?.saldoRealRestante !== undefined &&
-        response?.saldoBonoRestante !== undefined &&
-        response?.saldoRecargaRestante !== undefined
-      ) {
-        if (updateBalance)
-          updateBalance(response.saldoRealRestante, response.saldoBonoRestante);
-        if (actualizarSaldo)
-          actualizarSaldo(
-            response.saldoRealRestante,
-            response.saldoBonoRestante,
-            response.saldoRecargaRestante,
-          );
-      }
-
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert('No fue posible retirarte de la sala.');
-      }
-    }
-  };
-
-  const handlePickPlayer = async (jugadorId: number) => {
-    if (!salaSeleccionada) return;
-    try {
-      const response = await reclutarJugadorDraft(
-        salaSeleccionada.id,
-        jugadorId,
-      );
-      alert(response?.mensaje || '¡Jugador reclutado!');
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert(error.message);
-    }
-  };
-
-  const handleEmpezarPartida = async () => {
-    if (!salaSeleccionada) return;
-    const confirmacion = window.confirm(
-      '¿Estas seguro de iniciar la partida? Esto cambiara el estado a EN CURSO.',
-    );
-    if (!confirmacion) return;
-    try {
-      const response = await empezarPartidaAdmin(salaSeleccionada.id);
-      alert(response?.mensaje || 'Partida iniciada.');
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert('Error al iniciar: ' + error.message);
-    }
-  };
-
-  const handleDeclararGanador = async (equipoGanador: number) => {
-    if (!salaSeleccionada) return;
-    const confirmacion = window.confirm(
-      `¿Estas seguro de declarar al EQUIPO ${equipoGanador} como ganador?`,
-    );
-    if (!confirmacion) return;
-    try {
-      const response = await finalizarSalaAdmin(
-        salaSeleccionada.id,
-        equipoGanador,
-      );
-      alert(response?.mensaje || 'Sala finalizada y dinero repartido.');
-      setSalaSeleccionada(null);
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert('Error al finalizar: ' + error.message);
-    }
-  };
-
-  const handleFinalizarAutoChess = async () => {
-    if (!salaSeleccionada) return;
-    if (!podio1 || !podio2 || !podio3)
-      return alert('Debes seleccionar a los 3 ganadores.');
-    if (podio1 === podio2 || podio1 === podio3 || podio2 === podio3)
-      return alert('Los 3 puestos deben ser diferentes.');
-
-    const confirmacion = window.confirm(
-      `¿Estas seguro de finalizar el Auto Chess y repartir los premios?`,
-    );
-    if (!confirmacion) return;
-
-    try {
-      const response = await finalizarAutoChessAdmin(
-        salaSeleccionada.id,
-        podio1,
-        podio2,
-        podio3,
-      );
-      alert(response?.mensaje || 'Auto Chess finalizado exitosamente.');
-      setSalaSeleccionada(null);
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert('Error: ' + error.message);
-    }
-  };
-
-  const handleCambiarEquipo = async (salaId: number, nuevoEquipo: string) => {
-    try {
-      await cambiarEquipoSala(salaId, nuevoEquipo);
-      alert(
-        `¡Te has cambiado al ${nuevoEquipo === 'EQUIPO1' ? 'Radiant' : 'Dire'} exitosamente!`,
-      );
-      await refreshSalas();
-    } catch (error: unknown) {
-      if (error instanceof Error) alert(error.message);
-    }
-  };
-
-  const handleCancelarSala = async (salaId: number) => {
-    try {
-      await cancelarSalaAdmin(salaId);
-      alert('✅ Sala cancelada y fondos reembolsados exitosamente.');
-      setSalaSeleccionada(null); // Cierra el modal
-      await refreshSalas(); // Recarga la lista de salas
-    } catch (error) {
-      alert('❌ Error al cancelar la sala.');
-      console.error(error);
-    }
-  };
-
-  const jugadorConTurno =
-    salaSeleccionada?.participantes?.find(
-      (p) => (p.usuarioId || p.id) === salaSeleccionada?.turnoId,
-    ) || null;
-
-  const soyCapitanGlobal = !!(
-    salaSeleccionada &&
-    user?.id != null &&
-    (user.id === salaSeleccionada.capitan1Id ||
-      user.id === salaSeleccionada.capitan2Id)
-  );
 
   return (
     <div className="animate-in fade-in duration-500 pb-20 px-4 lg:px-12 pt-8 max-w-[1600px] mx-auto">
@@ -490,9 +207,7 @@ const Salas: React.FC = () => {
       <SalasList
         salas={salasOrdenadas}
         isLoading={isLoading}
-        onSelectSala={setSalaSeleccionada}
-        userRol={user?.rol} // 👈 ¡Faltaba decirle que eres admin!
-        onCancelarSala={handleCancelarSala} // 👈 ¡Faltaba pasarle la función!
+        onSelectSala={handleSelectSala}
       />
 
       {/* Modal Crear / Solicitar Sala */}
@@ -505,43 +220,6 @@ const Salas: React.FC = () => {
             onSubmit={handleSubmitSala}
             isSubmitting={isSubmitting}
             onClose={() => setShowModal(false)}
-          />,
-          document.body,
-        )}
-
-      {/* Modal Lobby */}
-      {salaSeleccionada &&
-        createPortal(
-          <ModalLobby
-            sala={salaSeleccionada}
-            userRol={user?.rol}
-            userId={user?.id}
-            username={user?.username}
-            cuentasJuego={cuentasParaSala}
-            selectedAccountId={selectedAccountId}
-            onSelectedAccountChange={(id) => setSelectedAccountId(id)}
-            isJoining={isJoining}
-            onUnirseSala={handleUnirseSala}
-            onCambiarEquipo={handleCambiarEquipo}
-            onRetirarseSala={handleRetirarseSala}
-            onClose={closeSalaModal}
-            onLanzarMoneda={handleLanzarMoneda}
-            onPickPlayer={handlePickPlayer}
-            onEmpezarPartida={handleEmpezarPartida}
-            onCancelarSala={handleCancelarSala}
-            onDeclararGanador={handleDeclararGanador}
-            onFinalizarAutoChess={handleFinalizarAutoChess}
-            soyCapitanGlobal={soyCapitanGlobal}
-            jugadorConTurno={jugadorConTurno}
-            podio1={podio1}
-            podio2={podio2}
-            podio3={podio3}
-            onPodio1Change={setPodio1}
-            onPodio2Change={setPodio2}
-            onPodio3Change={setPodio3}
-            onActualizarSala={() => {
-              void refreshSalas();
-            }}
           />,
           document.body,
         )}

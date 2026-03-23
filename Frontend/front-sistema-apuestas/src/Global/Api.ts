@@ -11,19 +11,17 @@ export const SIGNALR_URL = signalrUrlFromEnv
   ? signalrUrlFromEnv
   : `${BASE_URL}/salahub`;
 
-// Obtiene el token del almacenamiento (guardado dentro del objeto "auth")
+type AuthTokenProvider = () => string | null;
+
+let authTokenProvider: AuthTokenProvider | null = null;
+
+export function setAuthTokenProvider(provider: AuthTokenProvider | null) {
+  authTokenProvider = provider;
+}
+
 function getAuthHeader(): Record<string, string> {
-  let raw = localStorage.getItem('auth');
-  if (!raw) {
-    raw = sessionStorage.getItem('auth');
-  }
-  if (!raw) return {};
-  try {
-    const data = JSON.parse(raw);
-    return data?.token ? { Authorization: `Bearer ${data.token}` } : {};
-  } catch {
-    return {};
-  }
+  const token = authTokenProvider?.();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 interface FetchOptions extends RequestInit {

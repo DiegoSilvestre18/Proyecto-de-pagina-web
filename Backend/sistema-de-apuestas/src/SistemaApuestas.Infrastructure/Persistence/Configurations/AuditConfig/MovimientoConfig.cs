@@ -46,6 +46,12 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.AuditConfig
                 .HasDefaultValue(0.00m)
                 .IsRequired();
 
+            builder.Property(m => m.MontoRecarga)
+                .HasColumnName("monto_recarga")
+                .HasPrecision(10, 2)
+                .HasDefaultValue(0.00m)
+                .IsRequired();
+
             builder.Property(m => m.Concepto)
                 .HasColumnName("concepto")
                 .HasColumnType("text")

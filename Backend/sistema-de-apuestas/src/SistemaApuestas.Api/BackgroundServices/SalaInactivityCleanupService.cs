@@ -5,7 +5,7 @@ namespace SistemaApuestas.Api.BackgroundServices
 {
     public class SalaInactivityCleanupService : BackgroundService
     {
-        private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan MaxInactivity = TimeSpan.FromMinutes(10);
 
         private readonly IServiceScopeFactory _scopeFactory;
@@ -30,17 +30,23 @@ namespace SistemaApuestas.Api.BackgroundServices
 
                     var cutoff = DateTime.UtcNow.Subtract(MaxInactivity);
 
-                    var deletedCount = await dbContext.Salas
+                    var deactivatedCount = await dbContext.Salas
+                        .Where(s => s.Activa)
                         .Where(s => s.Estado == "ESPERANDO")
-                        .Where(s => s.FechaCreacion <= cutoff)
+                        .Where(s => s.FechaQuedoVacia != null)
+                        .Where(s => s.FechaQuedoVacia <= cutoff)
                         .Where(s => !s.Participantes.Any())
-                        .ExecuteDeleteAsync(stoppingToken);
+                        .ExecuteUpdateAsync(
+                            setters => setters
+                                .SetProperty(s => s.Activa, false)
+                                .SetProperty(s => s.FechaQuedoVacia, (DateTime?)null),
+                            stoppingToken);
 
-                    if (deletedCount > 0)
+                    if (deactivatedCount > 0)
                     {
                         _logger.LogInformation(
-                            "Limpieza automática de salas inactivas: {DeletedCount} sala(s) eliminada(s).",
-                            deletedCount);
+                            "Limpieza automática de salas inactivas: {DeactivatedCount} sala(s) desactivada(s).",
+                            deactivatedCount);
                     }
                 }
                 catch (Exception ex)

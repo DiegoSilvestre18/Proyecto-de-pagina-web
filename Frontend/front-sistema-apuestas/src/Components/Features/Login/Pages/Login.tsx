@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../Context/AuthContext';
@@ -25,20 +25,25 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Si ya está autenticado, redirigir a /main
-  if (user) {
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     switch (user.rol.toLowerCase()) {
       case 'superadmin':
-        navigate('/main-admin');
+        navigate('/main-admin', { replace: true });
         break;
       case 'user':
-        navigate('/main');
+        navigate('/main', { replace: true });
         break;
       case 'host':
-        navigate('/main-host');
+        navigate('/main-host', { replace: true });
         break;
+      default:
+        navigate('/main', { replace: true });
     }
-  }
+  }, [navigate, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;

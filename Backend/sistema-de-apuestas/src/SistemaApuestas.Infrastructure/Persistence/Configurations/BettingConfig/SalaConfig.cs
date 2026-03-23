@@ -71,6 +71,19 @@ namespace SistemaApuestas.Infrastructure.Persistence.Configurations.BettingConfi
                 .HasColumnName("fecha_creacion")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+            builder.Property(s => s.FechaQuedoVacia)
+                .HasColumnName("fecha_quedo_vacia");
+
+            builder.Property(s => s.Activa)
+                .HasColumnName("activa")
+                .HasDefaultValue(true);
+
+            builder.HasIndex(s => new { s.Estado, s.FechaQuedoVacia })
+                .HasDatabaseName("ix_sala_estado_fecha_quedo_vacia");
+
+            builder.HasIndex(s => new { s.Activa, s.Estado, s.FechaQuedoVacia })
+                .HasDatabaseName("ix_sala_activa_estado_fecha_quedo_vacia");
+
             // RELACIÓN: Creador de la sala
             builder.HasOne(s => s.Creador)
                 .WithMany(u => u.SalasCreadas)

@@ -78,6 +78,7 @@ export interface UnirseSalaRequest {
   salaId: number;
   gameAccountId?: number;
   equipo: string;
+  rolJuego?: string;
 }
 
 export const unirseASala = async (data: UnirseSalaRequest) => {

@@ -26,7 +26,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   onFinalizarAutoChess,
 }) => {
   return (
-    <div className="p-6 bg-black/60 border-t border-orange-500/30 text-center relative z-20 -mx-6 -mb-6">
+    <div className="p-4 sm:p-5 bg-black/60 border-t border-orange-500/30 text-center relative z-20 -mx-6 -mb-6">
       {sala.formato !== 'Auto Chess' ? (
         <>
           <h3 className="text-orange-400 font-black mb-3 uppercase text-sm tracking-widest">

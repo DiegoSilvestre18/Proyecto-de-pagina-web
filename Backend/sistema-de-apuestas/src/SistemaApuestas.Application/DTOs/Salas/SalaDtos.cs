@@ -24,6 +24,7 @@
         public int SalaId { get; set; }
         public int GameAccountId { get; set; }
         public string Equipo { get; set; }
+        public string? RolJuego { get; set; }
 
     }
 
