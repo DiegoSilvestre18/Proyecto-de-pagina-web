@@ -218,7 +218,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     setAuth(null);
   };
 
-  const updateUserProfile = (userData: Partial<UserDto>) => {
+  // 👇 Le agregamos useCallback para que NO se recree infinitamente
+  const updateUserProfile = useCallback((userData: Partial<UserDto>) => {
     setAuth((prevAuth) => {
       if (!prevAuth || !prevAuth.usuario) return prevAuth;
 
@@ -238,7 +239,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
       return authActualizado;
     });
-  };
+  }, []); // 👈 Este array vacío es el candado
 
   const refreshProfile = useCallback(async () => {
     if (!auth?.token) return;
@@ -268,8 +269,11 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
   // 3️⃣ TERCERO ponemos el useEffect que usa la función
   useEffect(() => {
-    void refreshProfile();
-  }, [refreshProfile]);
+    // Solo refrescamos si hay un token válido, y dependemos del token, NO de la función
+    if (auth?.token) {
+      void refreshProfile();
+    }
+  }, [auth?.token]); // 👈 Ahora solo se dispara 1 vez cuando el usuario inicia sesión
 
   const value = {
     user: auth ? auth.usuario : null,

@@ -182,3 +182,12 @@ export const forzarCapitanAdmin = async (
     },
   );
 };
+
+export const cancelarSalaAdmin = async (salaId: number) => {
+  return await apiFetch(
+    `/api/Sala/${salaId}/cancelar`,
+    {
+      method: 'POST',
+    }
+  );
+};

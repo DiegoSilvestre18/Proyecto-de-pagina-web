@@ -36,8 +36,8 @@ const SolicitudRetiro: React.FC = () => {
     setError('');
 
     const saldo = user?.saldoReal ?? 0;
-    if (saldo < 30) {
-      setError('Tu saldo debe ser mayor a S/ 30.00 para solicitar un retiro.');
+    if (saldo < 20) {
+      setError('Tu saldo debe ser mayor a S/ 20.00 para solicitar un retiro.');
       return;
     }
     if (formData.monto <= 0) {

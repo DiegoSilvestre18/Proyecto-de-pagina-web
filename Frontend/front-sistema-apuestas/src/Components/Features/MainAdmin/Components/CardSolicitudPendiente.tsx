@@ -15,6 +15,7 @@ import {
   tomarSala,
   procesarSala,
 } from '../Services/MainServices';
+import { formatearFecha } from '../../../../utils/formatters';
 
 // 👇 1. Agregamos onAbrirModalGanador como propiedad opcional
 const CardSolicitudPendiente: React.FC<{
@@ -140,7 +141,7 @@ const CardSolicitudPendiente: React.FC<{
                   {solicitud.tipo}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase">
-                  {solicitud.fechaEmision || 'HOY'}
+                  {formatearFecha(solicitud.fechaEmision)}
                 </span>
                 {/* 👇 Indicador visual si está en curso 👇 */}
                 {isSala && solicitud.estado === 'EN_CURSO' && (
@@ -184,21 +185,21 @@ const CardSolicitudPendiente: React.FC<{
                 </button>
               </div>
             ) : // 👇 2. Lógica para mostrar el botón de GANADOR o GESTIONAR 👇
-            isSala && solicitud.estado === 'EN_CURSO' ? (
-              <button
-                onClick={onAbrirModalGanador}
-                className="flex items-center gap-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 text-xs font-bold px-4 py-1.5 rounded transition-colors border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]"
-              >
-                🏆 FINALIZAR
-              </button>
-            ) : (
-              <button
-                onClick={handleOpenModal}
-                className="flex items-center gap-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold px-4 py-1.5 rounded transition-colors border border-white/10"
-              >
-                GESTIONAR <ChevronRight size={14} />
-              </button>
-            )}
+              isSala && solicitud.estado === 'EN_CURSO' ? (
+                <button
+                  onClick={onAbrirModalGanador}
+                  className="flex items-center gap-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 text-xs font-bold px-4 py-1.5 rounded transition-colors border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]"
+                >
+                  🏆 FINALIZAR
+                </button>
+              ) : (
+                <button
+                  onClick={handleOpenModal}
+                  className="flex items-center gap-1 bg-white/5 hover:bg-white/10 text-white text-xs font-bold px-4 py-1.5 rounded transition-colors border border-white/10"
+                >
+                  GESTIONAR <ChevronRight size={14} />
+                </button>
+              )}
           </div>
         </div>
       </div>
@@ -300,11 +301,10 @@ const CardSolicitudPendiente: React.FC<{
                         setFormData({ ...formData, aprobar: true })
                       }
                       disabled={loading}
-                      className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
-                        formData.aprobar
+                      className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${formData.aprobar
                           ? 'bg-green-600 border-green-500 text-white'
                           : 'bg-[#1a1b2e] border-white/5 text-gray-400 hover:bg-white/5'
-                      }`}
+                        }`}
                     >
                       Aprobar
                     </button>
@@ -313,11 +313,10 @@ const CardSolicitudPendiente: React.FC<{
                         setFormData({ ...formData, aprobar: false })
                       }
                       disabled={loading}
-                      className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
-                        !formData.aprobar
+                      className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${!formData.aprobar
                           ? 'bg-red-600 border-red-500 text-white'
                           : 'bg-[#1a1b2e] border-white/5 text-gray-400 hover:bg-white/5'
-                      }`}
+                        }`}
                     >
                       Rechazar
                     </button>

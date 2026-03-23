@@ -46,7 +46,13 @@ export const ListSolicitudes: React.FC<ListType> = ({
       let finanzasArr: solicitudType[] = [];
       if (!soloSalas) {
         const finanzasResp = await getSolicitudesPendientes();
-        finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+        finanzasArr = Array.isArray(finanzasResp)
+          ? finanzasResp.map((sol: any) => ({
+            ...sol,
+            // 👇 Leemos la fecha real que viene de C# (fechaCreacion)
+            fechaEmision: sol.fechaCreacion
+          }))
+          : [];
       }
 
       const salasResp = await getSalas();
@@ -57,7 +63,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
         .map((sala: Sala) => ({
           solicitudId: sala.id,
           tipo: 'SALA',
-          fechaEmision: sala.fecha || 'HOY',
+          fechaEmision: sala.fecha,
           username: sala.creador,
           metodo: sala.formato,
           monto: sala.costo,
@@ -83,7 +89,13 @@ export const ListSolicitudes: React.FC<ListType> = ({
       let finanzasArr: solicitudType[] = [];
       if (!soloSalas) {
         const finanzasResp = await getMisSolicitudes();
-        finanzasArr = Array.isArray(finanzasResp) ? finanzasResp : [];
+        finanzasArr = Array.isArray(finanzasResp)
+          ? finanzasResp.map((sol: any) => ({
+            ...sol,
+            // 👇 Igual aquí
+            fechaEmision: sol.fechaCreacion
+          }))
+          : [];
       }
 
       const salasResp = await getSalas();
@@ -270,6 +282,7 @@ export const ListSolicitudes: React.FC<ListType> = ({
       )}
     </div>
   );
+
 };
 
 export default ListSolicitudes;

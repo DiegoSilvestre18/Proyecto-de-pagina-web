@@ -18,6 +18,7 @@ export interface Sala {
   ganadorSorteoId?: number; // ID del capitán que ganó el lanzamiento de moneda
   mmrMinimo: number;
   mmrMaximo: number;
+  premioARepartir?: number;
 
   nombreLobby?: string;
   passwordLobby?: string; // PREMIO_A_REPARTIR

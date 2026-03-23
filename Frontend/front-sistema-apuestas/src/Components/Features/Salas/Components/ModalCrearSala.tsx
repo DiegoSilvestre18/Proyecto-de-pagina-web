@@ -237,6 +237,7 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                {/* BOTÓN BÁSICA */}
                 <button
                   type="button"
                   onClick={() =>
@@ -250,12 +251,17 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
                   className={`p-3 text-left rounded-xl border transition-all ${formData.tipoSala === 'BASICA' ? 'bg-orange-500/20 border-orange-500' : 'bg-[#1a1b2e] border-white/10'}`}
                 >
                   <div className="font-black text-white uppercase text-sm">
-                    Basica
+                    Básica
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Inscripcion: S/ 6.00
+                  <div className="text-xs text-gray-400 mb-1">
+                    Inscripción: S/ 6.00
+                  </div>
+                  <div className="text-[11px] font-black text-green-400 bg-green-500/10 inline-block px-2 py-0.5 rounded border border-green-500/20">
+                    🏆 GANAS: S/ 10.00
                   </div>
                 </button>
+
+                {/* BOTÓN PREMIUM */}
                 <button
                   type="button"
                   onClick={() =>
@@ -271,13 +277,16 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
                   <div className="font-black text-white uppercase text-sm">
                     Premium
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Inscripcion: S/ 11.00
+                  <div className="text-xs text-gray-400 mb-1">
+                    Inscripción: S/ 11.00
+                  </div>
+                  <div className="text-[11px] font-black text-green-400 bg-green-500/10 inline-block px-2 py-0.5 rounded border border-green-500/20">
+                    🏆 GANAS: S/ 20.00
                   </div>
                 </button>
               </div>
             )}
-            {userRol === 'SUPERADMIN' && (
+            {userRol === 'SUPERADMIN' && formData.formato !== FORMATOS_VALIDOS.AUTO_CHESS && (
               <button
                 type="button"
                 onClick={() =>
@@ -290,43 +299,45 @@ const ModalCrearSala: React.FC<ModalCrearSalaProps> = ({
                 </div>
               </button>
             )}
-            {formData.tipoSala === 'PERSONALIZADA' &&
-              userRol === 'SUPERADMIN' && (
-                <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-red-950/20 rounded-xl border border-red-500/20">
-                  <div>
-                    <label className="block text-[10px] font-bold text-red-400 mb-1">
-                      Costo
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.costo}
-                      onChange={(e) =>
-                        onFormChange({
-                          ...formData,
-                          costo: Number(e.target.value),
-                        })
-                      }
-                      className="w-full bg-[#0b0c1b] border border-red-500/30 rounded-lg p-2 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-red-400 mb-1">
-                      Pozo Total
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.premioARepartir}
-                      onChange={(e) =>
-                        onFormChange({
-                          ...formData,
-                          premioARepartir: Number(e.target.value),
-                        })
-                      }
-                      className="w-full bg-[#0b0c1b] border border-red-500/30 rounded-lg p-2 text-white"
-                    />
-                  </div>
+            {formData.tipoSala === 'PERSONALIZADA' && userRol === 'SUPERADMIN' && (
+              <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-red-950/20 rounded-xl border border-red-500/20">
+                <div>
+                  <label className="block text-[10px] font-bold text-red-400 mb-1">
+                    Costo
+                  </label>
+                  <input
+                    type="number"
+                    min="0" // 👈 Permitimos desde 0
+                    value={formData.costo}
+                    onChange={(e) =>
+                      onFormChange({
+                        ...formData,
+                        // 👇 Math.max evita que pongan números negativos
+                        costo: Math.max(0, Number(e.target.value)),
+                      })
+                    }
+                    className="w-full bg-[#0b0c1b] border border-red-500/30 rounded-lg p-2 text-white outline-none focus:border-red-500"
+                  />
                 </div>
-              )}
+                <div>
+                  <label className="block text-[10px] font-bold text-red-400 mb-1">
+                    Pozo Total
+                  </label>
+                  <input
+                    type="number"
+                    min="0" // 👈 Permitimos desde 0
+                    value={formData.premioARepartir}
+                    onChange={(e) =>
+                      onFormChange({
+                        ...formData,
+                        premioARepartir: Math.max(0, Number(e.target.value)),
+                      })
+                    }
+                    className="w-full bg-[#0b0c1b] border border-red-500/30 rounded-lg p-2 text-white outline-none focus:border-red-500"
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-3 pt-4">
             <button

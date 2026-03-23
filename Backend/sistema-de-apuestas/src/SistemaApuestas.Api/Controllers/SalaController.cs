@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SistemaApuestas.Application.DTOs.Salas;
 using SistemaApuestas.Application.Interfaces.Salas;
+using SistemaApuestas.Application.Services;
 using System.Security.Claims;
 
 namespace SistemaApuestas.Api.Controllers
@@ -217,6 +219,22 @@ namespace SistemaApuestas.Api.Controllers
                 return Ok(new { mensaje });
             }
             catch (Exception ex) { return BadRequest(new { mensaje = ex.Message }); }
+        }
+
+        [HttpPost("{id}/cancelar")]
+        [Authorize(Roles = "SUPERADMIN")] // ¡Muy importante que solo el admin pueda!
+        public async Task<IActionResult> CancelarSalaAdmin(int id)
+        {
+            try
+            {
+                // El controlador (mesero) solo le pasa la orden al servicio (cocinero)
+                var mensaje = await _salaService.CancelarSalaYReembolsarAdminAsync(id);
+                return Ok(new { mensaje });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 }

@@ -171,7 +171,7 @@ export const TerminosCondiciones: React.FC<Props> = ({
           <Section title="6. Retiros de Saldo">
             <Ul
               items={[
-                'Retiro mínimo: 30 soles',
+                'Retiro mínimo: 20 soles',
                 'El saldo debe haber sido utilizado previamente en partidas',
               ]}
             />

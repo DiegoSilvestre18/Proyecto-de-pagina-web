@@ -14,6 +14,7 @@ import {
   empezarPartidaAdmin,
   lanzarMonedaSala,
   reclutarJugadorDraft,
+  cancelarSalaAdmin,
 } from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
@@ -178,10 +179,10 @@ const Salas: React.FC = () => {
     s?.toUpperCase().replace(/\d+$/, '') || '';
   const cuentasParaSala = salaSeleccionada
     ? (gameAccounts || []).filter(
-        (acc) =>
-          normalizeJuego(acc.juego) ===
-          normalizeJuego(salaSeleccionada.juego || ''),
-      )
+      (acc) =>
+        normalizeJuego(acc.juego) ===
+        normalizeJuego(salaSeleccionada.juego || ''),
+    )
     : gameAccounts || [];
 
   useEffect(() => {
@@ -451,6 +452,18 @@ const Salas: React.FC = () => {
     }
   };
 
+  const handleCancelarSala = async (salaId: number) => {
+    try {
+      await cancelarSalaAdmin(salaId);
+      alert('✅ Sala cancelada y fondos reembolsados exitosamente.');
+      setSalaSeleccionada(null); // Cierra el modal
+      await refreshSalas(); // Recarga la lista de salas
+    } catch (error) {
+      alert('❌ Error al cancelar la sala.');
+      console.error(error);
+    }
+  };
+
   const jugadorConTurno =
     salaSeleccionada?.participantes?.find(
       (p) => (p.usuarioId || p.id) === salaSeleccionada?.turnoId,
@@ -478,6 +491,8 @@ const Salas: React.FC = () => {
         salas={salasOrdenadas}
         isLoading={isLoading}
         onSelectSala={setSalaSeleccionada}
+        userRol={user?.rol} // 👈 ¡Faltaba decirle que eres admin!
+        onCancelarSala={handleCancelarSala} // 👈 ¡Faltaba pasarle la función!
       />
 
       {/* Modal Crear / Solicitar Sala */}
@@ -513,6 +528,7 @@ const Salas: React.FC = () => {
             onLanzarMoneda={handleLanzarMoneda}
             onPickPlayer={handlePickPlayer}
             onEmpezarPartida={handleEmpezarPartida}
+            onCancelarSala={handleCancelarSala}
             onDeclararGanador={handleDeclararGanador}
             onFinalizarAutoChess={handleFinalizarAutoChess}
             soyCapitanGlobal={soyCapitanGlobal}

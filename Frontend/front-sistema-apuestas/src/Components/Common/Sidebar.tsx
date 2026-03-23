@@ -11,7 +11,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
-import Logo from '../../assets/Logo.png';
 
 // 👇 2. Importa tu useAuth (asegúrate de que la ruta sea correcta hacia tu AuthContext)
 import { useAuth } from '../../Context/AuthContext';
@@ -24,10 +23,9 @@ interface SidebarProps {
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-    isActive
-      ? 'bg-orange-600/10 text-orange-500'
-      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+  `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${isActive
+    ? 'bg-orange-600/10 text-orange-500'
+    : 'text-gray-400 hover:bg-white/5 hover:text-white'
   }`;
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -43,11 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   const settingsActive = pathname.startsWith('/main/settings');
   return (
     <aside
-      className={`fixed lg:static inset-y-0 left-0 z-50 ${isCollapsed ? 'w-[72px]' : 'w-64'} bg-[#0f1021] border-r border-white/5 flex flex-col transition-all duration-300 ${
-        isMobileMenuOpen
+      className={`fixed lg:static inset-y-0 left-0 z-50 ${isCollapsed ? 'w-[72px]' : 'w-64'} bg-[#0f1021] border-r border-white/5 flex flex-col transition-all duration-300 ${isMobileMenuOpen
           ? 'translate-x-0'
           : '-translate-x-full lg:translate-x-0'
-      }`}
+        }`}
     >
       {/* Logo */}
       <div
@@ -59,12 +56,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={onCloseMobileMenu}
         >
           <img
-              src="/logoArena.png" // Apuntamos directamente a public/logo_arenagamer.png
-              alt="Arena Gamer GG"
-              // Ajustamos h-10 w-auto para que el logo se vea legible con su texto
-              // Quitamos 'rounded' y 'object-cover' que no sirven para un logo con texto
-              className="h-10 w-auto object-contain shrink-0"
-            />
+            src="/logoArena.png" // Apuntamos directamente a public/logo_arenagamer.png
+            alt="Arena Gamer GG"
+            // Ajustamos h-10 w-auto para que el logo se vea legible con su texto
+            // Quitamos 'rounded' y 'object-cover' que no sirven para un logo con texto
+            className="h-10 w-auto object-contain shrink-0"
+          />
           {!isCollapsed && (
             <h1 className="text-xl font-black tracking-tighter leading-none text-white">
               ARENA
@@ -174,11 +171,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         {isCollapsed && <div className="pt-4 border-t border-white/5 mt-4" />}
         <NavLink
           to="/main/settings/cuenta"
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-            settingsActive
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${settingsActive
               ? 'bg-orange-600/10 text-orange-500'
               : 'text-gray-400 hover:bg-white/5 hover:text-white'
-          }`}
+            }`}
           onClick={onCloseMobileMenu}
           title="Configuración"
         >

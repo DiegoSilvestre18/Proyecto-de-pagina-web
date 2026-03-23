@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'; // 👈 ¡Aquí está el useEffect!
+import React, { useEffect, useRef } from 'react'; // 👈 ¡Aquí está el useEffect!
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'; // 👈 La antena de SignalR
 import { X, Swords } from 'lucide-react';
 import { ESTADOS_SALA, getEstadoLabel } from '../constants/estados';
@@ -38,6 +38,7 @@ interface ModalLobbyProps {
   onPodio2Change: (val: number) => void;
   onPodio3Change: (val: number) => void;
   onActualizarSala: () => void;
+  onCancelarSala?: (salaId: number) => void; // Necesitamos esta función para el botón de cancelar sala
 }
 
 const ModalLobby: React.FC<ModalLobbyProps> = ({
@@ -67,53 +68,61 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
   onPodio2Change,
   onPodio3Change,
   onActualizarSala,
+  onCancelarSala,
 }) => {
   // =========================================================
   // 👇 MAGIA MULTIJUGADOR: SignalR (Tiempo Real) 👇
   // =========================================================
+  
+  // Usamos useRef para tener la función más reciente sin reiniciar SignalR
+  const onActualizarSalaRef = useRef(onActualizarSala);
   useEffect(() => {
-    // Nos conectamos desde ESPERANDO para no perder el salto cuando la sala se llena.
-    const necesitaActualizacionEnVivo =
-      sala.estado === ESTADOS_SALA.ESPERANDO ||
-      sala.estado === ESTADOS_SALA.SORTEO ||
-      sala.estado === ESTADOS_SALA.DRAFTING;
+    onActualizarSalaRef.current = onActualizarSala;
+  }, [onActualizarSala]);
 
-    if (!necesitaActualizacionEnVivo || !onActualizarSala) return;
-
-    // 1. Construimos la antena apuntando a tu Backend
+  useEffect(() => {
+    // 1. Construimos la antena
     const connection = new HubConnectionBuilder()
       .withUrl(SIGNALR_URL)
       .configureLogging(LogLevel.Information)
       .build();
 
-    // 2. Encendemos la antena y nos sintonizamos en el canal de esta sala
+    let isMounted = true; // Truco para saber si el modal sigue abierto
+
+    // 2. Encendemos la antena
     const iniciarConexion = async () => {
       try {
         await connection.start();
-        console.log('⚡ SignalR Conectado al Hub!');
-
-        // Le decimos al backend: "Méteme al grupo de la Sala X"
-        await connection.invoke('UnirseASala', sala.id.toString());
-      } catch (error) {
-        console.error('Error al conectar con SignalR:', error);
+        if (isMounted) {
+          console.log('⚡ SignalR Conectado al Hub!');
+          await connection.invoke('UnirseASala', sala.id.toString());
+        }
+      } catch (error: any) {
+        // Si el error fue por apagarlo rápido (React Strict Mode), lo ignoramos
+        if (error.name === 'AbortError' || error.message?.includes('negotiation')) {
+          console.log('ℹ️ SignalR: Conexión abortada de forma segura por React.');
+        } else {
+          console.error('Error al conectar con SignalR:', error);
+        }
       }
     };
 
     // 3. Escuchamos el grito del servidor
     connection.on('ActualizarPantalla', () => {
-      console.log(
-        '🔄 ¡Un capitán hizo un movimiento! Actualizando pantalla...',
-      );
-      onActualizarSala(); // Refrescamos los datos al instante
+      console.log('🔄 ¡El servidor pide actualizar la pantalla!');
+      if (onActualizarSalaRef.current) {
+        onActualizarSalaRef.current(); // Llamamos a tu función de recarga
+      }
     });
 
     iniciarConexion();
 
-    // 4. Apagamos la antena si el usuario cierra el modal
+    // 4. Apagamos la antena SOLO si el usuario cierra el modal
     return () => {
+      isMounted = false;
       connection.stop();
     };
-  }, [sala.id, sala.estado, onActualizarSala]);
+  }, [sala.id]); // 👈 LA CLAVE: Solo reactivamos si cambia de Sala (ID), NO si cambia de estado.
   // =========================================================
   const miParticipacion = sala.participantes?.find(
     (p: { username: string; equipo: string }) => p.username === username,
@@ -145,8 +154,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
         {/* Estado badge floating */}
         <div className="absolute top-4 right-14 z-50 pointer-events-none pr-2">
           <span
-            className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg transition-all ${
-              sala.estado === 'ESPERANDO'
+            className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg transition-all ${sala.estado === 'ESPERANDO'
                 ? 'bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
                 : sala.estado === 'SORTEO' || sala.estado === 'DRAFTING'
                   ? 'bg-orange-900/40 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.3)]'
@@ -155,7 +163,7 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
                     : sala.estado === 'FINALIZADA'
                       ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
                       : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
-            }`}
+              }`}
           >
             {sala.estado === 'ESPERANDO' && (
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -173,19 +181,36 @@ const ModalLobby: React.FC<ModalLobbyProps> = ({
           </span>
         </div>
 
-        {/* Admin: Iniciar Partida button for Auto Chess ESPERANDO */}
-        {sala.estado === 'ESPERANDO' &&
-          userRol === 'SUPERADMIN' &&
-          sala.formato === FORMATOS_VALIDOS.AUTO_CHESS && (
-            <div className="pt-4 px-6 shrink-0 flex justify-center z-40 relative bg-[#0b0c1b]">
+        {/* Controles de Admin en ESPERANDO (Aparecen arriba del Header) */}
+        {sala.estado === 'ESPERANDO' && userRol === 'SUPERADMIN' && (
+          <div className="pt-6 px-6 shrink-0 flex flex-wrap justify-center gap-4 z-40 relative bg-[#0b0c1b]">
+            
+            {/* 👇 BOTÓN CANCELAR: Aparece para TODOS los formatos (5v5 y AutoChess) 👇 */}
+            <button
+              onClick={() => {
+                const confirmar = window.confirm(
+                  '🚨 ¿Estás seguro de cancelar esta sala? Se devolverá automáticamente el dinero a todos los jugadores inscritos.'
+                );
+                if (confirmar && onCancelarSala) {
+                  onCancelarSala(sala.id); 
+                }
+              }}
+              className="bg-red-950/40 border border-red-500/50 hover:bg-red-900/60 text-red-400 font-bold uppercase tracking-widest py-3 px-6 rounded-xl transition-all flex items-center gap-2"
+            >
+              <X size={18} /> Cancelar Sala y Reembolsar
+            </button>
+
+            {/* 👇 BOTÓN INICIAR: Aparece SOLO para Auto Chess 👇 */}
+            {sala.formato === FORMATOS_VALIDOS.AUTO_CHESS && (
               <button
                 onClick={onEmpezarPartida}
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-black uppercase tracking-widest py-3 px-8 rounded-xl shadow-[0_0_20px_rgba(234,88,12,0.4)] transition-all hover:scale-105 flex items-center gap-2"
               >
                 Iniciar Partida Ahora
               </button>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
         {/* Header */}
         <LobbyHeader sala={sala} />

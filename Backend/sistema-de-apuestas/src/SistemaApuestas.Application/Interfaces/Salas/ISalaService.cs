@@ -24,5 +24,7 @@ namespace SistemaApuestas.Application.Interfaces.Salas
         Task<string> ReclutarJugadorAsync(int salaId, int capitanId, int jugadorReclutadoId);
 
         Task<string> ForzarCapitanAsync(int salaId, int nuevoCapitanId);
+
+        Task<string> CancelarSalaYReembolsarAdminAsync(int salaId);
     }
 }

@@ -10,6 +10,14 @@ interface LobbyHeaderProps {
 const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
   const maxJugadores = isAutoChess(sala.formato) ? 8 : sala.maxJugadores || 10;
 
+  // Lógica inteligente para mostrar el premio correcto y evitar el 0.00
+  let textoPremio = `🏆 POZO: S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
+  
+  if (!isAutoChess(sala.formato)) {
+    if (sala.costo === 6) textoPremio = "🏆 GANAS: S/ 10.00 c/u";
+    else if (sala.costo === 11) textoPremio = "🏆 GANAS: S/ 20.00 c/u";
+  }
+
   return (
     <div className="relative p-6 border-b border-white/5 shrink-0 bg-[#0b0c1b] z-30">
       <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-50"></div>
@@ -20,13 +28,23 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
         <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter">
           Partida de <span className="text-orange-500">{sala.creador}</span>
         </h2>
-        <div className="flex items-center justify-center gap-6 mt-4 text-sm font-bold text-gray-400">
+        {/* 👇 NUEVO BLOQUE CON EL POZO EN MEDIO 👇 */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 text-sm font-bold text-gray-400">
+
+          {/* 1. La Cuota */}
           <div className="flex items-center gap-2">
             <Coins size={16} className="text-yellow-500" /> Cuota:{' '}
             <span className="text-white">
               S/ {sala.costo?.toFixed(2) || '0.00'}
             </span>
           </div>
+
+          {/* El Pozo o Premio (Etiqueta Dorada Inteligente) */}
+          <div className="flex items-center gap-2 text-yellow-400 font-bold bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_10px_rgba(234,179,8,0.1)]">
+            {textoPremio}
+          </div>
+
+          {/* 3. Los Jugadores */}
           <div className="flex items-center gap-2">
             <Users size={16} className="text-blue-500" /> Jugadores:{' '}
             <span className="text-gray-400">
@@ -34,6 +52,7 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala }) => {
               {maxJugadores}
             </span>
           </div>
+
         </div>
 
         {sala.nombreLobby && sala.passwordLobby && (

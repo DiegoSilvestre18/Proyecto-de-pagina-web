@@ -538,6 +538,67 @@ namespace SistemaApuestas.Application.Services
             return $"Sala {salaId} cancelada. Se reembolsó el dinero a {jugadoresReembolsados} jugadores.";
         }
 
+        public async Task<string> CancelarSalaYReembolsarAdminAsync(int salaId)
+        {
+            // 1. Obtenemos la sala usando tu repositorio
+            var sala = await _repository.ObtenerSalaConParticipantesAsync(salaId);
+
+            if (sala == null)
+                throw new Exception("La sala no existe.");
+
+            if (sala.Estado != "ESPERANDO")
+                throw new Exception("Solo se pueden cancelar salas que están en espera.");
+
+            // 2. Cambiar el estado de la sala
+            sala.Estado = "CANCELADA";
+
+            // 3. Devolver el dinero exacto a cada participante
+            foreach (var participante in sala.Participantes)
+            {
+                // Buscamos cuánto pagó exactamente y de qué monedero
+                var movimientoInscripcion = await _repository.ObtenerMovimientoInscripcionAsync(participante.UsuarioId, salaId);
+
+                if (movimientoInscripcion != null)
+                {
+                    var usuario = await _repository.ObtenerUsuarioPorIdAsync(participante.UsuarioId);
+                    if (usuario != null)
+                    {
+                        // Calculamos los montos igual que en tu método de retiro
+                        decimal montoReal = movimientoInscripcion.MontoReal;
+                        decimal montoBono = movimientoInscripcion.MontoBono;
+                        decimal montoRecarga = ExtraerMontoRecarga(movimientoInscripcion.Concepto);
+
+                        // Devolvemos la plata a los saldos
+                        usuario.SaldoRecarga += montoRecarga;
+                        usuario.SaldoReal += montoReal;
+                        usuario.SaldoBono += montoBono;
+
+                        // Registramos el reembolso en el historial
+                        var movimientoReembolso = new Movimiento
+                        {
+                            UsuarioId = usuario.UsuarioId,
+                            SalaId = salaId,
+                            Tipo = "INGRESO",
+                            MontoReal = montoReal,
+                            MontoBono = montoBono,
+                            Concepto = $"Reembolso por cancelación de Sala {salaId} (Admin). Devuelto: S/{montoRecarga} Recarga, S/{montoReal} Real, S/{montoBono} Bono.",
+                            Fecha = DateTime.UtcNow
+                        };
+
+                        await _repository.AgregarMovimientoAsync(movimientoReembolso);
+                    }
+                }
+            }
+
+            // 4. Guardamos todos los cambios en la base de datos de un solo golpe
+            await _repository.GuardarCambiosAsync();
+
+            // 5. ¡Avisamos por SignalR a los jugadores para que su pantalla se actualice al instante!
+            await _hubContext.Clients.Group(salaId.ToString()).SendAsync("ActualizarPantalla");
+
+            return "Sala cancelada y fondos reembolsados exitosamente.";
+        }
+
         public async Task<SugerenciaGanadorResponseDto> SugerirGanadorAsync(int salaId)
         {
             var sala = await _repository.ObtenerSalaConParticipantesAsync(salaId);
@@ -769,6 +830,8 @@ namespace SistemaApuestas.Application.Services
 
             return !quedanLibres ? "¡Draft finalizado! La partida va a comenzar." : $"Jugador reclutado para el {equipoDelCapitan}.";
         }
+
+
 
 
 
