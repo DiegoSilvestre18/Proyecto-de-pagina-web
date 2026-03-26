@@ -6,6 +6,7 @@ import type { Sala } from './types/types';
 import {
   getSalas,
   solicitarSala,
+  cancelarSalaAdmin
 } from './Services/ServiceSalas';
 import { useAuth } from '../../../Context/AuthContext';
 
@@ -189,8 +190,22 @@ const Salas: React.FC = () => {
     return 0;
   });
 
+
+  // 👇 1. Función de tu amigo para navegar a la nueva página 👇
   const handleSelectSala = (sala: Sala) => {
     navigate(`/main/salas/${sala.id}`);
+  };
+
+  // 👇 2. TU función para el basurero mágico del Admin 👇
+  const handleCancelarSala = async (salaId: number) => {
+    try {
+      await cancelarSalaAdmin(salaId);
+      alert('✅ Sala cancelada y fondos reembolsados exitosamente.');
+      await refreshSalas(); // Recarga la lista de salas para que desaparezca
+    } catch (error) {
+      alert('❌ Error al cancelar la sala.');
+      console.error(error);
+    }
   };
 
   return (
@@ -208,6 +223,8 @@ const Salas: React.FC = () => {
         salas={salasOrdenadas}
         isLoading={isLoading}
         onSelectSala={handleSelectSala}
+        userRol={user?.rol} // 👈 NUEVO: Le avisa que eres admin
+        onCancelarSala={handleCancelarSala} // 👈 NUEVO: Le pasa la función del basurero
       />
 
       {/* Modal Crear / Solicitar Sala */}

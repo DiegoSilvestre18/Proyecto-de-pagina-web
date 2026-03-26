@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { ArrowLeft, Swords } from 'lucide-react';
+import { ArrowLeft, Swords, Trash2 } from 'lucide-react'; // 👈 Agregamos Trash2
 import { useAuth } from '../../../../Context/AuthContext';
 import { SIGNALR_URL } from '../../../../Global/Api';
 import type { Sala, CuentaJuego } from '../types/types';
 import {
-  getSalas, // Temporalmente usaremos getSalas hasta implementar un getSalaById si no existe
+  getSalas,
   unirseASala,
   getMisCuentasJuego,
   cambiarEquipoSala,
@@ -16,6 +16,7 @@ import {
   empezarPartidaAdmin,
   lanzarMonedaSala,
   reclutarJugadorDraft,
+  cancelarSalaAdmin, // 👈 Importamos tu función de cancelar
 } from '../Services/ServiceSalas';
 
 import { ESTADOS_SALA, getEstadoLabel } from '../constants/estados';
@@ -36,7 +37,6 @@ const SalaDetallePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados locales (anteriormente en Salas.tsx)
   const [cuentasJuego, setCuentasJuego] = useState<CuentaJuego[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<number | ''>('');
   const [selectedRole, setSelectedRole] = useState<string>('');
@@ -47,7 +47,7 @@ const SalaDetallePage: React.FC = () => {
 
   const fetchSala = useCallback(async () => {
     try {
-      const salas = await getSalas(); // Idealmente sería getSalaById(salaId)
+      const salas = await getSalas();
       const salaEncontrada = salas.find((s) => s.id.toString() === salaId);
       if (salaEncontrada) {
         setSala(salaEncontrada);
@@ -95,44 +95,58 @@ const SalaDetallePage: React.FC = () => {
     }
   }, [sala?.juego, cuentasParaSala.length]);
 
-  // SignalR Logic
+  // =========================================================
+  // 👇 MAGIA MULTIJUGADOR: SignalR (Parcheado anti-desconexión) 👇
+  // =========================================================
+  const fetchSalaRef = useRef(fetchSala);
   useEffect(() => {
-    if (!sala) return;
+    fetchSalaRef.current = fetchSala;
+  }, [fetchSala]);
 
-    const necesitaActualizacionEnVivo =
-      sala.estado === ESTADOS_SALA.ESPERANDO ||
-      sala.estado === ESTADOS_SALA.SORTEO ||
-      sala.estado === ESTADOS_SALA.DRAFTING;
-
-    if (!necesitaActualizacionEnVivo) return;
+  useEffect(() => {
+    if (!salaId) return;
 
     const connection = new HubConnectionBuilder()
       .withUrl(SIGNALR_URL)
       .configureLogging(LogLevel.Information)
       .build();
 
+    let isMounted = true;
+
     const iniciarConexion = async () => {
       try {
         await connection.start();
-        await connection.invoke('UnirseASala', sala.id.toString());
-      } catch (error) {
-        console.error('Error al conectar con SignalR:', error);
+        if (isMounted) {
+          console.log('⚡ SignalR Conectado al Hub!');
+          await connection.invoke('UnirseASala', salaId);
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError' || error.message?.includes('negotiation')) {
+          console.log('ℹ️ SignalR: Conexión abortada de forma segura por React.');
+        } else {
+          console.error('Error al conectar con SignalR:', error);
+        }
       }
     };
 
     connection.on('ActualizarPantalla', () => {
-      void fetchSala();
+      console.log('🔄 ¡El servidor pide actualizar la pantalla!');
+      if (fetchSalaRef.current) {
+        fetchSalaRef.current();
+      }
     });
 
     void iniciarConexion();
 
     return () => {
+      isMounted = false;
       void connection.stop();
     };
-  }, [sala?.id, sala?.estado, fetchSala]);
+  }, [salaId]); // 👈 LA CLAVE: Depende solo del ID de la URL, no del estado de la sala.
+  // =========================================================
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen text-white font-bold">Cargando sala...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-white font-bold animate-pulse">Cargando sala...</div>;
   }
 
   if (error || !sala) {
@@ -167,6 +181,18 @@ const SalaDetallePage: React.FC = () => {
   const soyCreador = sala.creador === user?.username;
   const esSuperAdmin = user?.rol === 'SUPERADMIN';
   const puedeVerLobby = !!miParticipacion || soyCreador || esSuperAdmin;
+
+  // 👇 NUEVA FUNCIÓN: Cancelar Sala y Reembolsar 👇
+  const handleCancelarSala = async () => {
+    if (!window.confirm('🚨 ¿Estás seguro de cancelar esta sala? Se devolverá el dinero a los jugadores inscritos.')) return;
+    try {
+      await cancelarSalaAdmin(sala.id);
+      alert('✅ Sala cancelada y fondos reembolsados exitosamente.');
+      navigate('/main/salas'); // Como la sala ya no existe, volvemos al listado
+    } catch (error: any) {
+      alert(error.message || '❌ Error al cancelar la sala.');
+    }
+  };
 
   const handleUnirseSala = async () => {
     if (hasGameAccount && !hasGameAccount(sala.juego || '')) {
@@ -283,33 +309,47 @@ const SalaDetallePage: React.FC = () => {
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/10"
         >
           <ArrowLeft size={18} />
-          <span className="font-bold text-sm tracking-widest uppercase">Volver a Salas</span>
+          <span className="font-bold text-sm tracking-widest uppercase hidden sm:inline">Volver a Salas</span>
         </button>
 
-        {/* Estado badge */}
-        <div
-          className={`inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg ${
-            sala.estado === 'ESPERANDO'
-              ? 'bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
-              : sala.estado === 'SORTEO' || sala.estado === 'DRAFTING'
-                ? 'bg-orange-900/40 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.3)]'
-                : sala.estado === 'EN_CURSO'
-                  ? 'bg-blue-900/40 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                  : sala.estado === 'FINALIZADA'
-                    ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-                    : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
-          }`}
-        >
-          {sala.estado === 'ESPERANDO' && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
-          {sala.estado === 'EN_CURSO' && <Swords size={14} className="text-blue-400" />}
-          {(sala.estado === 'SORTEO' || sala.estado === 'DRAFTING') && <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>}
-          {sala.estado === 'FINALIZADA' && <span className="w-2 h-2 rounded-full bg-red-500"></span>}
-          {(getEstadoLabel(sala.estado) || '').toUpperCase()}
+        <div className="flex items-center gap-3">
+          {/* 👇 BOTÓN ADMIN: Cancelar Sala (Visible en todas las salas ESPERANDO) 👇 */}
+          {esSuperAdmin && sala.estado === 'ESPERANDO' && (
+            <button
+              onClick={handleCancelarSala}
+              className="flex items-center gap-2 px-4 py-2 bg-red-950/40 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+              title="Cancelar Sala y Reembolsar"
+            >
+              <Trash2 size={18} />
+              <span className="font-bold text-sm tracking-widest uppercase hidden md:inline">Cancelar Sala</span>
+            </button>
+          )}
+
+          {/* Estado badge */}
+          <div
+            className={`inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-lg ${
+              sala.estado === 'ESPERANDO'
+                ? 'bg-green-900/40 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
+                : sala.estado === 'SORTEO' || sala.estado === 'DRAFTING'
+                  ? 'bg-orange-900/40 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.3)]'
+                  : sala.estado === 'EN_CURSO'
+                    ? 'bg-blue-900/40 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                    : sala.estado === 'FINALIZADA'
+                      ? 'bg-red-900/40 text-red-500 border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                      : 'bg-gray-900/40 text-gray-400 border-gray-500/50'
+            }`}
+          >
+            {sala.estado === 'ESPERANDO' && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
+            {sala.estado === 'EN_CURSO' && <Swords size={14} className="text-blue-400" />}
+            {(sala.estado === 'SORTEO' || sala.estado === 'DRAFTING') && <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>}
+            {sala.estado === 'FINALIZADA' && <span className="w-2 h-2 rounded-full bg-red-500"></span>}
+            {(getEstadoLabel(sala.estado) || '').toUpperCase()}
+          </div>
         </div>
       </div>
 
       {/* Admin: Iniciar Partida button for Auto Chess ESPERANDO */}
-      {sala.estado === 'ESPERANDO' && user?.rol === 'SUPERADMIN' && sala.formato === FORMATOS_VALIDOS.AUTO_CHESS && (
+      {sala.estado === 'ESPERANDO' && esSuperAdmin && sala.formato === FORMATOS_VALIDOS.AUTO_CHESS && (
         <div className="mb-6 flex justify-center">
           <button
             onClick={handleEmpezarPartida}
@@ -322,7 +362,7 @@ const SalaDetallePage: React.FC = () => {
 
       {/* Main Container */}
       <div className="bg-[#141526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col flex-1">
-        {/* Panoraminc Header */}
+        {/* Panoramic Header */}
         <LobbyHeader sala={sala} puedeVerLobby={puedeVerLobby} />
 
         {/* Content Layout: 2 Columns on Desktop */}
@@ -368,10 +408,10 @@ const SalaDetallePage: React.FC = () => {
             />
 
             {/* Admin Panel (EN_CURSO only) */}
-            {sala.estado === 'EN_CURSO' && user?.rol === 'SUPERADMIN' && (
+            {sala.estado === 'EN_CURSO' && esSuperAdmin && (
               <div className="mt-8 border-t border-white/10 pt-6">
                  <h3 className="font-black text-orange-500 tracking-widest uppercase text-sm mb-4">
-                  Administración
+                 Administración
                 </h3>
                 <AdminPanel
                   sala={sala}
