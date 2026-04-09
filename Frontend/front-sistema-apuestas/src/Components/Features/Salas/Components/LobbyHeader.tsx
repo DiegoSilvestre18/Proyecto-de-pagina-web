@@ -14,9 +14,18 @@ const LobbyHeader: React.FC<LobbyHeaderProps> = ({ sala, puedeVerLobby = false }
   // Lógica inteligente para mostrar el premio correcto y evitar el 0.00
   let textoPremio = `🏆 POZO: S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
   
-  if (!isAutoChess(sala.formato)) {
+  if (isAutoChess(sala.formato)) {
+    if (sala.costo === 3) textoPremio = "🥇 1ro: S/ 12 | 🥈 2do: S/ 5 | 🥉 3ro: S/ 3";
+    else if (sala.costo === 5) textoPremio = "🥇 1ro: S/ 20 | 🥈 2do: S/ 10 | 🥉 3ro: S/ 6";
+    else if (sala.costo === 10) textoPremio = "🥇 1ro: S/ 40 | 🥈 2do: S/ 18 | 🥉 3ro: S/ 14";
+    else if (sala.costo === 15) textoPremio = "🥇 1ro: S/ 60 | 🥈 2do: S/ 24 | 🥉 3ro: S/ 20";
+    else textoPremio = `🏆 POZO: S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`; 
+  } else {
+    // Salas de 5v5
     if (sala.costo === 6) textoPremio = "🏆 GANAS: S/ 10.00 c/u";
     else if (sala.costo === 11) textoPremio = "🏆 GANAS: S/ 20.00 c/u";
+    // 👇 NUEVO: Si es una entrada personalizada, lee el premio que pusiste en el formulario 👇
+    else textoPremio = `🏆 GANAS: S/ ${sala.premioARepartir?.toFixed(2) || '0.00'} c/u`;
   }
 
   return (

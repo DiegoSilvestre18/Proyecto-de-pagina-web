@@ -42,11 +42,21 @@ const SalasList: React.FC<SalasListProps> = ({
 
       {!isLoading &&
         salas.map((sala) => {
+        
           // 👇 Magia para la lista 👇
           let textoPremioLista = `🏆 POZO S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
-          if (sala.formato !== 'Auto Chess') { 
+          
+          if (sala.formato === 'Auto Chess' || sala.formato?.toUpperCase().includes('AUTO CHESS')) { 
+            if (sala.costo === 3) textoPremioLista = "🥇 S/12 | 🥈 S/5 | 🥉 S/3";
+            else if (sala.costo === 5) textoPremioLista = "🥇 S/20 | 🥈 S/10 | 🥉 S/6";
+            else if (sala.costo === 10) textoPremioLista = "🥇 S/40 | 🥈 S/18 | 🥉 S/14";
+            else if (sala.costo === 15) textoPremioLista = "🥇 S/60 | 🥈 S/24 | 🥉 S/20";
+            else textoPremioLista = `🏆 POZO S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
+          } else { 
             if (sala.costo === 6) textoPremioLista = "🏆 GANAS S/ 10.00";
             else if (sala.costo === 11) textoPremioLista = "🏆 GANAS S/ 20.00";
+            // 👇 NUEVO: Si es una entrada personalizada 👇
+            else textoPremioLista = `🏆 GANAS S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
           }
 
           return (
