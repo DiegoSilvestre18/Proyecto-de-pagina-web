@@ -42,11 +42,37 @@ const SalasList: React.FC<SalasListProps> = ({
 
       {!isLoading &&
         salas.map((sala) => {
-          // 👇 Magia para la lista 👇
-          let textoPremioLista = `🏆 POZO S/ ${sala.premioARepartir?.toFixed(2) || '0.00'}`;
-          if (sala.formato !== 'Auto Chess') { 
-            if (sala.costo === 6) textoPremioLista = "🏆 GANAS S/ 10.00";
-            else if (sala.costo === 11) textoPremioLista = "🏆 GANAS S/ 20.00";
+
+          // 👇 Pon esto temporalmente para espiar qué nos manda el backend 👇
+          console.log("Espiando la sala:", sala);
+          // 👇 Magia para la lista (A PRUEBA DE FALLOS Y DE TYPESCRIPT) 👇
+          // 👇 Magia para la lista (A PRUEBA DE FALLOS Y MATEMÁTICA CORRECTA) 👇
+          const premioReal = sala.premioARepartir ?? 0;
+          const costoReal = sala.costo ?? 0;
+
+          // Si es formato 5v5, el pozo se divide entre los 5 ganadores. Si es 1v1, no se divide.
+          const es5v5 = sala.formato?.toUpperCase().includes('5V5');
+          const divisor = es5v5 ? 5 : 1;
+
+          const gananciaCalculada = premioReal > 0 
+            ? (premioReal / divisor) 
+            : (costoReal === 6 ? 10 : (costoReal === 11 ? 20 : costoReal * 2));
+
+          let textoPremioLista = "";
+          
+          if (sala.formato === 'Auto Chess' || sala.formato?.toUpperCase().includes('AUTO CHESS')) { 
+            if (costoReal === 3) textoPremioLista = "🥇 S/12 | 🥈 S/5 | 🥉 S/3";
+            else if (costoReal === 5) textoPremioLista = "🥇 S/20 | 🥈 S/10 | 🥉 S/6";
+            else if (costoReal === 10) textoPremioLista = "🥇 S/40 | 🥈 S/18 | 🥉 S/14";
+            else if (costoReal === 15) textoPremioLista = "🥇 S/60 | 🥈 S/24 | 🥉 S/20";
+            else {
+               // En Auto Chess el premioReal sí es el Pozo Total a repartir en el Top 3
+               const pozoAutoChess = premioReal > 0 ? premioReal : costoReal * 2;
+               textoPremioLista = `🏆 POZO S/ ${pozoAutoChess.toFixed(2)}`;
+            }
+          } else { 
+            // Para 5v5 normal o 1v1, muestra la ganancia individual
+            textoPremioLista = `🏆 GANAS S/ ${gananciaCalculada.toFixed(2)}`;
           }
 
           return (
@@ -59,34 +85,32 @@ const SalasList: React.FC<SalasListProps> = ({
                 <div className="flex items-center gap-3 mb-1">
                   <p className="text-[10px] text-gray-500 font-bold uppercase flex items-center gap-1.5">
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        sala.estado === 'ESPERANDO'
-                          ? 'bg-green-500 animate-pulse'
-                          : sala.estado === ESTADOS_SALA.SORTEO ||
-                            sala.estado === ESTADOS_SALA.DRAFTING
+                      className={`w-1.5 h-1.5 rounded-full ${sala.estado === 'ESPERANDO'
+                        ? 'bg-green-500 animate-pulse'
+                        : sala.estado === ESTADOS_SALA.SORTEO ||
+                          sala.estado === ESTADOS_SALA.DRAFTING
                           ? 'bg-orange-400 animate-pulse'
                           : sala.estado === 'EN_CURSO'
-                          ? 'bg-blue-500 animate-pulse'
-                          : sala.estado === 'FINALIZADA'
-                          ? 'bg-red-500'
-                          : 'bg-gray-500'
-                      }`}
+                            ? 'bg-blue-500 animate-pulse'
+                            : sala.estado === 'FINALIZADA'
+                              ? 'bg-red-500'
+                              : 'bg-gray-500'
+                        }`}
                     ></span>
                     {sala.fecha}
                   </p>
                   <span
-                    className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider transition-all ${
-                      sala.estado === 'ESPERANDO'
-                        ? 'bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
-                        : sala.estado === ESTADOS_SALA.SORTEO ||
-                          sala.estado === ESTADOS_SALA.DRAFTING
+                    className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider transition-all ${sala.estado === 'ESPERANDO'
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
+                      : sala.estado === ESTADOS_SALA.SORTEO ||
+                        sala.estado === ESTADOS_SALA.DRAFTING
                         ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.2)]'
                         : sala.estado === 'EN_CURSO'
-                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
-                        : sala.estado === 'FINALIZADA'
-                        ? 'bg-red-500/10 text-red-500 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
-                        : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                    }`}
+                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                          : sala.estado === 'FINALIZADA'
+                            ? 'bg-red-500/10 text-red-500 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
+                            : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                      }`}
                   >
                     {getEstadoLabel(sala.estado)}
                   </span>

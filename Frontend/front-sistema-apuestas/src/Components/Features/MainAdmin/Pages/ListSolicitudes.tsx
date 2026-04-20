@@ -32,16 +32,24 @@ export const ListSolicitudes: React.FC<ListType> = ({
   const [salaAFinalizar, setSalaAFinalizar] = useState<number | null>(null);
   const [procesandoGanador, setProcesandoGanador] = useState(false);
 
+  // 👇 1. EL EFECTO MÁGICO CON POLLING 👇
   useEffect(() => {
-    if (name === 'pendientes') {
-      void fetchSolicitudesPendientes();
-    } else if (name === 'mis-solicitudes') {
-      void fetchMisSolicitudes();
-    }
+    // Carga inicial o manual (Muestra la ruedita de carga)
+    if (name === 'pendientes') void fetchSolicitudesPendientes(false);
+    else if (name === 'mis-solicitudes') void fetchMisSolicitudes(false);
+
+    // Auto-Actualización cada 15 segundos (Silencioso, sin ruedita)
+    const intervalId = setInterval(() => {
+      if (name === 'pendientes') void fetchSolicitudesPendientes(true);
+      else if (name === 'mis-solicitudes') void fetchMisSolicitudes(true);
+    }, 15000);
+
+    return () => clearInterval(intervalId); // Limpiamos el reloj si sale de la página
   }, [name, refreshKey, soloSalas]);
 
-  const fetchSolicitudesPendientes = async () => {
-    setLoading(true);
+  // 👇 2. FUNCIONES ADAPTADAS PARA SER SILENCIOSAS 👇
+  const fetchSolicitudesPendientes = async (isSilent = false) => {
+    if (!isSilent) setLoading(true); // Solo carga la primera vez o si es manual
     try {
       let finanzasArr: solicitudType[] = [];
       if (!soloSalas) {
@@ -49,7 +57,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
         finanzasArr = Array.isArray(finanzasResp)
           ? finanzasResp.map((sol: any) => ({
             ...sol,
-            // 👇 Leemos la fecha real que viene de C# (fechaCreacion)
             fechaEmision: sol.fechaCreacion
           }))
           : [];
@@ -83,8 +90,8 @@ export const ListSolicitudes: React.FC<ListType> = ({
     }
   };
 
-  const fetchMisSolicitudes = async () => {
-    setLoading(true);
+  const fetchMisSolicitudes = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       let finanzasArr: solicitudType[] = [];
       if (!soloSalas) {
@@ -92,7 +99,6 @@ export const ListSolicitudes: React.FC<ListType> = ({
         finanzasArr = Array.isArray(finanzasResp)
           ? finanzasResp.map((sol: any) => ({
             ...sol,
-            // 👇 Igual aquí
             fechaEmision: sol.fechaCreacion
           }))
           : [];

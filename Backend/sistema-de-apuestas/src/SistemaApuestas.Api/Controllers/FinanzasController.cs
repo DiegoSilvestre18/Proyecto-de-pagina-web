@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaApuestas.Application.DTOs.Financial.Request;
 using SistemaApuestas.Application.Interfaces.Financial;
 using System.Security.Claims;
+using System;
+using System.Threading.Tasks;
 
 namespace SistemaApuestas.Api.Controllers
 {
@@ -25,17 +27,32 @@ namespace SistemaApuestas.Api.Controllers
         [HttpPost("recargas/solicitar")]
         public async Task<IActionResult> SolicitarRecarga([FromBody] SolicitudRecargaDto request)
         {
-            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var resultado = await _financialService.SolicitarRecargaAsync(usuarioId, request);
-            return Ok(resultado);
+            try
+            {
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var resultado = await _financialService.SolicitarRecargaAsync(usuarioId, request);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpPost("retiros/solicitar")]
         public async Task<IActionResult> SolicitarRetiro([FromBody] SolicitudRetiroDto request)
         {
-            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var resultado = await _financialService.SolicitarRetiroAsync(usuarioId, request);
-            return Ok(resultado);
+            try
+            {
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var resultado = await _financialService.SolicitarRetiroAsync(usuarioId, request);
+                return Ok(resultado);
+            }
+            catch (Exception ex) // 👈 Aquí atrapamos el error del retiro pendiente
+            {
+                // Devolvemos el mensaje exacto para que el Frontend lo muestre en un alert()
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpGet("mi-saldo")]
@@ -67,21 +84,24 @@ namespace SistemaApuestas.Api.Controllers
             return Ok(solicitudes);
         }
 
-        /// <summary>
-        /// TOMAR SOLICITUD — Operación atómica anti-concurrencia.
-        /// Si otro admin ya la tomó, retorna 409 Conflict.
-        /// </summary>
         [HttpPut("admin/solicitudes/tomar")]
         [Authorize(Roles = "SUPERADMIN")]
         public async Task<IActionResult> TomarSolicitud([FromBody] TomarSolicitudDto request)
         {
-            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var resultado = await _financialService.TomarSolicitudAsync(adminId, request.SolicitudId, request.Tipo);
+            try
+            {
+                var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var resultado = await _financialService.TomarSolicitudAsync(adminId, request.SolicitudId, request.Tipo);
 
-            if (resultado.Estado == "CONFLICTO")
-                return Conflict(resultado);
+                if (resultado.Estado == "CONFLICTO")
+                    return Conflict(resultado);
 
-            return Ok(resultado);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpPut("admin/solicitudes/liberar")]
@@ -97,18 +117,32 @@ namespace SistemaApuestas.Api.Controllers
         [Authorize(Roles = "SUPERADMIN")]
         public async Task<IActionResult> ProcesarRecarga([FromBody] ProcesarSolicitudDto request)
         {
-            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var resultado = await _financialService.ProcesarRecargaAsync(adminId, request);
-            return Ok(resultado);
+            try
+            {
+                var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var resultado = await _financialService.ProcesarRecargaAsync(adminId, request);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpPut("admin/retiros/procesar")]
         [Authorize(Roles = "SUPERADMIN")]
         public async Task<IActionResult> ProcesarRetiro([FromBody] ProcesarSolicitudDto request)
         {
-            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var resultado = await _financialService.ProcesarRetiroAsync(adminId, request);
-            return Ok(resultado);
+            try
+            {
+                var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var resultado = await _financialService.ProcesarRetiroAsync(adminId, request);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpPost("admin/bonos/otorgar")]

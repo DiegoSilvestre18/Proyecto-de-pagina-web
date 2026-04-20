@@ -36,18 +36,24 @@ const SolicitudRetiro: React.FC = () => {
     setError('');
 
     const saldo = user?.saldoReal ?? 0;
+
+    // 1. Verifica si la cuenta en general tiene al menos 20 soles
     if (saldo < 20) {
-      setError('Tu saldo debe ser mayor a S/ 20.00 para solicitar un retiro.');
+      setError('Tu saldo total debe ser de al menos S/ 20.00 para poder realizar retiros.');
       return;
     }
-    if (formData.monto <= 0) {
-      setError('El monto debe ser mayor a 0.');
+
+    // 👇 2. NUEVA VALIDACIÓN: Verifica que el monto tipeado sea al menos 20
+    if (formData.monto < 20) {
+      setError('El monto mínimo a retirar es de S/ 20.00.');
       return;
     }
+
     if (formData.monto > saldo) {
       setError('El monto no puede ser mayor a tu saldo disponible.');
       return;
     }
+
     if (!formData.cuentaDestino.trim()) {
       setError('Debes ingresar una cuenta destino.');
       return;
@@ -56,8 +62,10 @@ const SolicitudRetiro: React.FC = () => {
     try {
       await postSolicitarRetiro(formData);
       setShowModal(true);
-    } catch {
-      setError('Ocurrió un error al enviar la solicitud. Inténtalo de nuevo.');
+    } catch (err: any) {
+      // 👇 MAGIA: Atrapamos el mensaje exacto que nos envía el backend (C#)
+      const mensajeBackend = err.response?.data?.mensaje || err.message || 'Ocurrió un error al enviar la solicitud. Inténtalo de nuevo.';
+      setError(mensajeBackend);
     }
   };
 

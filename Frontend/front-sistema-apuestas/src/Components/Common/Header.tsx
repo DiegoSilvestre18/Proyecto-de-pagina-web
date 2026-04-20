@@ -81,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
 
       <div className="flex items-center gap-3 lg:gap-6">
         <a
-          href="https://discord.gg/uNjeU5c5"
+          href="https://discord.gg/pxjvS5ZhRZ"
           target="_blank"
           rel="noopener noreferrer"
           className="hidden lg:flex items-center gap-2 text-sm font-bold bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 py-2 rounded-lg transition-colors shadow-lg shadow-[#5865F2]/20"

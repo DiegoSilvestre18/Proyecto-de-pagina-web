@@ -540,6 +540,7 @@ namespace SistemaApuestas.Application.Services
                 juego = s.Juego,
                 formato = s.Formato ?? s.TipoSala, // <-- Tu ajuste para el 5v5 Captains Mode
                 costo = s.CostoEntrada,
+                premioARepartir = s.PremioARepartir,
                 estado = s.Estado,
                 fecha = s.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
                 jugadores = s.Participantes.Count,

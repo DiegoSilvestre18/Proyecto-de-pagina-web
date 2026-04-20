@@ -251,17 +251,11 @@ namespace SistemaApuestas.Application.Services.Financial
 
             if (request.Aprobar)
             {
-                // Validación extra: verificar que el usuario siga teniendo saldo
-                if (usuario!.SaldoReal < retiro.Monto)
-                    throw new Exception("El usuario ya no tiene saldo suficiente para este retiro.");
+                // YA NO restamos el saldo aquí, porque ya se restó cuando se creó la solicitud.
 
                 // Actualizamos la solicitud con los datos del Admin
                 retiro.Estado = "APROBADA";
                 retiro.NroOperacion = request.NroOperacion;
-
-                // LE RESTAMOS EL DINERO AL JUGADOR
-                usuario.SaldoReal -= retiro.Monto;
-                await _usuarioRepo.ActualizarAsync(usuario);
                 retiro.FechaPago = DateTime.UtcNow;
 
                 // Registrar en el Libro Mayor (MOVIMIENTOS) como EGRESO
@@ -278,8 +272,24 @@ namespace SistemaApuestas.Application.Services.Financial
             }
             else
             {
+                // SI RECHAZA: Devolver el saldo al usuario
+                usuario!.SaldoReal += retiro.Monto;
+                await _usuarioRepo.ActualizarAsync(usuario);
+
                 retiro.Estado = "RECHAZADA";
                 retiro.FechaPago = DateTime.UtcNow;
+
+                // Opcional: Registrar el rechazo y reembolso en movimientos para tener trazabilidad
+                var movimientoReembolso = new MovimientoDto
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    RetiroId = retiro.RetiroId,
+                    Tipo = "INGRESO",
+                    MontoReal = retiro.Monto,
+                    Concepto = $"Reembolso por Retiro Rechazado ({retiro.Metodo})",
+                    Fecha = DateTime.UtcNow
+                };
+                await _auditRepo.RegistrarMovimientoAsync(movimientoReembolso);
             }
 
             await _retiroRepo.ActualizarAsync(retiro);
@@ -288,7 +298,7 @@ namespace SistemaApuestas.Application.Services.Financial
             {
                 SolicitudId = retiro.RetiroId,
                 Estado = retiro.Estado,
-                Mensaje = request.Aprobar ? "Retiro aprobado." : "Retiro rechazado."
+                Mensaje = request.Aprobar ? "Retiro aprobado." : "Retiro rechazado. Saldo devuelto al usuario."
             };
         }
 
